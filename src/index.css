@@ -31,18 +31,37 @@ body {
 }
 
 @keyframes pageEnter {
-  from {
+  0% {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(10px);
   }
-  to {
+  100% {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
+.animate-page-enter {
+  animation: pageEnter 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 .page-enter {
-  animation: pageEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: pageEnter 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes layoutShift {

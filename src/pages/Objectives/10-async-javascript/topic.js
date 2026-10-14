@@ -1,116 +1,207 @@
 export const topic10 = {
   id: 10,
   code: 'OBJ-10',
-  title: 'Asynchronous JavaScript & Fetch API',
-  subtitle: 'Synchronous vs asynchronous, the Event Loop, Promises, and async / await',
-  category: 'browser',
+  title: 'Asynchronous JavaScript: Callbacks, Promises & Async/Await',
+  subtitle: 'The non-blocking model, callback hell, Promise states, and async/await syntax',
+  category: 'advanced',
+  phase: 'Advanced',
   estimatedTime: '25 mins',
-  desc: 'Understand non-blocking concurrency, how the Event Loop coordinates the Call Stack and Microtask Queue, Promise chaining, and ergonomic async/await error handling with Fetch.',
+  desc: 'Unlock asynchronous concurrency in JavaScript without blocking the main UI thread. Progress through the historical evolution from callback pyramids to modern ES6 Promises (pending, fulfilled, rejected), and master the elegant async/await syntax with robust error handling.',
+
+  // Layer 1: Expected to Learn
+  expectedToLearn: [
+    'Understand why JavaScript requires non-blocking asynchronous programming for I/O operations.',
+    'Recognize Callback Hell ("Pyramid of Doom") and the inversion of control problem.',
+    'Construct, consume, and chain ES6 Promises using .then(), .catch(), and .finally().',
+    'Execute concurrent operations in parallel using Promise.all() and Promise.allSettled().',
+    'Refactor promise chains into clean, sequential-looking asynchronous code using async and await.'
+  ],
+
+  // Layer 2: Real-World Analogy
+  analogy: {
+    concept: 'Promises & Asynchronous Concurrency',
+    analogyText: 'Think of ordering food at a busy fast-food restaurant: synchronous code would force you to stand frozen at the register for 15 minutes waiting for your burger to cook while a line of 100 people waits behind you in agony. A Promise is the electronic buzzer the cashier hands you: while your order is "pending", you can sit with friends and browse your phone (non-blocking). When the food is ready, the buzzer vibrates ("fulfilled" with food); if the kitchen caught fire, it flashes red ("rejected" with an error message).'
+  },
+
+  // Layer 2 & Layer 3: Concept Cards
   cards: [
     {
       id: 'card-10-1',
-      title: 'The Event Loop & Call Stack',
-      description: 'JavaScript is single-threaded: it has one Call Stack and can execute only one instruction at a time. The browser runtime provides Web APIs (timers, fetch) that run on background threads. When asynchronous tasks finish, their callbacks enter the Microtask Queue (Promises) or Callback Queue (setTimeout) before the Event Loop pushes them onto the stack.',
-      codeSample: `console.log('1. Call Stack Start');
+      title: 'The Non-Blocking Model & Callback Hell',
+      description: 'JavaScript is single-threaded, meaning it has one call stack. If network requests or file reads were synchronous, the browser UI would freeze completely during the transfer. Historically, asynchronous tasks were handled with nested callbacks, leading to deeply indented "Callback Hell" that was difficult to read, maintain, and error-handle.',
+      analogy: 'Callback Hell is nested parentheses stretching so far to the right of your monitor that it looks like a steep pyramid of doom.',
+      codeSample: `// The Legacy Callback Hell (Pyramid of Doom):
+// getUser(userId, (user) => {
+//   getEnrollment(user.id, (enrollment) => {
+//     getGrades(enrollment.courseId, (grades) => {
+//       console.log('Grades received:', grades);
+//     });
+//   });
+// });
 
-setTimeout(() => {
-  console.log('4. MacroTask Queue (Timer)');
-}, 0);
-
-Promise.resolve().then(() => {
-  console.log('3. MicroTask Queue (Promise)');
-});
-
-console.log('2. Call Stack End');
-// Execution output order: 1 -> 2 -> 3 -> 4!`,
-      keyTakeaway: 'Microtasks (Promises) always run before macrotasks (setTimeout), and synchronous code always runs first.'
+// Modern solution: Promises flatten the pyramid into a readable chain!`,
+      keyTakeaway: 'Nested callbacks cause inversion of control and error-handling nightmares; Promises flatten asynchronous control flow.'
     },
     {
       id: 'card-10-2',
-      title: 'Promises: pending, fulfilled, and rejected',
-      description: 'A Promise represents the eventual completion or failure of an asynchronous operation. A promise starts in a "pending" state and settles as either "fulfilled" (with a value) or "rejected" (with a reason/error). Handle outcomes using .then(), .catch(), and .finally().',
-      codeSample: `const verifyStudentEnrollment = (studentId) => {
+      title: 'Promises: Pending, Fulfilled & Rejected',
+      description: 'A Promise is an object representing the eventual completion or failure of an asynchronous operation. It exists in one of three mutually exclusive states: Pending (initial state), Fulfilled (operation succeeded with a value), or Rejected (operation failed with an error).',
+      analogy: 'A Promise is a lottery ticket: right now it is pending; after the drawing it is either fulfilled with a prize or rejected.',
+      codeSample: `// Creating a Promise
+function fetchStudentData(studentId) {
   return new Promise((resolve, reject) => {
-    if (studentId === '0000001' || studentId === '1339523') {
-      resolve({ status: 'Enrolled', id: studentId });
-    } else {
-      reject(new Error('Student ID not found in database'));
-    }
+    setTimeout(() => {
+      if (studentId === '0000001') {
+        resolve({ id: '0000001', name: 'Alexander Vance', status: 'Enrolled' });
+      } else {
+        reject(new Error('Student ID not found in database.'));
+      }
+    }, 500);
   });
-};
+}
 
-verifyStudentEnrollment('0000001')
-  .then((student) => console.log('Verified:', student))
-  .catch((err) => console.error('Verification Error:', err.message));`,
-      keyTakeaway: 'Promises solve "callback hell" by providing a standard, chainable interface for asynchronous values.'
+// Consuming with .then() and .catch()
+fetchStudentData('0000001')
+  .then(data => console.log('Resolved Data:', data.name))
+  .catch(err => console.error('Caught Rejection:', err.message))
+  .finally(() => console.log('Promise lifecycle completed.'));`,
+      keyTakeaway: 'A Promise guarantees that its resolution or rejection handler will only ever execute once.'
     },
     {
       id: 'card-10-3',
-      title: 'async / await & Modern Concurrency',
-      description: 'The async and await keywords allow writing asynchronous, promise-based code that looks and reads like synchronous sequential code. An async function always returns a promise. Inside an async function, await pauses execution until the promise settles.',
-      codeSample: `async function fetchStudentRecord(studentId) {
-  try {
-    const student = await verifyStudentEnrollment(studentId);
-    console.log(\`Loaded student record: \${student.id}\`);
-    return student;
-  } catch (error) {
-    console.error('Handled cleanly in catch:', error.message);
-    return null;
-  }
-}
+      title: 'Promise Combinators: Promise.all & allSettled',
+      description: 'When running multiple asynchronous tasks concurrently, promise combinators maximize performance. Promise.all([p1, p2]) runs tasks in parallel and resolves when ALL pass (rejects immediately if ANY fail). Promise.allSettled([p1, p2]) waits for all promises to finish, returning an array of their individual statuses.',
+      analogy: 'Promise.all is a relay team: everyone must finish, and one dropped baton fails the race; allSettled is taking attendance for an entire classroom.',
+      codeSample: `const p1 = Promise.resolve('Syllabus Loaded');
+const p2 = new Promise(res => setTimeout(() => res('Profile Synced'), 300));
+const p3 = Promise.resolve('Quiz Configured');
 
-fetchStudentRecord('0000001');`,
-      keyTakeaway: 'Always wrap await statements in try/catch blocks for reliable error handling.'
+// Execute concurrently in parallel:
+Promise.all([p1, p2, p3])
+  .then(results => {
+    console.log('All Concurrent Tasks Finished:', results);
+  });
+
+// Promise.allSettled preserves failures without failing the whole batch:
+Promise.allSettled([p1, Promise.reject('Optional Cache Miss')])
+  .then(statuses => console.log('Settled Report:', statuses));`,
+      keyTakeaway: 'Use Promise.all() when all operations are strictly required; use Promise.allSettled() when partial success is acceptable.'
     },
     {
       id: 'card-10-4',
-      title: 'HTTP Requests with the Fetch API',
-      description: 'The Fetch API provides a modern, promise-based interface for making network HTTP requests. fetch() returns a Promise that resolves to a Response object. Call response.json() to parse JSON payloads. Check response.ok to verify HTTP 200-299 status codes.',
-      codeSample: `async function loadRemoteData() {
+      title: 'Modern async / await Syntax',
+      description: 'Introduced in ES2017, "async" and "await" are syntactic sugar built on top of Promises. Placing "async" before a function ensures it automatically returns a Promise. The "await" keyword pauses function execution until the Promise settles, letting you write asynchronous code that reads like synchronous code.',
+      analogy: 'async/await is like an automated teleprompter that pauses for you while you breathe, without blocking the rest of the studio.',
+      codeSample: `// Clean asynchronous function with standard try/catch
+async function loadCoursePortal(studentId) {
   try {
-    const response = await fetch('https://jsonplaceholder.typicode.com/todos/1');
-    
-    // fetch only rejects on network failure, not 404 or 500!
-    if (!response.ok) {
-      throw new Error(\`HTTP error: \${response.status}\`);
-    }
-
-    const data = await response.json();
-    console.log('Fetched data title:', data.title);
-  } catch (err) {
-    console.warn('Network or parsing failure:', err.message);
+    console.log('Loading portal assets...');
+    const student = await fetchStudentData(studentId);
+    console.log(\`Welcome back, \${student.name}!\`);
+    return student;
+  } catch (error) {
+    console.warn('Portal initialization failed:', error.message);
   }
 }
 
-loadRemoteData();`,
-      keyTakeaway: 'Remember that fetch() does not reject on HTTP 404 or 500; always inspect response.ok.'
+loadCoursePortal('0000001');`,
+      keyTakeaway: 'async/await combined with try/catch produces the most readable and maintainable asynchronous code in modern JavaScript.'
     }
   ],
-  exemplarCode: `// IT-JS101: Module 10 Exemplar Script
-async function simulateAcademicSISVerification(id, birthdate) {
-  console.log(\`Connecting to SIS Gateway for ID: \${id}...\`);
 
-  // Simulate network latency:
-  await new Promise((resolve) => setTimeout(resolve, 600));
+  // Layer 3: Sandbox Exemplar
+  exemplarCode: `// FlexScript Module 10: Asynchronous Pipeline Laboratory
+console.log('=== Academic Async & Promise Engine ===');
 
-  if (id === '0000001' && (birthdate === '2000-01-01' || birthdate === '01/01/2000')) {
-    return {
-      authenticated: true,
-      name: 'Alexander Vance',
-      program: 'BSIT 4-B',
-      issuedCertificateEligible: true
-    };
-  }
+const mockDatabase = {
+  '1339523': { name: 'John Paul P. Mahilom', modulesCompleted: 13 },
+  '0000001': { name: 'Alexander Vance', modulesCompleted: 12 }
+};
 
-  throw new Error('Invalid credentials or unregistered student record.');
+function queryStudent(id) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const record = mockDatabase[id];
+      if (record) {
+        resolve(record);
+      } else {
+        reject(new Error(\`Record not found for ID: \${id}\`));
+      }
+    }, 300);
+  });
 }
 
-simulateAcademicSISVerification('0000001', '2000-01-01')
-  .then((res) => console.log('Auth Success:', res.name, res.program))
-  .catch((err) => console.error('Auth Failed:', err.message));`,
+// Parallel evaluation using async/await and Promise.all
+async function auditCohort() {
+  console.log('Starting parallel student audit...');
+  const t0 = Date.now();
+
+  const [student1, student2] = await Promise.all([
+    queryStudent('1339523'),
+    queryStudent('0000001')
+  ]);
+
+  console.log(\`Audit Finished in \${Date.now() - t0}ms:\`);
+  console.log(\`- \${student1.name}: \${student1.modulesCompleted} modules\`);
+  console.log(\`- \${student2.name}: \${student2.modulesCompleted} modules\`);
+}
+
+auditCohort();`,
+
+  // Layer 4: Common Pitfalls
   commonPitfalls: [
-    'Assuming fetch() rejects when the server returns 404 or 500 status codes (it only rejects on network disconnection).',
-    'Calling await outside an async function or without top-level module support.',
-    'Forgetting to await response.json(), which returns a Promise rather than parsed data directly.'
+    'Running independent asynchronous requests sequentially: e.g. await fetchA(); await fetchB(); takes 2x the time. Use await Promise.all([fetchA(), fetchB()]) instead.',
+    'Forgetting that an async function ALWAYS returns a Promise, even if you return a plain number or string.',
+    'Using await outside of an async function in non-module scripts (throws a SyntaxError).',
+    'Unhandled promise rejections: always attach a .catch() handler or wrap await calls in a try...catch block.'
+  ],
+
+  // Layer 5: Flashcards
+  flashcards: [
+    {
+      front: 'What are the three mutually exclusive states of an ES6 Promise?',
+      back: 'Pending (in progress), Fulfilled (succeeded with value), and Rejected (failed with error).',
+      hint: 'Waiting, Won, Failed.'
+    },
+    {
+      front: 'What does the "await" keyword do inside an async function?',
+      back: 'It pauses execution of the async function until the Promise settles, unwrapping the resolved value or throwing the rejection error.',
+      hint: 'Pauses only the enclosing async function.'
+    },
+    {
+      front: 'When does Promise.all([p1, p2, p3]) reject?',
+      back: 'Immediately when ANY of the input promises rejects (short-circuit on first failure).',
+      hint: 'All-or-nothing behavior.'
+    },
+    {
+      front: 'What does an async function return if you write: async function test() { return 42; }?',
+      back: 'A Promise that resolves with the number 42: Promise.resolve(42).',
+      hint: 'Async functions always wrap return values in a Promise.'
+    }
+  ],
+
+  // Layer 6: Chapter Exercise / Quiz
+  chapterExercise: [
+    {
+      id: 'ex-10-1',
+      question: 'What is the immediate return value of any function marked with the async keyword?',
+      options: ['undefined', 'A Promise', 'The resolved value directly', 'A Generator'],
+      answer: 1,
+      explanation: 'Functions marked with async always wrap their return value in a Promise.'
+    },
+    {
+      id: 'ex-10-2',
+      question: 'Which method executes multiple promises concurrently and resolves only when ALL have fulfilled, or rejects on the first failure?',
+      options: ['Promise.race()', 'Promise.all()', 'Promise.any()', 'Promise.allSettled()'],
+      answer: 1,
+      explanation: 'Promise.all() waits for all promises to resolve in parallel, or rejects immediately if any single promise fails.'
+    },
+    {
+      id: 'ex-10-3',
+      question: 'How should you catch errors when using the async/await syntax?',
+      options: ['Wrap the await call in a standard try...catch block', 'Use an if/else check on the variable', 'Errors cannot be caught with async/await', 'Call window.catchError()'],
+      answer: 0,
+      explanation: 'When an awaited Promise rejects, it throws an exception that can be cleanly caught with a standard try...catch block.'
+    }
   ]
 };

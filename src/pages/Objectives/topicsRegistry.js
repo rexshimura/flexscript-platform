@@ -8,8 +8,11 @@ import { topic07 } from './07-objects/topic';
 import { topic08 } from './08-dom-manipulation/topic';
 import { topic09 } from './09-event-handling/topic';
 import { topic10 } from './10-async-javascript/topic';
+import { topic11 } from './11-web-apis/topic';
+import { topic12 } from './12-advanced-oop/topic';
+import { topic13 } from './13-engine-internals/topic';
 
-// Raw topic modules
+// Raw topic modules (All 13 Objectives spanning Phase 1 to Phase 4)
 const rawTopics = [
   topic01,
   topic02,
@@ -20,15 +23,18 @@ const rawTopics = [
   topic07,
   topic08,
   topic09,
-  topic10
+  topic10,
+  topic11,
+  topic12,
+  topic13
 ];
 
 // Normalized course syllabus topics with full backwards-compatibility for existing views
 export const SYLLABUS_TOPICS = rawTopics.map((topic) => ({
   ...topic,
   snippet: topic.exemplarCode,
-  whatYouNeedToKnow: topic.cards.map((card) => card.keyTakeaway || card.description),
-  keyConcepts: topic.cards.map((card) => ({
+  whatYouNeedToKnow: topic.expectedToLearn || topic.cards.map((card) => card.keyTakeaway || card.description),
+  keyConcepts: (topic.cards || []).map((card) => ({
     title: card.title,
     explanation: card.description,
     code: card.codeSample

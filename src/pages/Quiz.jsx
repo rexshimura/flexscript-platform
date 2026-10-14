@@ -9,7 +9,7 @@ export default function Quiz({ theme }) {
   const score = QUESTIONS.reduce((acc, q, i) => (answers[i] === q.ans ? acc + 1 : acc), 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Self-Assessment Quiz</h1>

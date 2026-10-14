@@ -1,96 +1,207 @@
 export const topic06 = {
   id: 6,
   code: 'OBJ-06',
-  title: 'Arrays & Modern Iteration Methods',
-  subtitle: 'map, filter, reduce, find, some, every, slice vs splice, immutability',
-  category: 'data',
-  estimatedTime: '20 mins',
-  desc: 'Master higher-order functional array iteration methods (map, filter, reduce), differentiate mutating methods from immutable pipelines, and handle dataset transformations.',
+  title: 'Functions, Scope & Timers',
+  subtitle: 'Declarations, expressions, arrow functions, parameter patterns, lexical scope, and asynchronous timers',
+  category: 'intermediate',
+  phase: 'Intermediate',
+  estimatedTime: '25 mins',
+  desc: 'Master the fundamental building blocks of JavaScript applications: function declarations vs arrow functions, rest parameters, return mechanics, block vs function scope, lexical environments, and timing mechanisms with setTimeout and setInterval.',
+
+  // Layer 1: Expected to Learn
+  expectedToLearn: [
+    'Define reusable logic using function declarations, function expressions, and concise arrow functions.',
+    'Master modern parameter patterns including default values and rest parameters (...args).',
+    'Understand scope hierarchies: Global Scope, Function/Local Scope, and Block Scope ({}).',
+    'Trace variable lookups through the Lexical Scope Chain.',
+    'Schedule one-off and repeating asynchronous tasks using setTimeout and setInterval, and prevent memory leaks with clearTimeout.'
+  ],
+
+  // Layer 2: Real-World Analogy
+  analogy: {
+    concept: 'Functions and Scope Enclosures',
+    analogyText: 'Think of a function as a specialized culinary recipe or vending machine: you provide raw input ingredients (parameters), it performs a sequence of internal cooking operations hidden from the outside world (private scope), and outputs a finished dish (return value). Scope is like one-way architectural tinted glass: code inside a function room can look out and read variables in the global hallway, but people out in the hallway cannot look inside and access local variables inside the room.'
+  },
+
+  // Layer 2 & Layer 3: Concept Cards
   cards: [
     {
       id: 'card-6-1',
-      title: 'Transformation with map() & filter()',
-      description: 'The map() method transforms every element in an array into a new value, returning a new array of identical length. The filter() method returns a subset array containing only elements that pass the provided predicate test function.',
-      codeSample: `const scores = [65, 82, 90, 74, 98];
+      title: 'Function Declarations vs Arrow Functions',
+      description: 'Function declarations (function name() {}) are hoisted to the top of their scope, meaning they can be called before their definition in the code. ES6 Arrow functions (() => {}) provide a concise syntax, implicit return for single expressions, and inherit "this" lexically from their enclosing scope.',
+      analogy: 'A function declaration is an established town hall that existed before you arrived; an arrow function is a fast electric bicycle built on demand.',
+      codeSample: `// 1. Function Declaration (Hoisted)
+console.log(calculateSum(10, 20)); // Works before definition!
+function calculateSum(a, b) {
+  return a + b;
+}
 
-// Filter: Extract passing grades (>= 75)
-const passing = scores.filter((s) => s >= 75);
-console.log('Passing:', passing); // [82, 90, 98]
+// 2. Function Expression (Not hoisted)
+const multiply = function(a, b) {
+  return a * b;
+};
 
-// Map: Convert scores to percentages formatted with %
-const formatted = passing.map((s) => \`\${s}%\`);
-console.log('Formatted:', formatted); // ['82%', '90%', '98%']`,
-      keyTakeaway: 'Both map() and filter() return new arrays without mutating the original source array.'
+// 3. Arrow Function (Concise, implicit return)
+const divide = (a, b) => a / b;
+const square = x => x * x;
+
+console.log('Multiply:', multiply(5, 4));
+console.log('Divide:', divide(20, 4));
+console.log('Square:', square(6));`,
+      keyTakeaway: 'Use function declarations for top-level module utilities, and arrow functions for inline callbacks and concise functional expressions.'
     },
     {
       id: 'card-6-2',
-      title: 'Aggregation with reduce()',
-      description: 'The reduce() method executes a reducer function on each element, culminating in a single accumulated output value (number, object, or map). Always pass an explicit initial accumulator value to prevent runtime errors on empty arrays.',
-      codeSample: `const cart = [
-  { item: 'Lab Manual', price: 150 },
-  { item: 'USB Drive', price: 350 },
-  { item: 'ID Holder', price: 50 }
-];
+      title: 'Parameters: Defaults & Rest Parameters (...args)',
+      description: 'Parameters are the variable placeholders defined in the function signature; arguments are the real values passed when calling it. ES6 allows default parameter values (param = fallback) and Rest Parameters (...args) to gather an indefinite number of arguments into a true array.',
+      analogy: 'Default parameters are standard drink sizes at a cafe; rest parameters are an all-you-can-carry shopping basket.',
+      codeSample: `// Default parameters
+function greetStudent(name = 'Scholar', course = 'JavaScript') {
+  return \`Welcome \${name} to \${course}!\`;
+}
+console.log(greetStudent()); // Uses both defaults
+console.log(greetStudent('Alexander Vance')); // Overrides name
 
-const subtotal = cart.reduce((accum, curr) => accum + curr.price, 0);
-console.log('Subtotal:', subtotal); // 550`,
-      keyTakeaway: 'Always supply the initial accumulator argument as the second parameter to reduce().'
+// Rest parameters: collects remaining arguments into a real array
+function calculateTotalScore(bonusPoints, ...examScores) {
+  const sum = examScores.reduce((acc, curr) => acc + curr, 0);
+  return sum + bonusPoints;
+}
+
+console.log('Total Score:', calculateTotalScore(10, 85, 90, 95)); // 10 + 270 = 280`,
+      keyTakeaway: 'Always place rest parameters (...args) as the final parameter in the signature.'
     },
     {
       id: 'card-6-3',
-      title: 'Search Methods: find, some, and every',
-      description: 'find() returns the first matching element or undefined; findIndex() returns the matched index or -1; some() checks if at least one element satisfies a condition; every() verifies that all elements pass.',
-      codeSample: `const students = [
-  { id: '0000001', completed: 10 },
-  { id: '1339523', completed: 10 },
-  { id: '2026001', completed: 6 }
-];
+      title: 'Scope: Global, Function, Block & Lexical Chains',
+      description: 'Scope determines the visibility and accessibility of variables. Global variables are accessible everywhere. Function scope restricts variables declared with var/let/const inside a function body. Block scope restricts let and const within curly braces {}. JavaScript uses Lexical Scoping: inner functions resolve variables based on where they were authored.',
+      analogy: 'Scope is like nested Russian Matryoshka dolls: smaller inner dolls can see the outer dolls, but outer dolls cannot see what is locked inside smaller inner dolls.',
+      codeSample: `const globalInstitution = 'Cebu Technological University';
 
-// Check if all students completed curriculum:
-const allFinished = students.every((s) => s.completed === 10);
-console.log('All finished?', allFinished); // false
+function academicDepartment() {
+  const departmentName = 'College of Computer Studies';
 
-// Check if anyone has finished:
-const hasFinished = students.some((s) => s.completed === 10);
-console.log('Has finisher?', hasFinished); // true`,
-      keyTakeaway: 'Search methods return immediate boolean or entity results and exit early as soon as conditions are met.'
+  if (true) {
+    const program = 'BSIT'; // Block-scoped to this if statement
+    console.log(\`[Inner] \${program} belongs to \${departmentName} at \${globalInstitution}\`);
+  }
+
+  // console.log(program); // ReferenceError: program is not defined outside its block
+}
+
+academicDepartment();`,
+      keyTakeaway: 'Variables declared with let and const are strictly trapped within their enclosing { } block boundaries.'
     },
     {
       id: 'card-6-4',
-      title: 'Mutating vs Non-Mutating Methods',
-      description: 'Methods like push, pop, shift, unshift, and splice mutate the original array in-place. Methods like slice, concat, map, filter, and spread [...arr] produce new arrays, preserving functional immutability.',
-      codeSample: `const list = [1, 2, 3];
+      title: 'Asynchronous Timers: setTimeout & setInterval',
+      description: 'JavaScript runs in a single-threaded event loop. setTimeout(fn, delayMs) schedules a one-off callback after a millisecond delay. setInterval(fn, intervalMs) repeatedly invokes a callback until stopped. Always capture the timer ID and call clearTimeout() or clearInterval() to prevent memory leaks.',
+      analogy: 'setTimeout is setting an alarm to wake you up in 10 minutes; setInterval is an hourly clock tower chime that rings every 60 minutes.',
+      codeSample: `// 1. One-off Timer (Execute once after 1000ms)
+const timerId = setTimeout(() => {
+  console.log('Delayed execution complete after 1 second.');
+}, 1000);
 
-// Bad in React/declarative code (mutates original):
-// list.push(4);
+// 2. Repeating Interval (Runs every 500ms)
+let tickCount = 0;
+const intervalId = setInterval(() => {
+  tickCount++;
+  console.log(\`Heartbeat Tick: \${tickCount}\`);
 
-// Good (immutable spread):
-const updatedList = [...list, 4];
-console.log(list);        // [1, 2, 3] (Original pristine)
-console.log(updatedList); // [1, 2, 3, 4]`,
-      keyTakeaway: 'Favor immutable array operations (spread, filter, slice) over in-place mutations (splice, push).'
+  if (tickCount >= 3) {
+    clearInterval(intervalId); // Stop the repeating interval
+    console.log('Interval successfully cleared.');
+  }
+}, 500);`,
+      keyTakeaway: 'Timers are non-blocking; the rest of your script continues running while the timer counts down in the background.'
     }
   ],
-  exemplarCode: `// IT-JS101: Module 6 Exemplar Script
-const studentRoster = [
-  { id: '0000001', name: 'Alexander Vance', score: 94, category: 'BSIT 4-B' },
-  { id: '1339523', name: 'John Paul P. Mahilom', score: 98, category: 'BSIT 4-B' },
-  { id: '2026-01', name: 'Student Three', score: 72, category: 'BSIT 4-B' }
-];
 
-// Functional pipeline: Filter passing -> Compute stats -> Format
-const honorStudents = studentRoster
-  .filter((student) => student.score >= 90)
-  .map((student) => ({
-    name: student.name,
-    status: 'Dean\\'s Lister',
-    rating: \`\${student.score} / 100\`
-  }));
+  // Layer 3: Sandbox Exemplar
+  exemplarCode: `// FlexScript Module 6: Functions & Scope Laboratory
+console.log('=== Academic Function & Scoping System ===');
 
-console.log(honorStudents);`,
+// Factory function utilizing lexical scope
+function createGradeCalculator(courseName, passingThreshold = 75) {
+  // Enclosed lexical state
+  let totalEvaluated = 0;
+
+  return (studentName, score) => {
+    totalEvaluated++;
+    const isPassing = score >= passingThreshold;
+    return {
+      student: studentName,
+      course: courseName,
+      score: score,
+      passed: isPassing,
+      evaluationCount: totalEvaluated
+    };
+  };
+}
+
+const jsEvaluator = createGradeCalculator('JavaScript Web Dev', 75);
+
+const eval1 = jsEvaluator('Alexander Vance', 92);
+const eval2 = jsEvaluator('John Paul P. Mahilom', 98);
+
+console.log('Student 1:', eval1);
+console.log('Student 2:', eval2);
+console.log(\`Total Students Evaluated: \${eval2.evaluationCount}\`);`,
+
+  // Layer 4: Common Pitfalls
   commonPitfalls: [
-    'Forgetting the initial value parameter in reduce(), causing crashes on empty arrays.',
-    'Confusing slice() (pure/immutable extraction) with splice() (destructive in-place modification).',
-    'Using forEach when intending to transform items (forEach returns undefined, use map instead).'
+    'Assuming arrow functions have their own "this": arrow functions inherit "this" from the parent context, making them unsuitable for object methods that rely on "this.property".',
+    'Forgetting to call clearInterval(), allowing timers to run forever in the background and drain CPU/memory.',
+    'Confusing parameters with arguments: parameters are declared in the function definition (e.g. a, b); arguments are the actual values passed during call (e.g. 5, 10).',
+    'Polluting the global scope by declaring variables without let, const, or var (e.g. x = 10 creates an accidental global).'
+  ],
+
+  // Layer 5: Flashcards
+  flashcards: [
+    {
+      front: 'What is the key advantage of an Arrow Function for concise expressions?',
+      back: 'It allows implicit return for single expressions (e.g. const double = x => x * 2) without needing curly braces or the "return" keyword.',
+      hint: 'No curly braces required for one-liners.'
+    },
+    {
+      front: 'What does the rest parameter syntax (...args) produce inside a function?',
+      back: 'A true, real JavaScript Array containing all remaining arguments passed to the function.',
+      hint: 'Unlike the legacy "arguments" object, rest parameters are genuine arrays.'
+    },
+    {
+      front: 'What is Block Scope in JavaScript?',
+      back: 'Variables declared with "let" or "const" inside curly braces { } cannot be accessed from outside those braces.',
+      hint: 'Code between { and } is private.'
+    },
+    {
+      front: 'How do you stop a recurring timer started with setInterval?',
+      back: 'Store the returned ID (const id = setInterval(...)) and call clearInterval(id).',
+      hint: 'Clear the interval by passing its ID.'
+    }
+  ],
+
+  // Layer 6: Chapter Exercise / Quiz
+  chapterExercise: [
+    {
+      id: 'ex-6-1',
+      question: 'What is the return value of the arrow function: const sum = (a, b) => a + b; when called with sum(4, 6)?',
+      options: ['undefined', '10', '"46"', 'Error: missing return statement'],
+      answer: 1,
+      explanation: 'Arrow functions with a single expression automatically return the result of that expression without needing an explicit "return" keyword.'
+    },
+    {
+      id: 'ex-6-2',
+      question: 'Which variable declarations obey block scope ({}) boundaries?',
+      options: ['var only', 'let and const', 'var and let', 'All declarations including var'],
+      answer: 1,
+      explanation: 'let and const are block-scoped to the nearest enclosing pair of curly braces {}, whereas var is function-scoped.'
+    },
+    {
+      id: 'ex-6-3',
+      question: 'What function is used to cancel a one-off delayed timer created by setTimeout?',
+      options: ['stopTimeout()', 'clearTimeout()', 'clearInterval()', 'pauseTimer()'],
+      answer: 1,
+      explanation: 'clearTimeout(timerId) cancels a timer previously established by calling setTimeout().'
+    }
   ]
 };

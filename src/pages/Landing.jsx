@@ -65,7 +65,7 @@ export default function Landing({ theme, setTheme, student }) {
       </header>
 
       {/* Center Hero Section */}
-      <main className="max-w-4xl mx-auto px-6 py-16 space-y-12">
+      <main className="max-w-4xl mx-auto px-6 py-16 space-y-12 animate-fade-in">
         <div className="space-y-4 max-w-3xl">
           <div className={`inline-block text-xs font-mono px-2.5 py-1 rounded border ${
             isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-400' : 'bg-zinc-100 border-zinc-200 text-zinc-600'
@@ -100,14 +100,14 @@ export default function Landing({ theme, setTheme, student }) {
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
               onClick={() => handleLaunch(targetPath)}
-              className={`px-5 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition cursor-pointer shadow-sm ${
+              className={`px-5 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition cursor-pointer shadow-sm text-white ${
                 isDark
-                  ? 'bg-emerald-500 text-zinc-950 hover:bg-emerald-400 shadow-emerald-500/20'
-                  : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-emerald-600/20'
+                  ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20'
+                  : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20'
               }`}
             >
               <span>{student ? 'Continue as ' + (student.username || student.name) : 'Access Student Portal'}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 text-white" />
             </button>
           </div>
         </div>

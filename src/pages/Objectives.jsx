@@ -18,7 +18,13 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
   // State to hold temporary locked notification message if user clicks a locked card
   const [lockedNotice, setLockedNotice] = useState(null);
 
-  const tabs = ['all', 'fundamentals', 'logic', 'data', 'browser'];
+  const tabs = [
+    { id: 'all', label: 'All Modules (13)' },
+    { id: 'basics', label: 'Basic (5)' },
+    { id: 'intermediate', label: 'Intermediate (4)' },
+    { id: 'advanced', label: 'Advanced (3)' },
+    { id: 'expert', label: 'Expert (1)' }
+  ];
   const list = activeTab === 'all' ? SYLLABUS : SYLLABUS.filter((i) => i.category === activeTab);
 
   // Determine current active objective (the first uncompleted one)
@@ -48,7 +54,7 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="space-y-3.5">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Course Objectives</h1>
           <p className={`text-xs mt-1 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
@@ -56,23 +62,23 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
           </p>
         </div>
 
-        {/* Category Filters */}
-        <div className={`inline-flex p-1 rounded-lg border shrink-0 ${isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-100 border-zinc-200'}`}>
+        {/* Category Filters: moved to its own new row below the subtitle */}
+        <div className={`inline-flex flex-wrap p-1 rounded-lg border gap-1 ${isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-100 border-zinc-200'}`}>
           {tabs.map((t) => (
             <Link
-              key={t}
-              to={t === 'all' ? '/objectives' : `/objectives/${t}`}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium capitalize transition ${
-                activeTab === t
+              key={t.id}
+              to={t.id === 'all' ? '/objectives' : `/objectives/${t.id}`}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                activeTab === t.id
                   ? isDark
-                    ? 'bg-zinc-800 text-white shadow-xs'
-                    : 'bg-white text-zinc-900 shadow-xs'
+                    ? 'bg-zinc-800 text-white shadow-xs font-semibold'
+                    : 'bg-white text-zinc-900 shadow-xs font-semibold'
                   : isDark
                   ? 'text-zinc-400 hover:text-zinc-200'
                   : 'text-zinc-600 hover:text-zinc-900'
               }`}
             >
-              {t}
+              {t.label}
             </Link>
           ))}
         </div>
@@ -224,11 +230,11 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-mono font-bold text-zinc-400">{obj.code}</span>
                       
-                      {/* Clean Neutral Category Badge */}
-                      <span className={`text-[11px] px-2 py-0.5 rounded capitalize font-medium border ${
+                      {/* Tier Badge */}
+                      <span className={`text-[11px] px-2 py-0.5 rounded font-medium border ${
                         isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-300' : 'bg-zinc-100 border-zinc-200 text-zinc-700'
                       }`}>
-                        {obj.category}
+                        {(obj.phase || obj.category || 'Basic').replace(/^Phase \d+:\s*/i, '')}
                       </span>
 
                       {obj.estimatedTime && (

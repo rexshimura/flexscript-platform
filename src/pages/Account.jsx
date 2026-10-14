@@ -282,7 +282,7 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
           <span>Prerequisite Progression: Strict Sequential Unlocking</span>
           <span>
             {isCertified
-              ? 'All 10 modules completed • Certificate Unlocked!'
+              ? `All ${totalObjectives} modules completed • Certificate Unlocked!`
               : `${totalObjectives - completed.length} modules remaining to earn certificate`}
           </span>
         </div>

@@ -41,62 +41,77 @@ export const REGISTERED_STUDENTS = [
 ];
 
 // --- COURSE OBJECTIVES & SYLLABUS CURRICULUM ---
-// Sourced modularly from /src/pages/Objectives/ topic folders
+// Sourced modularly from /src/pages/Objectives/ topic folders (All 13 Objectives)
 export const SYLLABUS_OBJECTIVES = SYLLABUS_TOPICS;
 
 // Helper: Check if an objective is unlocked based on sequential completion
 export const isObjectiveUnlocked = isUnlockedHelper;
 
-// --- SELF-ASSESSMENT QUIZ QUESTIONS ---
+// --- SELF-ASSESSMENT QUIZ QUESTIONS (13 Questions matching all 13 Objectives) ---
 export const QUIZ_QUESTIONS = [
   {
-    q: 'Who created JavaScript in 1995 at Netscape Communications?',
-    options: ['Brendan Eich', 'James Gosling', 'Guido van Rossum'],
+    q: 'OBJ-01: Which HTML attribute should be added to a <script> tag in the <head> to ensure it executes only after the HTML DOM is fully constructed?',
+    options: ['defer', 'async', 'wait', 'preload'],
     ans: 0
   },
   {
-    q: 'Which keyword declares a block-scoped variable that cannot be reassigned?',
+    q: 'OBJ-02: Which keyword declares a block-scoped variable whose reference binding cannot be reassigned?',
     options: ['var', 'let', 'const'],
     ans: 2
   },
   {
-    q: "What does strict equality (10 === '10') evaluate to in JavaScript?",
-    options: ['true', 'false', 'undefined'],
+    q: "OBJ-03: Which loop is guaranteed to execute its code block at least once before testing the condition?",
+    options: ['while loop', 'do...while loop', 'for loop'],
     ans: 1
   },
   {
-    q: 'Which of the following is NOT a JavaScript primitive data type?',
-    options: ['Symbol', 'Boolean', 'Array'],
-    ans: 2
-  },
-  {
-    q: 'Which loop is specifically designed to cleanly iterate over values of an iterable like an Array?',
-    options: ['for...in', 'for...of', 'repeat...until'],
+    q: 'OBJ-04: Which method extracts a section of an array and returns a new copy WITHOUT mutating the original array?',
+    options: ['.splice()', '.slice()', '.pop()'],
     ans: 1
   },
   {
-    q: 'What is the return value of an arrow function defined as: const sum = (a, b) => a + b; ?',
+    q: 'OBJ-05: Why is element.textContent preferred over element.innerHTML when displaying user-supplied text?',
+    options: ['It renders faster', 'It prevents Cross-Site Scripting (XSS) by not parsing HTML tags', 'It only works with numbers'],
+    ans: 1
+  },
+  {
+    q: 'OBJ-06: What is the return value of an arrow function defined as: const sum = (a, b) => a + b; ?',
     options: ['undefined', 'The sum of a and b', 'A string "[object Function]"'],
     ans: 1
   },
   {
-    q: 'Which higher-order array method creates a new array containing only elements that satisfy a condition?',
-    options: ['.filter()', '.map()', '.forEach()'],
+    q: 'OBJ-07: How can you quickly remove all duplicate values from an array in modern JavaScript?',
+    options: ['array.deduplicate()', '[...new Set(array)]', 'array.unique()'],
+    ans: 1
+  },
+  {
+    q: 'OBJ-08: What are the three sequential phases of JavaScript Event Propagation?',
+    options: ['Capturing, Target, Bubbling', 'Bubbling, Freezing, Boiling', 'Input, Processing, Output'],
     ans: 0
   },
   {
-    q: 'Which operator unpacks properties of an object or elements of an array into a new structure?',
-    options: ['Rest operator (??)', 'Spread syntax (...)', 'Ternary operator (? :)'],
+    q: 'OBJ-09: Which block in a try...catch statement is guaranteed to execute regardless of whether an exception occurred?',
+    options: ['catch', 'finally', 'then'],
     ans: 1
   },
   {
-    q: 'Which method should be called inside a form submit handler to prevent full-page reload?',
-    options: ['e.stopExecution()', 'e.preventDefault()', 'e.clearDefault()'],
+    q: 'OBJ-10: What keyword allows pausing function execution until a Promise settles inside an async function?',
+    options: ['await', 'defer', 'pause'],
+    ans: 0
+  },
+  {
+    q: 'OBJ-11: Does the Fetch API reject its Promise if the server responds with an HTTP 404 Not Found error?',
+    options: ['Yes, it rejects immediately', 'No, it resolves with response.ok === false', 'It throws a SyntaxError'],
     ans: 1
   },
   {
-    q: 'What keyword allows waiting for a Promise to resolve inside an async function?',
-    options: ['await', 'defer', 'hold'],
+    q: 'OBJ-12: How do you declare a truly private class field in modern JavaScript?',
+    options: ['private field;', 'this._field = 0;', '#fieldName;'],
+    ans: 2
+  },
+  {
+    q: 'OBJ-13: In the V8 Event Loop, which queue is given strict priority and emptied first before the next macrotask (setTimeout)?',
+    options: ['Microtask Queue (Promises)', 'Macrotask Queue', 'Worker Thread Queue'],
     ans: 0
   }
 ];

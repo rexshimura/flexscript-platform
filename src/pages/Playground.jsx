@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   Play, 
   RotateCcw, 
@@ -325,8 +326,28 @@ if (sandbox) {
 
 export default function Playground({ theme }) {
   const isDark = theme === 'dark';
+  const location = useLocation();
 
-  const [code, setCode] = useState(MICRO_PRESETS[0].code);
+  const [code, setCode] = useState(() => {
+    const customCode = localStorage.getItem('playground_custom_code');
+    if (customCode) {
+      localStorage.removeItem('playground_custom_code');
+      return customCode;
+    }
+    return location.state?.code || MICRO_PRESETS[0].code;
+  });
+
+  useEffect(() => {
+    const customCode = localStorage.getItem('playground_custom_code');
+    if (customCode) {
+      localStorage.removeItem('playground_custom_code');
+      setCode(customCode);
+      return;
+    }
+    if (location.state?.code) {
+      setCode(location.state.code);
+    }
+  }, [location.state?.code]);
   const [output, setOutput] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
   const [execTime, setExecTime] = useState(null);

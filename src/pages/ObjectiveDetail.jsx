@@ -12,7 +12,15 @@ import {
   Copy, 
   CheckCheck,
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  Lightbulb,
+  Play,
+  RotateCcw,
+  HelpCircle,
+  ChevronLeft,
+  ChevronRight,
+  Layers,
+  Terminal
 } from 'lucide-react';
 import { SYLLABUS_OBJECTIVES, isObjectiveUnlocked } from '../data/datasets';
 
@@ -30,6 +38,40 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
     if (window.scrollY !== 0) {
       window.scrollTo(0, 0);
     }
+  }, [id]);
+
+  // Flashcards state
+  const flashcards = currentObj?.flashcards || [];
+  const totalFlashcards = flashcards.length;
+  const [flashcardIndex, setFlashcardIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+  const [masteredCards, setMasteredCards] = useState([]);
+
+  // Reset flashcard view when switching objectives
+  useEffect(() => {
+    setFlashcardIndex(0);
+    setIsFlipped(false);
+    setShowHint(false);
+    setMasteredCards([]);
+  }, [id]);
+
+  // Chapter exercise quiz state
+  const chapterExercises = currentObj?.chapterExercise || [];
+  const [exerciseAnswers, setExerciseAnswers] = useState({});
+
+  useEffect(() => {
+    setExerciseAnswers({});
+  }, [id]);
+
+  // Interactive Live Compiler Sandbox state
+  const [sandboxLogs, setSandboxLogs] = useState([]);
+  const [isSandboxRunning, setIsSandboxRunning] = useState(false);
+  const [hasRunSandbox, setHasRunSandbox] = useState(false);
+
+  useEffect(() => {
+    setSandboxLogs([]);
+    setHasRunSandbox(false);
   }, [id]);
 
   // If objective doesn't exist
@@ -56,8 +98,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
   const unlocked = isObjectiveUnlocked(currentObj.id, completed, SYLLABUS_OBJECTIVES);
   const isDone = completed.includes(currentObj.id);
 
-  // Interactive reading verification checklist
-  // Students must interactively read and click each study card to verify comprehension
+  // Study cards
   const studyCards = (currentObj.cards && currentObj.cards.length > 0)
     ? currentObj.cards
     : (currentObj.keyConcepts || []).map((kc, i) => ({
@@ -95,7 +136,20 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
 
   const allRead = acknowledged.length >= cardsCount;
 
-  // State to track copied status for individual card code samples
+  // Exercise evaluation
+  const answeredCount = Object.keys(exerciseAnswers).length;
+  const correctCount = chapterExercises.reduce((acc, q, idx) => {
+    return exerciseAnswers[idx] === q.answer ? acc + 1 : acc;
+  }, 0);
+  const exercisePassed = chapterExercises.length > 0 ? correctCount === chapterExercises.length : true;
+
+  // Navigation helpers
+  const currentIndex = SYLLABUS_OBJECTIVES.findIndex((o) => o.id === currentObj.id);
+  const prevObj = currentIndex > 0 ? SYLLABUS_OBJECTIVES[currentIndex - 1] : null;
+  const nextObj = currentIndex < SYLLABUS_OBJECTIVES.length - 1 ? SYLLABUS_OBJECTIVES[currentIndex + 1] : null;
+  const isNextUnlocked = isDone && nextObj ? isObjectiveUnlocked(nextObj.id, completed, SYLLABUS_OBJECTIVES) : false;
+
+  // Copy code handlers
   const [copiedCardIndex, setCopiedCardIndex] = useState(null);
   const handleCopyCardCode = (code, index, e) => {
     e.stopPropagation();
@@ -103,14 +157,6 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
     setCopiedCardIndex(index);
     setTimeout(() => setCopiedCardIndex(null), 2000);
   };
-
-  // Identify index and adjacent objectives
-  const currentIndex = SYLLABUS_OBJECTIVES.findIndex((o) => o.id === currentObj.id);
-  const prevObj = currentIndex > 0 ? SYLLABUS_OBJECTIVES[currentIndex - 1] : null;
-  const nextObj = currentIndex < SYLLABUS_OBJECTIVES.length - 1 ? SYLLABUS_OBJECTIVES[currentIndex + 1] : null;
-
-  // Next is unlocked only if current is completed
-  const isNextUnlocked = isDone && nextObj ? isObjectiveUnlocked(nextObj.id, completed, SYLLABUS_OBJECTIVES) : false;
 
   const handleCopySnippet = () => {
     if (currentObj.snippet) {
@@ -120,10 +166,63 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
     }
   };
 
+  // Launch Playground in a new tab with snippet preloaded
+  const handleTryInPlayground = (codeSnippet, e) => {
+    if (e) e.stopPropagation();
+    try {
+      localStorage.setItem('playground_custom_code', codeSnippet || '');
+    } catch (err) {
+      console.warn('Could not store snippet to localStorage', err);
+    }
+    window.open('/playground', '_blank');
+  };
+
+  // Run in-place Sandbox code
+  const handleRunSandbox = () => {
+    setIsSandboxRunning(true);
+    const logs = [];
+
+    const fakeConsole = {
+      log: (...args) => logs.push({ type: 'log', text: args.map(formatConsoleArg).join(' ') }),
+      warn: (...args) => logs.push({ type: 'warn', text: args.map(formatConsoleArg).join(' ') }),
+      error: (...args) => logs.push({ type: 'error', text: args.map(formatConsoleArg).join(' ') }),
+      info: (...args) => logs.push({ type: 'info', text: args.map(formatConsoleArg).join(' ') }),
+      table: (data) => logs.push({ type: 'log', text: JSON.stringify(data, null, 2) })
+    };
+
+    try {
+      const codeToExecute = currentObj.snippet || currentObj.exemplarCode || '';
+      // Safe execution using Function constructor
+      const wrapped = new Function('console', codeToExecute);
+      wrapped(fakeConsole);
+      if (logs.length === 0) {
+        logs.push({ type: 'info', text: 'Script executed with no logged console output.' });
+      }
+    } catch (err) {
+      logs.push({ type: 'error', text: `${err.name}: ${err.message}` });
+    }
+
+    setSandboxLogs(logs);
+    setIsSandboxRunning(false);
+    setHasRunSandbox(true);
+  };
+
+  const formatConsoleArg = (arg) => {
+    if (arg === undefined) return 'undefined';
+    if (arg === null) return 'null';
+    if (typeof arg === 'object') {
+      try {
+        return JSON.stringify(arg);
+      } catch (e) {
+        return String(arg);
+      }
+    }
+    return String(arg);
+  };
+
   const handleCompleteAndScroll = () => {
     toggleComplete(currentObj.id);
     if (!isDone) {
-      // If marking as done, ensure all cards are acknowledged
       acknowledgeAll();
     }
   };
@@ -148,31 +247,25 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
           <span className={`text-xs font-mono px-2.5 py-1 rounded border font-semibold ${
             isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-400' : 'bg-zinc-100 border-zinc-300 text-zinc-700'
           }`}>
-            PREREQUISITE REQUIRED
+            Sequential Course Prerequisite
           </span>
-          <h1 className={`text-2xl font-bold tracking-tight mt-2 ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-            {currentObj.code}: {currentObj.title} is Locked
-          </h1>
-          <p className={`text-xs leading-relaxed max-w-md mx-auto ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            According to the sequential curriculum, you cannot access this module until you finish the preceding topic.
+          <h2 className={`text-xl font-bold ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
+            Module Locked: Complete Prior Lessons
+          </h2>
+          <p className={`text-xs max-w-md mx-auto ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+            To unlock <strong>{currentObj.code}: {currentObj.title}</strong>, you must first complete all preceding modules in sequence.
           </p>
         </div>
 
         {prevObj && (
-          <div className={`p-4 rounded-xl border text-left flex items-center justify-between ${
-            isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200'
-          }`}>
-            <div>
-              <p className="text-[11px] font-mono text-zinc-500">Prerequisite to Complete:</p>
-              <p className={`text-sm font-semibold ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>{prevObj.code} • {prevObj.title}</p>
-            </div>
+          <div className="pt-2">
             <Link
               to={`/objectives/view/${prevObj.id}`}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-semibold border transition ${
                 isDark ? 'bg-zinc-100 text-zinc-950 hover:bg-zinc-300' : 'bg-zinc-900 text-white hover:bg-zinc-800'
               }`}
             >
-              Go to {prevObj.code} <ArrowRight className="w-3.5 h-3.5" />
+              Resume at Prerequisite: {prevObj.code} <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         )}
@@ -193,7 +286,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Navigation Breadcrumb */}
+      {/* Navigation Breadcrumb & Progress */}
       <div className="flex items-center justify-between gap-4">
         <Link
           to="/objectives"
@@ -204,7 +297,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
           <ArrowLeft className="w-3.5 h-3.5" /> Back to All Objectives
         </Link>
 
-        {/* Progress indicator */}
+        {/* Module count & Completion status pill */}
         <div className="flex items-center gap-2 text-xs font-mono">
           <span className="text-zinc-500">Module {currentIndex + 1} of {SYLLABUS_OBJECTIVES.length}</span>
           <span className={`px-2.5 py-0.5 rounded text-[11px] font-medium border flex items-center gap-1.5 ${
@@ -238,10 +331,10 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
           }`}>
             {currentObj.code}
           </span>
-          <span className={`text-xs px-2.5 py-1 rounded capitalize font-medium border ${
-            isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-zinc-100 text-zinc-700 border-zinc-200'
+          <span className={`text-xs px-2.5 py-1 rounded font-semibold border ${
+            isDark ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-emerald-50 text-emerald-800 border-emerald-200'
           }`}>
-            {currentObj.category}
+            {(currentObj.phase || currentObj.category || 'Basic').replace(/^Phase \d+:\s*/i, '')}
           </span>
           <span className={`text-xs px-2.5 py-1 rounded flex items-center gap-1 border ${
             isDark ? 'text-zinc-400 bg-zinc-900/60 border-zinc-800' : 'text-zinc-600 bg-zinc-100 border-zinc-200'
@@ -301,7 +394,55 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
         </div>
       </div>
 
-      {/* Interactive Informational Study Cards Section */}
+      {/* LAYER 1: Objective / Expected to Learn */}
+      {currentObj.expectedToLearn && currentObj.expectedToLearn.length > 0 && (
+        <div className={`p-6 rounded-2xl border space-y-4 ${
+          isDark ? 'bg-zinc-900/30 border-zinc-800' : 'bg-white border-zinc-200'
+        }`}>
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-emerald-500 shrink-0" />
+            <h2 className={`text-base font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
+              Expected to Learn: Learning Objectives
+            </h2>
+          </div>
+          <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+            By the end of this module, you will master the following core proficiencies:
+          </p>
+
+          <div className="space-y-2.5 pt-1">
+            {currentObj.expectedToLearn.map((item, idx) => (
+              <div
+                key={idx}
+                className="flex items-start gap-2.5 text-xs sm:text-sm leading-relaxed"
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                <span className={isDark ? 'text-zinc-300' : 'text-zinc-700'}>{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* LAYER 2: Real-World Analogy Banner */}
+      {currentObj.analogy && (
+        <div className={`p-5 sm:p-6 rounded-2xl border flex items-start gap-3.5 ${
+          isDark ? 'bg-emerald-950/15 border-emerald-500/30 text-zinc-200' : 'bg-emerald-50/70 border-emerald-300 text-zinc-900'
+        }`}>
+          <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-500 shrink-0 mt-0.5">
+            <Lightbulb className="w-4 h-4" />
+          </div>
+          <div className="space-y-1.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+              Real-World Analogy: {currentObj.analogy.concept}
+            </h3>
+            <p className="text-xs sm:text-sm leading-relaxed">
+              {currentObj.analogy.analogyText}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* LAYER 2 continued & LAYER 3: Interactive Study Cards with Code Examples */}
       <div className="space-y-4">
         <div className={`p-4 sm:p-5 rounded-2xl border space-y-3 ${
           isDark ? 'bg-zinc-900/30 border-zinc-800' : 'bg-white border-zinc-200'
@@ -311,7 +452,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-zinc-400" />
                 <h2 className={`text-base font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                  Interactive Topic Study Cards
+                  Detailed Definitions & Concept Modules
                 </h2>
               </div>
               <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
@@ -326,7 +467,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
               {!allRead && (
                 <button
                   onClick={acknowledgeAll}
-                  className={`text-xs px-2.5 py-1 rounded border font-medium transition ${
+                  className={`text-xs px-2.5 py-1 rounded border font-medium transition cursor-pointer ${
                     isDark ? 'border-zinc-700 hover:bg-zinc-800 text-zinc-300' : 'border-zinc-300 hover:bg-zinc-100 text-zinc-700'
                   }`}
                 >
@@ -348,6 +489,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
         <div className="grid grid-cols-1 gap-4">
           {studyCards.map((card, idx) => {
             const isChecked = acknowledged.includes(idx);
+
             return (
               <div
                 key={card.id || idx}
@@ -399,41 +541,64 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
                   </div>
                 </div>
 
-                {/* Informational Explanation */}
+                {/* Explanation */}
                 <p className={`text-xs sm:text-sm leading-relaxed ${
                   isDark ? 'text-zinc-300' : 'text-zinc-700'
                 }`}>
                   {card.description}
                 </p>
 
-                {/* Sample Code Block with Copy Action */}
+                {/* Specific Card Analogy */}
+                {card.analogy && (
+                  <div className={`p-3 rounded-lg border text-xs flex items-start gap-2 ${
+                    isDark ? 'bg-zinc-950/50 border-zinc-800/80 text-zinc-300' : 'bg-zinc-50 border-zinc-200 text-zinc-700'
+                  }`}>
+                    <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                    <span><strong>Analogy:</strong> {card.analogy}</span>
+                  </div>
+                )}
+
+                {/* Sample Code Block with Copy & Try in Playground */}
                 {card.codeSample && (
                   <div className="space-y-1.5 pt-1">
                     <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500">
-                      <span className="font-semibold">SAMPLE CODE</span>
-                      <button
-                        type="button"
-                        onClick={(e) => handleCopyCardCode(card.codeSample, idx, e)}
-                        className={`px-2 py-0.5 rounded border text-[11px] font-mono flex items-center gap-1 transition ${
-                          copiedCardIndex === idx
-                            ? isDark
-                              ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400'
-                              : 'border-emerald-300 bg-emerald-100/80 text-zinc-950'
-                            : isDark
-                            ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-400'
-                            : 'border-zinc-200 hover:bg-zinc-100 text-zinc-600'
-                        }`}
-                      >
-                        {copiedCardIndex === idx ? (
-                          <>
-                            <CheckCheck className={`w-3 h-3 ${isDark ? 'text-emerald-400' : 'text-zinc-950'}`} /> Copied!
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3 h-3" /> Copy Code
-                          </>
-                        )}
-                      </button>
+                      <span className="font-semibold">CODE EXAMPLE</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => handleTryInPlayground(card.codeSample, e)}
+                          className={`px-2 py-0.5 rounded border text-[11px] font-mono flex items-center gap-1 transition cursor-pointer ${
+                            isDark
+                              ? 'border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10'
+                              : 'border-emerald-300 text-emerald-800 hover:bg-emerald-50'
+                          }`}
+                        >
+                          <Play className="w-2.5 h-2.5 fill-current" /> Try It Yourself
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleCopyCardCode(card.codeSample, idx, e)}
+                          className={`px-2 py-0.5 rounded border text-[11px] font-mono flex items-center gap-1 transition cursor-pointer ${
+                            copiedCardIndex === idx
+                              ? isDark
+                                ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400'
+                                : 'border-emerald-300 bg-emerald-100/80 text-zinc-950'
+                              : isDark
+                              ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-400'
+                              : 'border-zinc-200 hover:bg-zinc-100 text-zinc-600'
+                          }`}
+                        >
+                          {copiedCardIndex === idx ? (
+                            <>
+                              <CheckCheck className={`w-3 h-3 ${isDark ? 'text-emerald-400' : 'text-zinc-950'}`} /> Copied!
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3" /> Copy
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
 
                     <pre className={`p-4 rounded-xl text-xs font-mono overflow-x-auto border ${
@@ -461,73 +626,386 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
         </div>
       </div>
 
-      {/* Section 3: Live Syntax / Exemplar Code Snippet */}
-      <div className={`p-5 rounded-xl border space-y-3 ${
+      {/* LAYER 3: Code Examples & Live Compiler Sandbox */}
+      <div className={`p-5 sm:p-6 rounded-2xl border space-y-4 ${
         isDark ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-zinc-200'
       }`}>
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-mono font-bold text-zinc-500">EXEMPLAR CODE SNIPPET</span>
-          <button
-            onClick={handleCopySnippet}
-            className={`px-2.5 py-1 rounded text-[11px] font-mono flex items-center gap-1.5 border transition ${
-              copied
-                ? isDark ? 'border-zinc-700 bg-zinc-800 text-zinc-200' : 'border-zinc-300 bg-zinc-100 text-zinc-900'
-                : isDark
-                ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-400'
-                : 'border-zinc-200 hover:bg-zinc-100 text-zinc-600'
-            }`}
-          >
-            {copied ? (
-              <>
-                <CheckCheck className="w-3 h-3" /> Copied!
-              </>
-            ) : (
-              <>
-                <Copy className="w-3 h-3" /> Copy Snippet
-              </>
-            )}
-          </button>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <Code2 className="w-4 h-4 text-emerald-500 shrink-0" />
+              <h2 className={`text-base font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
+                Live Compiler Sandbox & Exemplar Script
+              </h2>
+            </div>
+            <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              Execute this code in the embedded runner or launch it in the full interactive compiler.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={handleRunSandbox}
+              disabled={isSandboxRunning}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-xs text-white ${
+                isDark ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-emerald-600 hover:bg-emerald-500'
+              }`}
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>{isSandboxRunning ? 'Running...' : 'Run in Sandbox'}</span>
+            </button>
+
+            <button
+              onClick={() => handleTryInPlayground(currentObj.snippet)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition cursor-pointer ${
+                isDark ? 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700' : 'border-zinc-300 bg-zinc-100 text-zinc-800 hover:bg-zinc-200'
+              }`}
+            >
+              <span>Open in Full Playground</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
+
+            <button
+              onClick={handleCopySnippet}
+              className={`p-1.5 rounded-lg border text-xs transition cursor-pointer ${
+                copied
+                  ? isDark ? 'border-zinc-700 bg-zinc-800 text-zinc-200' : 'border-zinc-300 bg-zinc-100 text-zinc-900'
+                  : isDark ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-400' : 'border-zinc-200 hover:bg-zinc-100 text-zinc-600'
+              }`}
+              title="Copy Script"
+            >
+              {copied ? <CheckCheck className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
 
-        <pre className={`p-4 rounded-lg text-xs font-mono overflow-x-auto border ${
-          isDark ? 'bg-[#09090b] border-zinc-800 text-zinc-300' : 'bg-zinc-50 border-zinc-200 text-zinc-900 font-semibold'
+        {/* Code Snippet */}
+        <pre className={`p-4 rounded-xl text-xs font-mono overflow-x-auto border ${
+          isDark ? 'bg-[#09090b] border-zinc-800 text-zinc-300' : 'bg-zinc-50 border-zinc-200 text-zinc-900'
         }`}>
           <code>{currentObj.snippet}</code>
         </pre>
+
+        {/* Live In-place Output Console */}
+        {hasRunSandbox && (
+          <div className={`p-4 rounded-xl border space-y-2 animate-fade-in ${
+            isDark ? 'bg-[#050505] border-zinc-800' : 'bg-zinc-900 text-zinc-100 border-zinc-700'
+          }`}>
+            <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400 border-b border-zinc-800 pb-2">
+              <span className="flex items-center gap-1.5">
+                <Terminal className="w-3.5 h-3.5 text-emerald-400" />
+                <span>SANDBOX TERMINAL OUTPUT</span>
+              </span>
+              <button
+                onClick={() => setHasRunSandbox(false)}
+                className="hover:text-zinc-200 text-xs px-1 cursor-pointer"
+              >
+                ✕ Clear
+              </button>
+            </div>
+
+            <div className="space-y-1 font-mono text-xs max-h-48 overflow-y-auto">
+              {sandboxLogs.map((log, lIdx) => (
+                <div
+                  key={lIdx}
+                  className={`leading-relaxed ${
+                    log.type === 'error'
+                      ? 'text-rose-400'
+                      : log.type === 'warn'
+                      ? 'text-amber-400'
+                      : 'text-zinc-300'
+                  }`}
+                >
+                  <span className="opacity-40 mr-2">&gt;</span>
+                  {log.text}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Section 4: Common Pitfalls & Traps to Avoid */}
+      {/* LAYER 4: Common Pitfalls & Best Practices */}
       {currentObj.commonPitfalls && currentObj.commonPitfalls.length > 0 && (
-        <div className={`p-5 rounded-xl border space-y-3 ${
-          isDark ? 'bg-zinc-900/30 border-zinc-800 text-zinc-300' : 'bg-zinc-50 border-zinc-200 text-zinc-800'
+        <div className={`p-6 rounded-2xl border space-y-3 ${
+          isDark ? 'bg-amber-950/10 border-amber-500/25 text-zinc-300' : 'bg-amber-50/60 border-amber-300 text-zinc-800'
         }`}>
-          <div className="flex items-center gap-2 text-zinc-400">
+          <div className="flex items-center gap-2 text-amber-500">
             <AlertTriangle className="w-4 h-4" />
-            <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-zinc-200' : 'text-zinc-900'}`}>
-              Common Pitfalls & Mistakes to Avoid
+            <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-amber-300' : 'text-amber-950'}`}>
+              Common Pitfalls & Best Practices
             </h3>
           </div>
-          <ul className="space-y-1.5 text-xs">
+          <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+            Avoid these frequent mistakes that often trip up developers:
+          </p>
+          <ul className="space-y-2 text-xs pt-1">
             {currentObj.commonPitfalls.map((pitfall, idx) => (
-              <li key={idx} className="flex items-start gap-2">
-                <span className="text-zinc-500">•</span>
-                <span className={isDark ? 'text-zinc-400' : 'text-zinc-600'}>{pitfall}</span>
+              <li key={idx} className="flex items-start gap-2.5">
+                <span className="text-amber-500 font-bold">•</span>
+                <span className={isDark ? 'text-zinc-300' : 'text-zinc-700'}>{pitfall}</span>
               </li>
             ))}
           </ul>
         </div>
       )}
 
-      {/* All Completed Celebration Banner */}
+      {/* LAYER 5: Interactive Flashcards (Spaced Repetition Review) */}
+      {flashcards.length > 0 && (
+        <div className={`p-6 rounded-2xl border space-y-4 ${
+          isDark ? 'bg-zinc-900/30 border-zinc-800' : 'bg-white border-zinc-200'
+        }`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Layers className="w-4 h-4 text-emerald-500 shrink-0" />
+              <h2 className={`text-base font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
+                Interactive Flashcards: Spaced Repetition Review
+              </h2>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-mono text-zinc-500">
+              <span>Card {flashcardIndex + 1} of {totalFlashcards}</span>
+              <span>•</span>
+              <span className="text-emerald-500 font-medium">
+                {masteredCards.length} Mastered
+              </span>
+            </div>
+          </div>
+
+          <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+            Click the card to flip and verify your conceptual recall before moving to the next objective.
+          </p>
+
+          {/* 3D Flip Card Container */}
+          <div
+            onClick={() => setIsFlipped(!isFlipped)}
+            className={`min-h-[160px] p-6 rounded-2xl border transition-all cursor-pointer select-none flex flex-col justify-between ${
+              isFlipped
+                ? isDark
+                  ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-100 shadow-sm'
+                  : 'bg-emerald-50 border-emerald-300 text-zinc-900 shadow-xs'
+                : isDark
+                ? 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 text-zinc-200'
+                : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300 text-zinc-900'
+            }`}
+          >
+            <div className="flex items-center justify-between text-[11px] font-mono">
+              <span className={`px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
+                isFlipped
+                  ? 'bg-emerald-500/20 text-emerald-400'
+                  : isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-zinc-200 text-zinc-700'
+              }`}>
+                {isFlipped ? 'ANSWER & RECALL' : 'QUESTION / PROMPT'}
+              </span>
+
+              <span className="text-xs opacity-60">
+                {isFlipped ? 'Click to flip back' : 'Click card to reveal answer'}
+              </span>
+            </div>
+
+            <div className="py-4">
+              <p className="text-sm sm:text-base font-medium leading-relaxed">
+                {isFlipped ? flashcards[flashcardIndex].back : flashcards[flashcardIndex].front}
+              </p>
+
+              {!isFlipped && showHint && flashcards[flashcardIndex].hint && (
+                <div className={`mt-3 p-2.5 rounded-lg border text-xs flex items-center gap-2 animate-fade-in ${
+                  isDark ? 'bg-amber-950/20 border-amber-500/30 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-900'
+                }`}>
+                  <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span><strong>Hint:</strong> {flashcards[flashcardIndex].hint}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-dashed border-zinc-700/40 text-xs">
+              {!isFlipped && flashcards[flashcardIndex].hint && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowHint(!showHint);
+                  }}
+                  className="text-amber-500 hover:text-amber-400 flex items-center gap-1 cursor-pointer font-medium"
+                >
+                  <Lightbulb className="w-3 h-3" />
+                  <span>{showHint ? 'Hide Hint' : 'Show Hint'}</span>
+                </button>
+              )}
+              {isFlipped && <div />}
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMasteredCards(prev => 
+                    prev.includes(flashcardIndex) ? prev.filter(i => i !== flashcardIndex) : [...prev, flashcardIndex]
+                  );
+                }}
+                className={`px-2.5 py-1 rounded text-[11px] font-medium border flex items-center gap-1 transition cursor-pointer ${
+                  masteredCards.includes(flashcardIndex)
+                    ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400'
+                    : isDark ? 'border-zinc-700 text-zinc-400 hover:text-zinc-200' : 'border-zinc-300 text-zinc-600 hover:text-zinc-900'
+                }`}
+              >
+                <Check className="w-3 h-3" />
+                <span>{masteredCards.includes(flashcardIndex) ? 'Mastered!' : 'Mark Mastered'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Flashcard Navigation Buttons */}
+          <div className="flex items-center justify-between pt-1">
+            <button
+              onClick={() => {
+                setIsFlipped(false);
+                setShowHint(false);
+                setFlashcardIndex((prev) => (prev - 1 + totalFlashcards) % totalFlashcards);
+              }}
+              className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition cursor-pointer ${
+                isDark ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-300' : 'border-zinc-200 hover:bg-zinc-100 text-zinc-700'
+              }`}
+            >
+              <ChevronLeft className="w-4 h-4" /> Previous
+            </button>
+
+            <button
+              onClick={() => setIsFlipped(!isFlipped)}
+              className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition cursor-pointer ${
+                isDark ? 'border-zinc-700 bg-zinc-800 text-zinc-200' : 'border-zinc-300 bg-zinc-100 text-zinc-800'
+              }`}
+            >
+              {isFlipped ? 'Show Question' : 'Flip Card'}
+            </button>
+
+            <button
+              onClick={() => {
+                setIsFlipped(false);
+                setShowHint(false);
+                setFlashcardIndex((prev) => (prev + 1) % totalFlashcards);
+              }}
+              className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition cursor-pointer ${
+                isDark ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-300' : 'border-zinc-200 hover:bg-zinc-100 text-zinc-700'
+              }`}
+            >
+              Next <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* LAYER 6: Chapter Exercise / Quiz */}
+      {chapterExercises.length > 0 && (
+        <div className={`p-6 rounded-2xl border space-y-4 ${
+          isDark ? 'bg-zinc-900/30 border-zinc-800' : 'bg-white border-zinc-200'
+        }`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <HelpCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+              <h2 className={`text-base font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
+                Chapter Exercise: Interactive Knowledge Check
+              </h2>
+            </div>
+            <span className={`text-xs font-mono px-2.5 py-0.5 rounded border ${
+              exercisePassed
+                ? isDark ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60' : 'bg-emerald-100 text-zinc-950 border-emerald-300'
+                : 'text-zinc-500 border-zinc-700'
+            }`}>
+              Score: {correctCount} / {chapterExercises.length} Correct
+            </span>
+          </div>
+
+          <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+            Answer each question below to verify conceptual comprehension and complete this chapter.
+          </p>
+
+          <div className="space-y-4 pt-2">
+            {chapterExercises.map((exercise, qIdx) => {
+              const selectedAnswer = exerciseAnswers[qIdx];
+              const isAnswered = selectedAnswer !== undefined;
+              const isCorrect = selectedAnswer === exercise.answer;
+
+              return (
+                <div
+                  key={exercise.id || qIdx}
+                  className={`p-5 rounded-xl border space-y-3 transition ${
+                    isDark ? 'bg-zinc-950/40 border-zinc-800/80' : 'bg-zinc-50/70 border-zinc-200'
+                  }`}
+                >
+                  <p className="text-xs sm:text-sm font-semibold">
+                    {qIdx + 1}. {exercise.question}
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {exercise.options.map((option, optIdx) => {
+                      const isOptionSelected = selectedAnswer === optIdx;
+                      const isOptionCorrect = optIdx === exercise.answer;
+
+                      let btnStyle = isDark
+                        ? 'border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800'
+                        : 'border-zinc-200 text-zinc-700 hover:bg-zinc-100';
+
+                      if (isOptionSelected) {
+                        if (isOptionCorrect) {
+                          btnStyle = isDark
+                            ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300 font-bold'
+                            : 'border-emerald-500 bg-emerald-100 text-emerald-950 font-bold';
+                        } else {
+                          btnStyle = isDark
+                            ? 'border-rose-500 bg-rose-500/20 text-rose-300 font-bold'
+                            : 'border-rose-500 bg-rose-100 text-rose-950 font-bold';
+                        }
+                      } else if (isAnswered && isOptionCorrect) {
+                        // Highlight the correct answer if user got it wrong
+                        btnStyle = isDark
+                          ? 'border-emerald-500/40 text-emerald-400/80'
+                          : 'border-emerald-300 text-emerald-800';
+                      }
+
+                      return (
+                        <button
+                          key={optIdx}
+                          type="button"
+                          onClick={() => setExerciseAnswers({ ...exerciseAnswers, [qIdx]: optIdx })}
+                          className={`p-3 rounded-lg text-xs font-mono text-left border transition cursor-pointer flex items-center justify-between ${btnStyle}`}
+                        >
+                          <span>{option}</span>
+                          {isOptionSelected && isOptionCorrect && (
+                            <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {isAnswered && (
+                    <div className={`p-3 rounded-lg border text-xs leading-relaxed animate-fade-in ${
+                      isCorrect
+                        ? isDark ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                        : isDark ? 'bg-rose-950/20 border-rose-500/30 text-rose-300' : 'bg-rose-50 border-rose-200 text-rose-900'
+                    }`}>
+                      <p className="font-semibold mb-0.5">
+                        {isCorrect ? '✓ Correct Answer!' : '✗ Not quite right. Review explanation:'}
+                      </p>
+                      <p className="opacity-90">{exercise.explanation}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* All 13 Completed Celebration Banner */}
       {completed.length === SYLLABUS_OBJECTIVES.length && (
         <div className={`p-6 rounded-2xl border text-center space-y-3 ${
           isDark ? 'bg-zinc-900 border-zinc-700' : 'bg-zinc-50 border-zinc-300'
         }`}>
           <h3 className={`text-base font-bold ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-            All {SYLLABUS_OBJECTIVES.length} Modules Completed!
+            All 13 Modules Completed! Curriculum Mastered!
           </h3>
           <p className={`text-xs max-w-md mx-auto ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            Outstanding work! You have satisfied all course learning objectives. Verify your mastery with the Self-Assessment Quiz.
+            Outstanding work! You have satisfied all course learning objectives across Basic, Intermediate, Advanced, and Expert tiers. Verify your mastery with the Self-Assessment Quiz or view your Certificate in Account.
           </p>
           <div className="pt-2 flex justify-center gap-3">
             <Link
@@ -539,12 +1017,12 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
               Launch Self-Assessment Quiz
             </Link>
             <Link
-              to="/playground"
+              to="/account"
               className={`px-4 py-2 rounded-lg text-xs font-medium border transition ${
                 isDark ? 'border-zinc-800 text-zinc-300 hover:bg-zinc-800' : 'border-zinc-200 text-zinc-700 hover:bg-zinc-100'
               }`}
             >
-              Explore Code Playground
+              View Certificate & Account
             </Link>
           </div>
         </div>

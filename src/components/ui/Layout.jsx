@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Sun, Moon, LogOut } from 'lucide-react';
 import { SYLLABUS_OBJECTIVES } from '../../data/datasets';
 import ScrollToTopButton from './ScrollToTopButton';
@@ -7,6 +7,7 @@ import ScrollToTopButton from './ScrollToTopButton';
 export default function Layout({ theme, setTheme, completedCount, student, setStudent }) {
   const isDark = theme === 'dark';
   const navigate = useNavigate();
+  const location = useLocation();
   const totalObjectives = SYLLABUS_OBJECTIVES.length;
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
@@ -96,7 +97,9 @@ export default function Layout({ theme, setTheme, completedCount, student, setSt
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-10">
-        <Outlet />
+        <div key={location.pathname} className="animate-page-enter">
+          <Outlet />
+        </div>
       </main>
 
       <footer className={`border-t py-6 text-center text-xs font-mono transition-colors ${
