@@ -5,18 +5,16 @@ import {
   CheckCircle2, 
   Lock, 
   Printer, 
-  User, 
-  Calendar, 
-  BookOpen, 
   GraduationCap, 
   ShieldCheck, 
   Edit3, 
   Check, 
   ArrowRight,
   Maximize2,
-  X
+  X,
+  Mail
 } from 'lucide-react';
-import { SYLLABUS_OBJECTIVES } from '../data/datasets';
+import { SYLLABUS_OBJECTIVES, REGISTERED_STUDENTS } from '../data/datasets';
 
 export default function Account({ theme, student, setStudent, completed = [] }) {
   const isDark = theme === 'dark';
@@ -24,30 +22,44 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
   const isCertified = completed.length >= totalObjectives;
   const progressPercent = Math.round((completed.length / totalObjectives) * 100);
 
-  // Name Editing State
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [nameInput, setNameInput] = useState(student?.name || 'Alexander Vance');
-  const [nameSavedFeedback, setNameSavedFeedback] = useState(false);
+  // Match registered student record for authoritative SIS data
+  const registeredRecord = REGISTERED_STUDENTS.find(
+    (s) => s.studentId === student?.studentId
+  );
+
+  // Authoritative real name and email (students can only edit username)
+  const realName = student?.realName || registeredRecord?.realName || 'Alexander Vance';
+  const email = student?.email || registeredRecord?.email || `${realName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@ctu.edu.ph`;
+  const initialUsername = student?.username || student?.name || registeredRecord?.username || 'Yi Zaha';
+
+  // Username Editing State (only username is editable)
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [usernameInput, setUsernameInput] = useState(initialUsername);
+  const [usernameSavedFeedback, setUsernameSavedFeedback] = useState(false);
 
   // Fullscreen Certificate Modal
   const [showModal, setShowModal] = useState(false);
 
-  const handleSaveName = (e) => {
+  const handleSaveUsername = (e) => {
     e.preventDefault();
-    if (!nameInput.trim()) return;
+    if (!usernameInput.trim()) return;
 
+    const trimmed = usernameInput.trim();
     const updatedStudent = {
       ...student,
-      name: nameInput.trim()
+      username: trimmed,
+      name: trimmed, // keep name consistent for backwards compatibility across top bar
+      realName,
+      email
     };
 
     localStorage.setItem('js_student_user', JSON.stringify(updatedStudent));
     if (setStudent) {
       setStudent(updatedStudent);
     }
-    setIsEditingName(false);
-    setNameSavedFeedback(true);
-    setTimeout(() => setNameSavedFeedback(false), 2500);
+    setIsEditingUsername(false);
+    setUsernameSavedFeedback(true);
+    setTimeout(() => setUsernameSavedFeedback(false), 2500);
   };
 
   const handlePrint = () => {
@@ -61,6 +73,7 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
   });
 
   const certificateId = `CTU-JS101-${student?.studentId || '0000001'}-2026`;
+  const currentUsername = student?.username || student?.name || initialUsername;
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -90,19 +103,21 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-lg border shrink-0 ${
               isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-800'
             }`}>
-              {student?.name
-                ? student.name.split(' ').map((n) => n[0]).slice(0, 2).join('')
-                : 'AV'}
+              {currentUsername
+                ? currentUsername.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+                : 'YZ'}
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
+              {/* Username row with edit toggle */}
               <div className="flex items-center gap-2.5">
-                {isEditingName ? (
-                  <form onSubmit={handleSaveName} className="flex items-center gap-2">
+                {isEditingUsername ? (
+                  <form onSubmit={handleSaveUsername} className="flex items-center gap-2">
                     <input
                       type="text"
-                      value={nameInput}
-                      onChange={(e) => setNameInput(e.target.value)}
+                      value={usernameInput}
+                      onChange={(e) => setUsernameInput(e.target.value)}
+                      placeholder="Enter new username"
                       className={`px-2.5 py-1 text-sm rounded border font-semibold focus:outline-none ${
                         isDark ? 'bg-zinc-950 border-zinc-700 text-white' : 'bg-zinc-50 border-zinc-300 text-zinc-900'
                       }`}
@@ -116,7 +131,10 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
                     </button>
                     <button
                       type="button"
-                      onClick={() => setIsEditingName(false)}
+                      onClick={() => {
+                        setUsernameInput(currentUsername);
+                        setIsEditingUsername(false);
+                      }}
                       className="px-2 py-1 text-xs text-zinc-400 hover:text-zinc-200"
                     >
                       Cancel
@@ -124,24 +142,49 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
                   </form>
                 ) : (
                   <>
-                    <h2 className="text-xl font-bold tracking-tight">{student?.name || 'Alexander Vance'}</h2>
+                    <h2 className="text-xl font-bold tracking-tight">{currentUsername}</h2>
                     <button
-                      onClick={() => setIsEditingName(true)}
-                      title="Edit student display name"
+                      onClick={() => {
+                        setUsernameInput(currentUsername);
+                        setIsEditingUsername(true);
+                      }}
+                      title="Edit Username"
                       className={`p-1 rounded text-zinc-400 hover:text-zinc-200 transition ${
                         isDark ? 'hover:bg-zinc-800' : 'hover:bg-zinc-100'
                       }`}
                     >
                       <Edit3 className="w-3.5 h-3.5" />
                     </button>
-                    {nameSavedFeedback && (
-                      <span className="text-[11px] font-mono text-emerald-400 animate-fade-in">Name updated!</span>
+                    {usernameSavedFeedback && (
+                      <span className="text-[11px] font-mono text-emerald-400 animate-fade-in">Username updated!</span>
                     )}
                   </>
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 text-xs">
+              {/* Student Real Name & Email (Read-only official records) */}
+              <div className="space-y-1 text-xs">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-zinc-500 font-mono">Real Name:</span>
+                  <span className={`font-semibold ${isDark ? 'text-zinc-200' : 'text-zinc-900'}`}>{realName}</span>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded border font-mono ${
+                    isDark ? 'bg-zinc-800/80 border-zinc-700 text-zinc-400' : 'bg-zinc-100 border-zinc-300 text-zinc-600'
+                  }`}>
+                    Official Record
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-zinc-500 font-mono">Student Email:</span>
+                  <span className={`font-mono flex items-center gap-1.5 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                    <Mail className="w-3 h-3 text-zinc-400" />
+                    {email}
+                  </span>
+                </div>
+              </div>
+
+              {/* Badges */}
+              <div className="flex flex-wrap items-center gap-2 text-xs pt-1">
                 <span className={`px-2 py-0.5 rounded font-mono font-bold border ${
                   isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-300' : 'bg-zinc-100 border-zinc-200 text-zinc-700'
                 }`}>
@@ -173,20 +216,28 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
         </div>
 
         {/* Credential Data Grid */}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t text-xs ${
+        <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-4 border-t text-xs ${
           isDark ? 'border-zinc-800/80' : 'border-zinc-200'
         }`}>
           <div className="space-y-0.5">
-            <span className="text-[11px] font-mono text-zinc-500">Institution</span>
+            <span className="text-[11px] font-mono text-zinc-500">Official Real Name</span>
+            <p className="font-semibold">{realName}</p>
+          </div>
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-mono text-zinc-500">Institutional Email</span>
+            <p className="font-mono">{email}</p>
+          </div>
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-mono text-zinc-500">Student ID Number</span>
+            <p className="font-mono">{student?.studentId || '0000001'}</p>
+          </div>
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-mono text-zinc-500">Institution & Campus</span>
             <p className="font-medium">CTU Main Campus</p>
           </div>
           <div className="space-y-0.5">
             <span className="text-[11px] font-mono text-zinc-500">Academic Program</span>
             <p className="font-medium">BSIT (Year 4 - Section B)</p>
-          </div>
-          <div className="space-y-0.5">
-            <span className="text-[11px] font-mono text-zinc-500">Course Code</span>
-            <p className="font-medium">IT-JS101: JavaScript</p>
           </div>
           <div className="space-y-0.5">
             <span className="text-[11px] font-mono text-zinc-500">Birthdate on Record</span>
@@ -308,14 +359,14 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
                   </h1>
                 </div>
 
-                {/* Recipient Details */}
+                {/* Recipient Details - Uses Student Real Name */}
                 <div className="space-y-3 max-w-xl mx-auto">
                   <p className="text-xs italic opacity-75">This proudly certifies that</p>
                   <p className="text-2xl sm:text-3xl font-bold tracking-tight underline decoration-1 underline-offset-8">
-                    {student?.name || 'Alexander Vance'}
+                    {realName}
                   </p>
                   <p className="text-xs font-mono opacity-80 pt-1">
-                    Student ID: {student?.studentId || '0000001'} • Section: {student?.section || 'BSIT 4-B'}
+                    Student ID: {student?.studentId || '0000001'} • Section: {student?.section || 'BSIT 4-B'} • Email: {email}
                   </p>
                 </div>
 
@@ -351,7 +402,7 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
                 <div className="pt-2 flex flex-col sm:flex-row items-center justify-between text-[10px] font-mono opacity-60 gap-2 border-t border-zinc-800/40">
                   <span>Certificate ID: {certificateId}</span>
                   <span>Issued: {currentDateFormatted}</span>
-                  <span>Status: Verified & Cryptographically Signed</span>
+                  <span>Recipient: {realName} ({email})</span>
                 </div>
               </div>
             </div>
@@ -416,10 +467,10 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
                 </h1>
                 <p className="text-xs italic opacity-70">Presented to</p>
                 <p className="text-2xl sm:text-3xl font-bold underline decoration-1 underline-offset-8">
-                  {student?.name || 'Alexander Vance'}
+                  {realName}
                 </p>
                 <p className="text-xs font-mono opacity-80">
-                  ID: {student?.studentId} • Section: {student?.section}
+                  ID: {student?.studentId} • Section: {student?.section} • Email: {email}
                 </p>
                 <p className="text-xs max-w-lg mx-auto opacity-80">
                   For comprehensive mastery of IT-JS101 JavaScript Programming Curriculum across 10 sequential objectives.

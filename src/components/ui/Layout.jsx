@@ -1,15 +1,19 @@
+import { useState } from 'react';
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
-import { Sun, Moon, Terminal, LogOut } from 'lucide-react';
+import { Sun, Moon, LogOut } from 'lucide-react';
 import { SYLLABUS_OBJECTIVES } from '../../data/datasets';
+import ScrollToTopButton from './ScrollToTopButton';
 
 export default function Layout({ theme, setTheme, completedCount, student, setStudent }) {
   const isDark = theme === 'dark';
   const navigate = useNavigate();
   const totalObjectives = SYLLABUS_OBJECTIVES.length;
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const handleLogout = () => {
+  const confirmLogout = () => {
     localStorage.removeItem('js_student_user');
     setStudent(null);
+    setShowLogoutModal(false);
     navigate('/');
   };
 
@@ -23,6 +27,8 @@ export default function Layout({ theme, setTheme, completedCount, student, setSt
         ? 'text-zinc-400 hover:text-zinc-200'
         : 'text-zinc-600 hover:text-zinc-900'
     }`;
+
+  const displayName = student?.username || student?.name || 'Student';
 
   return (
     <div className={`min-h-screen transition-colors duration-150 ${isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'}`}>
@@ -58,7 +64,7 @@ export default function Layout({ theme, setTheme, completedCount, student, setSt
                     : 'bg-zinc-100 border-zinc-200 text-zinc-700 hover:border-zinc-300 hover:text-zinc-900'
                 }`}
               >
-                <span>{student.name}</span>
+                <span>{displayName}</span>
                 <span className="opacity-40">•</span>
                 <span>{completedCount}/{totalObjectives}</span>
               </Link>
@@ -76,7 +82,7 @@ export default function Layout({ theme, setTheme, completedCount, student, setSt
 
             {student && (
               <button
-                onClick={handleLogout}
+                onClick={() => setShowLogoutModal(true)}
                 title="Sign Out"
                 className={`p-2 rounded-md border transition ${
                   isDark ? 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-rose-400' : 'border-zinc-200 bg-white text-zinc-600 hover:text-rose-600'
@@ -99,6 +105,59 @@ export default function Layout({ theme, setTheme, completedCount, student, setSt
         <p>FlexScript • IT-JS101 JavaScript Course Portal</p>
         <p className="mt-1 text-[11px] opacity-80">Developed by John Paul P. Mahilom (Rexshimura) — BSIT 4-B | CTU Main Campus</p>
       </footer>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setShowLogoutModal(false)}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className={`w-full max-w-sm rounded-2xl border p-6 space-y-4 shadow-xl animate-fade-in ${
+              isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-200 text-zinc-900'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-rose-500/10 text-rose-500 shrink-0">
+                <LogOut className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold">Sign Out Confirmation</h3>
+                <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                  Are you sure you want to log out?
+                </p>
+              </div>
+            </div>
+
+            <p className={`text-xs leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              Your curriculum mastery progress and account data will remain securely saved on this device.
+            </p>
+
+            <div className="pt-2 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(false)}
+                className={`px-3.5 py-2 rounded-lg text-xs font-medium border transition ${
+                  isDark ? 'border-zinc-700 hover:bg-zinc-800 text-zinc-300' : 'border-zinc-300 hover:bg-zinc-100 text-zinc-700'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmLogout}
+                className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-rose-600 text-white hover:bg-rose-500 transition"
+              >
+                Yes, Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Scroll To Top Button */}
+      <ScrollToTopButton theme={theme} />
     </div>
   );
 }

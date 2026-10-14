@@ -2,10 +2,11 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, CheckCircle2, Play, Award } from 'lucide-react';
 import { SYLLABUS_OBJECTIVES } from '../data/datasets';
 
-export default function Overview({ theme, completed }) {
+export default function Overview({ theme, completed, student }) {
   const isDark = theme === 'dark';
   const total = SYLLABUS_OBJECTIVES.length;
   const percent = Math.round((completed.length / total) * 100);
+  const username = student?.username || student?.name || 'Student';
 
   // Find the first uncompleted objective, or the first one if none completed
   const currentObjective = SYLLABUS_OBJECTIVES.find((o) => !completed.includes(o.id)) || SYLLABUS_OBJECTIVES[SYLLABUS_OBJECTIVES.length - 1];
@@ -13,12 +14,19 @@ export default function Overview({ theme, completed }) {
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="space-y-3">
-        <p className="text-xs font-mono uppercase tracking-wider text-zinc-500 font-semibold">
-          Cebu Technological University • BSIT Course Module
-        </p>
-        <h1 className="text-3xl font-bold tracking-tight">
-          JavaScript Basic Course Objectives
-        </h1>
+        <div className="flex items-center gap-2">
+          <p className="text-xs font-mono uppercase tracking-wider text-zinc-500 font-semibold">
+            Cebu Technological University • BSIT Course Module
+          </p>
+        </div>
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight">
+            Welcome, <span className="text-emerald-500">{username}</span>!
+          </h1>
+          <p className={`text-base font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+            JavaScript Basic Course Objectives
+          </p>
+        </div>
         <p className={`text-sm leading-relaxed max-w-2xl ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
           Welcome to the IT-JS101 interactive academic portal. Master JavaScript programming fundamentals through our structured sequential curriculum, interactive playground runtime, and self-assessment evaluations.
         </p>

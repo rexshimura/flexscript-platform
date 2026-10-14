@@ -100,7 +100,7 @@ function App() {
               />
             }
           >
-            <Route path="/overview" element={<Overview theme={theme} completed={completed} />} />
+            <Route path="/overview" element={<Overview theme={theme} completed={completed} student={student} />} />
             
             {/* Objectives Master & Sequential Routes */}
             <Route

@@ -5,25 +5,37 @@ export const REGISTERED_STUDENTS = [
   {
     studentId: '0000001',
     birthdate: '2000-01-01',
-    name: 'Alexander Vance',
+    realName: 'Alexander Vance',
+    username: 'Yi Zaha',
+    name: 'Yi Zaha',
+    email: 'alexander.vance@ctu.edu.ph',
     section: 'BSIT 4-B'
   },
   {
     studentId: '1339523',
     birthdate: '2005-05-15',
-    name: 'John Paul P. Mahilom',
+    realName: 'John Paul P. Mahilom',
+    username: 'Rexshimura',
+    name: 'Rexshimura',
+    email: 'johnpaul.mahilom@ctu.edu.ph',
     section: 'BSIT 4-B'
   },
   {
     studentId: '122-0491',
     birthdate: '2005-01-20',
-    name: 'Rex Mahilom',
+    realName: 'Rex Mahilom',
+    username: 'Rex',
+    name: 'Rex',
+    email: 'rex.mahilom@ctu.edu.ph',
     section: 'BSIT 4-B'
   },
   {
     studentId: '2026-0001',
     birthdate: '2004-10-12',
-    name: 'Juan Dela Cruz',
+    realName: 'Juan Dela Cruz',
+    username: 'JuanDC',
+    name: 'JuanDC',
+    email: 'juan.delacruz@ctu.edu.ph',
     section: 'BSIT 4-B'
   }
 ];
