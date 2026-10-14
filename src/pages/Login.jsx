@@ -1,0 +1,221 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, Loader2, Lock } from 'lucide-react';
+import { REGISTERED_STUDENTS } from '../data/datasets';
+
+const MAX_ATTEMPTS = 4;
+const LOCKOUT_SECONDS = 30;
+
+export default function Login({ theme, setStudent }) {
+  const isDark = theme === 'dark';
+  const navigate = useNavigate();
+
+  const [studentId, setStudentId] = useState('');
+  const [birthdate, setBirthdate] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Rate Limiter States
+  const [attempts, setAttempts] = useState(() => Number(sessionStorage.getItem('login_attempts') || 0));
+  const [lockoutTime, setLockoutTime] = useState(() => Number(sessionStorage.getItem('login_lockout_until') || 0));
+  const [remainingLockout, setRemainingLockout] = useState(0);
+
+  // Countdown timer for lockout duration
+  useEffect(() => {
+    if (!lockoutTime) return;
+
+    const updateRemaining = () => {
+      const remaining = Math.max(0, Math.ceil((lockoutTime - Date.now()) / 1000));
+      setRemainingLockout(remaining);
+      if (remaining <= 0) {
+        setLockoutTime(0);
+        setAttempts(0);
+        sessionStorage.removeItem('login_lockout_until');
+        sessionStorage.removeItem('login_attempts');
+        setError('');
+      }
+    };
+
+    updateRemaining();
+    const interval = setInterval(updateRemaining, 1000);
+    return () => clearInterval(interval);
+  }, [lockoutTime]);
+
+  const isLocked = remainingLockout > 0;
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (isLoading || isLocked) return;
+
+    setError('');
+
+    if (!studentId.trim() || !birthdate) {
+      setError('Please enter both your Student ID Number and Birthdate.');
+      return;
+    }
+
+    // Trigger loading animation to simulate SIS authentication handshake
+    setIsLoading(true);
+
+    setTimeout(() => {
+      // Normalize date format if user enters MM/DD/YYYY or HTML5 YYYY-MM-DD
+      const normalizeDate = (d) => {
+        if (!d) return '';
+        const trimmed = d.trim();
+        if (trimmed.includes('/')) {
+          const parts = trimmed.split('/');
+          if (parts.length === 3 && parts[2].length === 4) {
+            return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+          }
+        }
+        return trimmed;
+      };
+
+      const normalizedInputDate = normalizeDate(birthdate);
+
+      const matchedStudent = REGISTERED_STUDENTS.find(
+        (s) =>
+          s.studentId.toLowerCase() === studentId.trim().toLowerCase() &&
+          (s.birthdate === birthdate || s.birthdate === normalizedInputDate)
+      );
+
+      if (!matchedStudent) {
+        const nextAttempts = attempts + 1;
+        setAttempts(nextAttempts);
+        sessionStorage.setItem('login_attempts', String(nextAttempts));
+
+        if (nextAttempts >= MAX_ATTEMPTS) {
+          const lockUntil = Date.now() + LOCKOUT_SECONDS * 1000;
+          setLockoutTime(lockUntil);
+          sessionStorage.setItem('login_lockout_until', String(lockUntil));
+          setError(`Security Rate Limit: ${MAX_ATTEMPTS} failed attempts. Access locked for ${LOCKOUT_SECONDS}s.`);
+        } else {
+          setError(`Authentication failed: Student ID or Birthdate not recognized (${MAX_ATTEMPTS - nextAttempts} attempts remaining).`);
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      // Successful verification
+      sessionStorage.removeItem('login_attempts');
+      sessionStorage.removeItem('login_lockout_until');
+
+      const sessionData = {
+        ...matchedStudent,
+        loginTime: new Date().toLocaleTimeString()
+      };
+
+      localStorage.setItem('js_student_user', JSON.stringify(sessionData));
+      setStudent(sessionData);
+      setIsLoading(false);
+      navigate('/overview');
+    }, 750);
+  };
+
+  return (
+    <div className={`min-h-screen flex flex-col justify-center items-center px-4 page-enter transition-colors duration-150 ${
+      isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'
+    }`}>
+      <div className="w-full max-w-sm space-y-5">
+        <Link
+          to="/"
+          className={`inline-flex items-center gap-1.5 text-xs font-medium transition ${
+            isDark ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-zinc-900'
+          }`}
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to Home
+        </Link>
+
+        <div className={`p-6 sm:p-7 rounded-2xl border space-y-5 transition ${
+          isDark ? 'bg-zinc-900/50 border-zinc-800' : 'bg-white border-zinc-200 shadow-sm'
+        }`}>
+          {/* Header with Icon alongside Title */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-2.5">
+              <img
+                src="/main.svg"
+                alt="FlexScript Logo"
+                className={`w-5 h-5 object-contain transition-all ${isDark ? '' : 'invert'}`}
+              />
+              <h1 className="text-xl font-bold tracking-tight">Student Portal Login</h1>
+            </div>
+            <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              Enter your Student ID Number and Birthdate to verify.
+            </p>
+          </div>
+
+          {/* Feedback & Error / Rate-limit Alert */}
+          {error && (
+            <div className={`p-3 rounded-lg text-xs leading-relaxed border flex items-start gap-2 animate-fade-in ${
+              isLocked
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+            }`}>
+              {isLocked && <Lock className="w-4 h-4 shrink-0 mt-0.5" />}
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium mb-1.5">Student ID Number (7 Digits)</label>
+              <input
+                type="text"
+                placeholder="e.g. 0000001"
+                maxLength={7}
+                value={studentId}
+                disabled={isLoading || isLocked}
+                onChange={(e) => setStudentId(e.target.value.slice(0, 7))}
+                className={`w-full px-3 py-2 rounded-lg text-xs border font-mono transition focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isDark
+                    ? 'bg-[#09090b] border-zinc-800 text-white focus:border-zinc-600'
+                    : 'bg-zinc-50 border-zinc-200 text-zinc-900 focus:border-zinc-400'
+                }`}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium mb-1.5">Birthdate</label>
+              <input
+                type="date"
+                value={birthdate}
+                disabled={isLoading || isLocked}
+                onChange={(e) => setBirthdate(e.target.value)}
+                style={{ colorScheme: isDark ? 'dark' : 'light' }}
+                className={`w-full px-3 py-2 rounded-lg text-xs border font-mono transition focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isDark
+                    ? 'bg-[#09090b] border-zinc-800 text-white focus:border-zinc-600'
+                    : 'bg-zinc-50 border-zinc-200 text-zinc-900 focus:border-zinc-400'
+                }`}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading || isLocked}
+              className={`w-full py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed ${
+                isDark
+                  ? 'bg-zinc-100 text-zinc-950 hover:bg-zinc-300'
+                  : 'bg-zinc-900 text-white hover:bg-zinc-800'
+              }`}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Verifying credentials...</span>
+                </>
+              ) : isLocked ? (
+                <>
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Rate limited ({remainingLockout}s)</span>
+                </>
+              ) : (
+                'Sign In'
+              )}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
