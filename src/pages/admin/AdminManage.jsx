@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { 
   Users, 
@@ -203,15 +204,20 @@ export default function AdminManage({ theme }) {
       </div>
 
       {/* Add Student Modal Dialog */}
-      {showAddForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+      {showAddForm && typeof document !== 'undefined' && createPortal(
+        <div 
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowAddForm(false);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
+        >
           <div 
             className={`w-full max-w-xl max-h-[92vh] flex flex-col rounded-2xl border shadow-2xl overflow-hidden ${
               isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-200 text-zinc-900'
             }`}
           >
             {/* Modal Header */}
-            <div className={`p-5 sm:p-6 border-b flex items-center justify-between ${
+            <div className={`p-5 sm:p-6 border-b flex items-center justify-between shrink-0 ${
               isDark ? 'border-zinc-800 bg-zinc-900/50' : 'border-zinc-200 bg-zinc-50/70'
             }`}>
               <div>
@@ -236,23 +242,24 @@ export default function AdminManage({ theme }) {
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-5 sm:p-6 overflow-y-auto space-y-5">
-              {formError && (
-                <div className="p-3 text-xs rounded-xl border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>{formError}</span>
-                </div>
-              )}
+            {/* Form wrapping Body and Footer */}
+            <form onSubmit={handleCreateStudent} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              {/* Modal Body */}
+              <div className="p-5 sm:p-6 overflow-y-auto space-y-4 flex-1">
+                {formError && (
+                  <div className="p-3 text-xs rounded-xl border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{formError}</span>
+                  </div>
+                )}
 
-              {formSuccess && (
-                <div className="p-3 text-xs rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-start gap-2">
-                  <Check className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>{formSuccess}</span>
-                </div>
-              )}
+                {formSuccess && (
+                  <div className="p-3 text-xs rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-start gap-2">
+                    <Check className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{formSuccess}</span>
+                  </div>
+                )}
 
-              <form id="add-student-form" onSubmit={handleCreateStudent} className="space-y-4">
                 {/* ID & Real Name */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Student ID (7 Digits) */}
@@ -399,45 +406,45 @@ export default function AdminManage({ theme }) {
                     </p>
                   </div>
                 </div>
-              </form>
-            </div>
+              </div>
 
-            {/* Modal Footer */}
-            <div className={`p-4 sm:p-5 border-t flex items-center justify-end gap-3 ${
-              isDark ? 'border-zinc-800 bg-zinc-900/50' : 'border-zinc-200 bg-zinc-50/70'
-            }`}>
-              <button
-                type="button"
-                onClick={() => setShowAddForm(false)}
-                className={`px-4 py-2 rounded-xl text-xs font-medium border transition cursor-pointer ${
-                  isDark ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-300' : 'border-zinc-300 hover:bg-zinc-100 text-zinc-700 bg-white shadow-2xs'
-                }`}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                form="add-student-form"
-                disabled={isSubmitting}
-                className={`px-5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 text-white bg-emerald-600 hover:bg-emerald-500 shadow-md shadow-emerald-600/20 cursor-pointer transition ${
-                  isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
-                }`}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Enrolling in Firestore...</span>
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>Save & Enroll Student</span>
-                  </>
-                )}
-              </button>
-            </div>
+              {/* Modal Footer */}
+              <div className={`p-4 sm:p-5 border-t flex items-center justify-end gap-3 shrink-0 ${
+                isDark ? 'border-zinc-800 bg-zinc-900/50' : 'border-zinc-200 bg-zinc-50/70'
+              }`}>
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(false)}
+                  className={`px-4 py-2 rounded-xl text-xs font-medium border transition cursor-pointer ${
+                    isDark ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-300' : 'border-zinc-300 hover:bg-zinc-100 text-zinc-700 bg-white shadow-2xs'
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`px-5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 text-white bg-emerald-600 hover:bg-emerald-500 shadow-md shadow-emerald-600/20 cursor-pointer transition ${
+                    isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Enrolling in Firestore...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>Save & Enroll Student</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Complete Student Roster Table */}
@@ -621,8 +628,13 @@ export default function AdminManage({ theme }) {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+      {confirmDelete && typeof document !== 'undefined' && createPortal(
+        <div 
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !actionLoading) setConfirmDelete(null);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
+        >
           <div className={`w-full max-w-md p-6 rounded-2xl border shadow-xl space-y-4 ${
             isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-200 text-zinc-900'
           }`}>
@@ -660,12 +672,18 @@ export default function AdminManage({ theme }) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Reset Progress Confirmation Modal */}
-      {confirmReset && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+      {confirmReset && typeof document !== 'undefined' && createPortal(
+        <div 
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !actionLoading) setConfirmReset(null);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
+        >
           <div className={`w-full max-w-md p-6 rounded-2xl border shadow-xl space-y-4 ${
             isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-200 text-zinc-900'
           }`}>
@@ -703,7 +721,8 @@ export default function AdminManage({ theme }) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
