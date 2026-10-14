@@ -23,6 +23,8 @@ import {
   Terminal
 } from 'lucide-react';
 import { SYLLABUS_OBJECTIVES, isObjectiveUnlocked } from '../data/datasets';
+import CodeHighlight from '../components/ui/CodeHighlight';
+import FlipCard from '../components/ui/FlipCard';
 
 export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
   const { id } = useParams();
@@ -32,6 +34,40 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
 
   const numericId = Number(id);
   const currentObj = SYLLABUS_OBJECTIVES.find((o) => o.id === numericId);
+
+  // Active step in the sticky steps progress bar: 'definitions' | 'flashcards' | 'exercise'
+  const [activeSection, setActiveSection] = useState('definitions');
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPos = window.scrollY + 180; // accounts for layout header (56px) + sticky steps bar (~70px) + margin
+
+      const exerciseEl = document.getElementById('section-exercise');
+      const flashcardsEl = document.getElementById('section-flashcards');
+      const definitionsEl = document.getElementById('section-definitions');
+
+      if (exerciseEl && scrollPos >= exerciseEl.offsetTop) {
+        setActiveSection('exercise');
+      } else if (flashcardsEl && scrollPos >= flashcardsEl.offsetTop) {
+        setActiveSection('flashcards');
+      } else {
+        setActiveSection('definitions');
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [id]);
+
+  const scrollToSection = (sectionId) => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      const yOffset = -140; // clears sticky header (56px) + sticky steps bar (~70px) + margin
+      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  };
 
   // Ensure page is anchored to the top when navigating between objectives
   useEffect(() => {
@@ -134,7 +170,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
     setAcknowledged(Array.from({ length: cardsCount }, (_, i) => i));
   };
 
-  const allRead = acknowledged.length >= cardsCount;
+  const allRead = cardsCount > 0 ? acknowledged.length >= cardsCount : true;
 
   // Exercise evaluation
   const answeredCount = Object.keys(exerciseAnswers).length;
@@ -142,6 +178,17 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
     return exerciseAnswers[idx] === q.answer ? acc + 1 : acc;
   }, 0);
   const exercisePassed = chapterExercises.length > 0 ? correctCount === chapterExercises.length : true;
+
+  // Chapter Step Milestones:
+  // 1. Definitions: checked all cards (+1)
+  const isStep1Done = cardsCount > 0 && acknowledged.length >= cardsCount;
+  // 2. Flashcards: mastered all flashcards (+1)
+  const isStep2Done = totalFlashcards > 0 && masteredCards.length >= totalFlashcards;
+  // 3. Exercise: perfect score on all questions (+1)
+  const isStep3Done = chapterExercises.length > 0 && correctCount === chapterExercises.length;
+
+  const completedStepsCount = (isStep1Done ? 1 : 0) + (isStep2Done ? 1 : 0) + (isStep3Done ? 1 : 0);
+  const stepsProgressPercent = Math.round((completedStepsCount / 3) * 100);
 
   // Navigation helpers
   const currentIndex = SYLLABUS_OBJECTIVES.findIndex((o) => o.id === currentObj.id);
@@ -250,10 +297,10 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
             Sequential Course Prerequisite
           </span>
           <h2 className={`text-xl font-bold ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-            Module Locked: Complete Prior Lessons
+            Chapter Locked: Complete Prior Lessons
           </h2>
           <p className={`text-xs max-w-md mx-auto ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            To unlock <strong>{currentObj.code}: {currentObj.title}</strong>, you must first complete all preceding modules in sequence.
+            To unlock <strong>{currentObj.code}: {currentObj.title}</strong>, you must first complete all preceding chapters in sequence.
           </p>
         </div>
 
@@ -297,9 +344,9 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
           <ArrowLeft className="w-3.5 h-3.5" /> Back to All Objectives
         </Link>
 
-        {/* Module count & Completion status pill */}
+        {/* Chapter count & Completion status pill */}
         <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="text-zinc-500">Module {currentIndex + 1} of {SYLLABUS_OBJECTIVES.length}</span>
+          <span className="text-zinc-500">Chapter {currentIndex + 1} of {SYLLABUS_OBJECTIVES.length}</span>
           <span className={`px-2.5 py-0.5 rounded text-[11px] font-medium border flex items-center gap-1.5 ${
             isDone
               ? isDark
@@ -377,7 +424,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
             {isDone 
               ? 'Marked Completed (Click to Undo)' 
               : allRead 
-              ? 'Mark Module as Completed' 
+              ? 'Mark Chapter as Completed' 
               : `Review & Check Cards Below (${acknowledged.length}/${cardsCount})`}
           </button>
 
@@ -394,6 +441,121 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
         </div>
       </div>
 
+      {/* Sticky Steps Progress Bar with floating space below navbar */}
+      <div className={`sticky top-[4.25rem] z-20 p-3 sm:p-4 rounded-xl border backdrop-blur-md transition-all shadow-md ${
+        isDark ? 'bg-[#09090b]/90 border-zinc-800 shadow-black/30' : 'bg-white/90 border-zinc-200 shadow-zinc-200/50'
+      }`}>
+        <div className="flex flex-col gap-2">
+          {/* Top track & label */}
+          <div className="flex items-center justify-between text-[11px] font-mono">
+            <span className="font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Chapter Progress Steps</span>
+            </span>
+            <span className="text-zinc-500 font-medium">
+              {completedStepsCount} of 3 Steps Completed ({stepsProgressPercent}%)
+            </span>
+          </div>
+
+          {/* Visual Step Progress Line - Moves strictly when milestones are completed */}
+          <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-zinc-800' : 'bg-zinc-100'}`}>
+            <div
+              className="h-full bg-emerald-500 transition-all duration-500"
+              style={{
+                width: `${(completedStepsCount / 3) * 100}%`
+              }}
+            />
+          </div>
+
+          {/* 3 Interactive Step Pills */}
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-1">
+            {/* Step 1: Definitions (checked all cards +1) */}
+            <button
+              type="button"
+              onClick={() => scrollToSection('section-definitions')}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium text-left border transition cursor-pointer flex items-center justify-between ${
+                activeSection === 'definitions'
+                  ? isDark
+                    ? 'bg-zinc-800 border-zinc-600 text-white shadow-xs font-semibold'
+                    : 'bg-zinc-100 border-zinc-400 text-zinc-900 shadow-xs font-semibold'
+                  : isDark
+                  ? 'border-zinc-800/80 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
+                  : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+              }`}
+            >
+              <span className="truncate flex items-center gap-1.5">
+                <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">1. Definitions</span>
+                <span className="sm:hidden">1. Concepts</span>
+              </span>
+              {isStep1Done ? (
+                <Check className="w-3.5 h-3.5 text-emerald-500 stroke-[2.5] shrink-0" />
+              ) : (
+                <span className="font-mono text-[10px] opacity-70 shrink-0">
+                  {acknowledged.length}/{cardsCount}
+                </span>
+              )}
+            </button>
+
+            {/* Step 2: Flashcards (Mastered all +1) */}
+            <button
+              type="button"
+              onClick={() => scrollToSection('section-flashcards')}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium text-left border transition cursor-pointer flex items-center justify-between ${
+                activeSection === 'flashcards'
+                  ? isDark
+                    ? 'bg-zinc-800 border-zinc-600 text-white shadow-xs font-semibold'
+                    : 'bg-zinc-100 border-zinc-400 text-zinc-900 shadow-xs font-semibold'
+                  : isDark
+                  ? 'border-zinc-800/80 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
+                  : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+              }`}
+            >
+              <span className="truncate flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">2. Flashcards</span>
+                <span className="sm:hidden">2. Cards</span>
+              </span>
+              {isStep2Done ? (
+                <Check className="w-3.5 h-3.5 text-emerald-500 stroke-[2.5] shrink-0" />
+              ) : (
+                <span className="font-mono text-[10px] opacity-70 shrink-0">
+                  {masteredCards.length}/{totalFlashcards}
+                </span>
+              )}
+            </button>
+
+            {/* Step 3: Chapter Exercise (Perfect score +1) */}
+            <button
+              type="button"
+              onClick={() => scrollToSection('section-exercise')}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium text-left border transition cursor-pointer flex items-center justify-between ${
+                activeSection === 'exercise'
+                  ? isDark
+                    ? 'bg-zinc-800 border-zinc-600 text-white shadow-xs font-semibold'
+                    : 'bg-zinc-100 border-zinc-400 text-zinc-900 shadow-xs font-semibold'
+                  : isDark
+                  ? 'border-zinc-800/80 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
+                  : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+              }`}
+            >
+              <span className="truncate flex items-center gap-1.5">
+                <HelpCircle className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">3. Exercise</span>
+                <span className="sm:hidden">3. Quiz</span>
+              </span>
+              {isStep3Done ? (
+                <Check className="w-3.5 h-3.5 text-emerald-500 stroke-[2.5] shrink-0" />
+              ) : (
+                <span className="font-mono text-[10px] opacity-70 shrink-0">
+                  {correctCount}/{chapterExercises.length}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* LAYER 1: Objective / Expected to Learn */}
       {currentObj.expectedToLearn && currentObj.expectedToLearn.length > 0 && (
         <div className={`p-6 rounded-2xl border space-y-4 ${
@@ -406,7 +568,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
             </h2>
           </div>
           <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            By the end of this module, you will master the following core proficiencies:
+            By the end of this chapter, you will master the following core proficiencies:
           </p>
 
           <div className="space-y-2.5 pt-1">
@@ -443,7 +605,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
       )}
 
       {/* LAYER 2 continued & LAYER 3: Interactive Study Cards with Code Examples */}
-      <div className="space-y-4">
+      <div id="section-definitions" className="space-y-4">
         <div className={`p-4 sm:p-5 rounded-2xl border space-y-3 ${
           isDark ? 'bg-zinc-900/30 border-zinc-800' : 'bg-white border-zinc-200'
         }`}>
@@ -604,7 +766,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
                     <pre className={`p-4 rounded-xl text-xs font-mono overflow-x-auto border ${
                       isDark ? 'bg-[#09090b] border-zinc-800/90 text-zinc-300' : 'bg-zinc-50 border-zinc-200 text-zinc-800'
                     }`}>
-                      <code>{card.codeSample}</code>
+                      <CodeHighlight code={card.codeSample} isDark={isDark} />
                     </pre>
                   </div>
                 )}
@@ -683,7 +845,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
         <pre className={`p-4 rounded-xl text-xs font-mono overflow-x-auto border ${
           isDark ? 'bg-[#09090b] border-zinc-800 text-zinc-300' : 'bg-zinc-50 border-zinc-200 text-zinc-900'
         }`}>
-          <code>{currentObj.snippet}</code>
+          <CodeHighlight code={currentObj.snippet} isDark={isDark} />
         </pre>
 
         {/* Live In-place Output Console */}
@@ -752,7 +914,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
 
       {/* LAYER 5: Interactive Flashcards (Spaced Repetition Review) */}
       {flashcards.length > 0 && (
-        <div className={`p-6 rounded-2xl border space-y-4 ${
+        <div id="section-flashcards" className={`p-6 rounded-2xl border space-y-4 ${
           isDark ? 'bg-zinc-900/30 border-zinc-800' : 'bg-white border-zinc-200'
         }`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -775,107 +937,184 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
             Click the card to flip and verify your conceptual recall before moving to the next objective.
           </p>
 
-          {/* 3D Flip Card Container */}
-          <div
-            onClick={() => setIsFlipped(!isFlipped)}
-            className={`min-h-[160px] p-6 rounded-2xl border transition-all cursor-pointer select-none flex flex-col justify-between ${
-              isFlipped
-                ? isDark
-                  ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-100 shadow-sm'
-                  : 'bg-emerald-50 border-emerald-300 text-zinc-900 shadow-xs'
-                : isDark
-                ? 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 text-zinc-200'
-                : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300 text-zinc-900'
-            }`}
-          >
-            <div className="flex items-center justify-between text-[11px] font-mono">
-              <span className={`px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
-                isFlipped
-                  ? 'bg-emerald-500/20 text-emerald-400'
-                  : isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-zinc-200 text-zinc-700'
-              }`}>
-                {isFlipped ? 'ANSWER & RECALL' : 'QUESTION / PROMPT'}
-              </span>
-
-              <span className="text-xs opacity-60">
-                {isFlipped ? 'Click to flip back' : 'Click card to reveal answer'}
-              </span>
-            </div>
-
-            <div className="py-4">
-              <p className="text-sm sm:text-base font-medium leading-relaxed">
-                {isFlipped ? flashcards[flashcardIndex].back : flashcards[flashcardIndex].front}
-              </p>
-
-              {!isFlipped && showHint && flashcards[flashcardIndex].hint && (
-                <div className={`mt-3 p-2.5 rounded-lg border text-xs flex items-center gap-2 animate-fade-in ${
-                  isDark ? 'bg-amber-950/20 border-amber-500/30 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-900'
-                }`}>
-                  <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span><strong>Hint:</strong> {flashcards[flashcardIndex].hint}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-dashed border-zinc-700/40 text-xs">
-              {!isFlipped && flashcards[flashcardIndex].hint && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowHint(!showHint);
-                  }}
-                  className="text-amber-500 hover:text-amber-400 flex items-center gap-1 cursor-pointer font-medium"
-                >
-                  <Lightbulb className="w-3 h-3" />
-                  <span>{showHint ? 'Hide Hint' : 'Show Hint'}</span>
-                </button>
-              )}
-              {isFlipped && <div />}
-
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setMasteredCards(prev => 
-                    prev.includes(flashcardIndex) ? prev.filter(i => i !== flashcardIndex) : [...prev, flashcardIndex]
-                  );
-                }}
-                className={`px-2.5 py-1 rounded text-[11px] font-medium border flex items-center gap-1 transition cursor-pointer ${
-                  masteredCards.includes(flashcardIndex)
-                    ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400'
-                    : isDark ? 'border-zinc-700 text-zinc-400 hover:text-zinc-200' : 'border-zinc-300 text-zinc-600 hover:text-zinc-900'
+          {/* 3D Motion Flip Card Stage Container */}
+          <div className={`w-full py-10 sm:py-14 px-4 sm:px-8 flex justify-center items-center rounded-2xl border transition-colors ${
+            isDark 
+              ? 'bg-zinc-950/40 border-zinc-800/80' 
+              : 'bg-zinc-50/80 border-zinc-200/80'
+          }`}>
+            <div className="w-full max-w-[580px]">
+              <FlipCard
+                flipped={isFlipped}
+                onFlipChange={setIsFlipped}
+                width="100%"
+                height={290}
+                radius={20}
+                background={isDark ? '#141418' : '#ffffff'}
+                color={isDark ? '#f4f4f5' : '#18181b'}
+                shadow={true}
+                shadowColor={isDark ? '#000000' : '#0f172a'}
+                shadowOpacity={isDark ? 0.65 : 0.22}
+                tilt={true}
+                tiltMax={14}
+                glare={true}
+                glareOpacity={isDark ? 0.22 : 0.16}
+                hoverScale={1.04}
+                className={`w-full border shadow-2xl transition-all ${
+                  isFlipped
+                    ? isDark 
+                      ? 'border-emerald-500/50 ring-2 ring-emerald-500/25 shadow-emerald-950/40' 
+                      : 'border-emerald-400 ring-2 ring-emerald-400/30 shadow-emerald-200/50'
+                    : isDark 
+                      ? 'border-zinc-700/60 shadow-black/60' 
+                      : 'border-zinc-200 shadow-zinc-300/60'
                 }`}
-              >
-                <Check className="w-3 h-3" />
-                <span>{masteredCards.includes(flashcardIndex) ? 'Mastered!' : 'Mark Mastered'}</span>
-              </button>
+                front={
+                  <div className="w-full h-full p-6 sm:p-8 flex flex-col justify-between">
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <span className={`px-2.5 py-1 rounded-md font-bold uppercase tracking-wider ${
+                        isDark ? 'bg-zinc-800 text-zinc-300' : 'bg-zinc-100 text-zinc-700'
+                      }`}>
+                        QUESTION / PROMPT
+                      </span>
+                      <span className={`text-xs flex items-center gap-1 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                        <span>Click or drag to flip</span>
+                      </span>
+                    </div>
+
+                    <div className="my-auto py-3">
+                      <p className="text-base sm:text-lg font-medium leading-relaxed">
+                        {flashcards[flashcardIndex]?.front}
+                      </p>
+
+                      {showHint && flashcards[flashcardIndex]?.hint && (
+                        <div className={`mt-3.5 p-3 rounded-xl border text-xs flex items-center gap-2.5 animate-fade-in ${
+                          isDark ? 'bg-amber-950/30 border-amber-500/40 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-900'
+                        }`}>
+                          <Lightbulb className="w-4 h-4 text-amber-400 shrink-0" />
+                          <span><strong>Hint:</strong> {flashcards[flashcardIndex].hint}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-dashed border-zinc-700/40 dark:border-zinc-700/50 text-xs">
+                      {flashcards[flashcardIndex]?.hint ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowHint(!showHint);
+                          }}
+                          className="text-amber-500 hover:text-amber-400 flex items-center gap-1.5 cursor-pointer font-medium text-xs transition-colors"
+                        >
+                          <Lightbulb className="w-3.5 h-3.5" />
+                          <span>{showHint ? 'Hide Hint' : 'Show Hint'}</span>
+                        </button>
+                      ) : (
+                        <div />
+                      )}
+
+                      <span className="text-[11px] opacity-60 font-mono">
+                        Card {flashcardIndex + 1} of {totalFlashcards}
+                      </span>
+                    </div>
+                  </div>
+                }
+                back={
+                  <div className="w-full h-full p-6 sm:p-8 flex flex-col justify-between">
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <span className={`px-2.5 py-1 rounded-md font-bold uppercase tracking-wider ${
+                        isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-500/20 text-zinc-950'
+                      }`}>
+                        ANSWER & RECALL
+                      </span>
+                      <span className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                        Click or drag to flip back
+                      </span>
+                    </div>
+
+                    <div className="my-auto py-3">
+                      <p className={`text-base sm:text-lg font-semibold leading-relaxed ${
+                        isDark ? 'text-emerald-300' : 'text-zinc-950'
+                      }`}>
+                        {flashcards[flashcardIndex]?.back}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-dashed border-zinc-700/40 dark:border-zinc-700/50 text-xs">
+                      <span className={`text-[11px] font-mono flex items-center gap-1.5 ${
+                        masteredCards.includes(flashcardIndex) 
+                          ? isDark ? 'text-emerald-400 font-semibold' : 'text-zinc-950 font-semibold'
+                          : isDark ? 'text-zinc-500' : 'text-zinc-400'
+                      }`}>
+                        {masteredCards.includes(flashcardIndex) ? (
+                          <>
+                            <Check className={`w-3.5 h-3.5 ${isDark ? 'text-emerald-400' : 'text-zinc-950'}`} />
+                            <span>Mastered</span>
+                          </>
+                        ) : (
+                          <span>In Review</span>
+                        )}
+                      </span>
+
+                      <span className="text-[11px] opacity-60 font-mono">
+                        Card {flashcardIndex + 1} of {totalFlashcards}
+                      </span>
+                    </div>
+                  </div>
+                }
+              />
             </div>
           </div>
 
           {/* Flashcard Navigation Buttons */}
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2">
             <button
               onClick={() => {
                 setIsFlipped(false);
                 setShowHint(false);
                 setFlashcardIndex((prev) => (prev - 1 + totalFlashcards) % totalFlashcards);
               }}
-              className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition cursor-pointer ${
+              className={`px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-medium flex items-center gap-1.5 transition cursor-pointer ${
                 isDark ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-300' : 'border-zinc-200 hover:bg-zinc-100 text-zinc-700'
               }`}
             >
               <ChevronLeft className="w-4 h-4" /> Previous
             </button>
 
-            <button
-              onClick={() => setIsFlipped(!isFlipped)}
-              className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition cursor-pointer ${
-                isDark ? 'border-zinc-700 bg-zinc-800 text-zinc-200' : 'border-zinc-300 bg-zinc-100 text-zinc-800'
-              }`}
-            >
-              {isFlipped ? 'Show Question' : 'Flip Card'}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsFlipped(!isFlipped)}
+                className={`px-4 py-2 rounded-xl border text-xs sm:text-sm font-medium transition cursor-pointer shadow-sm ${
+                  isDark ? 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700' : 'border-zinc-300 bg-zinc-100 text-zinc-800 hover:bg-zinc-200'
+                }`}
+              >
+                {isFlipped ? 'Show Question' : 'Flip Card'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMasteredCards(prev => 
+                    prev.includes(flashcardIndex) ? prev.filter(i => i !== flashcardIndex) : [...prev, flashcardIndex]
+                  );
+                }}
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium border flex items-center gap-1.5 transition cursor-pointer shadow-sm ${
+                  masteredCards.includes(flashcardIndex)
+                    ? isDark 
+                      ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400 font-semibold' 
+                      : 'border-emerald-500 bg-emerald-500/20 text-zinc-950 font-semibold'
+                    : isDark ? 'border-zinc-700 bg-zinc-800/80 text-zinc-300 hover:text-white hover:bg-zinc-700' : 'border-zinc-300 bg-white text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50'
+                }`}
+              >
+                <Check className={`w-4 h-4 ${
+                  masteredCards.includes(flashcardIndex)
+                    ? isDark ? 'text-emerald-400' : 'text-zinc-950'
+                    : ''
+                }`} />
+                <span>{masteredCards.includes(flashcardIndex) ? 'Mastered!' : 'Mark Mastered'}</span>
+              </button>
+            </div>
 
             <button
               onClick={() => {
@@ -883,7 +1122,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
                 setShowHint(false);
                 setFlashcardIndex((prev) => (prev + 1) % totalFlashcards);
               }}
-              className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition cursor-pointer ${
+              className={`px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-medium flex items-center gap-1.5 transition cursor-pointer ${
                 isDark ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-300' : 'border-zinc-200 hover:bg-zinc-100 text-zinc-700'
               }`}
             >
@@ -895,7 +1134,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
 
       {/* LAYER 6: Chapter Exercise / Quiz */}
       {chapterExercises.length > 0 && (
-        <div className={`p-6 rounded-2xl border space-y-4 ${
+        <div id="section-exercise" className={`p-6 rounded-2xl border space-y-4 ${
           isDark ? 'bg-zinc-900/30 border-zinc-800' : 'bg-white border-zinc-200'
         }`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -1002,7 +1241,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
           isDark ? 'bg-zinc-900 border-zinc-700' : 'bg-zinc-50 border-zinc-300'
         }`}>
           <h3 className={`text-base font-bold ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-            All 13 Modules Completed! Curriculum Mastered!
+            All 13 Chapters Completed! Curriculum Mastered!
           </h3>
           <p className={`text-xs max-w-md mx-auto ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
             Outstanding work! You have satisfied all course learning objectives across Basic, Intermediate, Advanced, and Expert tiers. Verify your mastery with the Self-Assessment Quiz or view your Certificate in Account.
@@ -1062,14 +1301,14 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
             }`}
           >
             <Check className={`w-3.5 h-3.5 stroke-[2.5] ${isDone ? (isDark ? 'text-emerald-400' : 'text-zinc-950') : ''}`} />
-            {isDone ? 'Marked Done' : 'Complete Module'}
+            {isDone ? 'Marked Done' : 'Complete Chapter'}
           </button>
 
           {nextObj && (
             <button
               onClick={handleProceedToNext}
               disabled={!isNextUnlocked}
-              title={!isNextUnlocked ? 'Finish this module to unlock the next' : undefined}
+              title={!isNextUnlocked ? 'Finish this chapter to unlock the next' : undefined}
               className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 border transition ${
                 isNextUnlocked
                   ? isDark

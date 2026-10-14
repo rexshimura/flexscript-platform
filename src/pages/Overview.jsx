@@ -77,7 +77,7 @@ export default function Overview({ theme, completed, student }) {
             <div>
               <p className={`font-bold text-sm ${isDark ? 'text-emerald-300' : 'text-zinc-950'}`}>Curriculum Mastery 100% Achieved!</p>
               <p className={`text-xs ${isDark ? 'text-emerald-400/80' : 'text-zinc-700'}`}>
-                You have finished all 10 modules. Your official Certificate of Completion is ready.
+                You have finished all {total} chapters. Your official Certificate of Completion is ready.
               </p>
             </div>
           </div>
@@ -145,7 +145,7 @@ export default function Overview({ theme, completed, student }) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: 'Course Program', value: 'JavaScript Programming' },
-          { label: 'Curriculum Scope', value: `${total} Sequential Modules` },
+          { label: 'Curriculum Scope', value: `${total} Sequential Chapters` },
           { label: 'Evaluation Structure', value: 'Live Code & Quiz' }
         ].map((item, idx) => (
           <div key={idx} className={`p-4 rounded-xl border ${isDark ? 'bg-zinc-900/30 border-zinc-800/80' : 'bg-white border-zinc-200'}`}>

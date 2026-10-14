@@ -19,7 +19,7 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
   const [lockedNotice, setLockedNotice] = useState(null);
 
   const tabs = [
-    { id: 'all', label: 'All Modules (13)' },
+    { id: 'all', label: 'All Chapters (13)' },
     { id: 'basics', label: 'Basic (5)' },
     { id: 'intermediate', label: 'Intermediate (4)' },
     { id: 'advanced', label: 'Advanced (3)' },
@@ -52,13 +52,13 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       {/* Page Header */}
       <div className="space-y-3.5">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Course Objectives</h1>
           <p className={`text-xs mt-1 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            Sequential JavaScript curriculum. Finish each module to unlock the next.
+            Sequential JavaScript curriculum. Finish each chapter to unlock the next.
           </p>
         </div>
 
@@ -68,6 +68,7 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
             <Link
               key={t.id}
               to={t.id === 'all' ? '/objectives' : `/objectives/${t.id}`}
+              replace
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
                 activeTab === t.id
                   ? isDark
@@ -84,9 +85,9 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
         </div>
       </div>
 
-      {/* Progress & Current Objective Banner */}
-      <div className={`p-4 sm:p-5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-        isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200'
+      {/* Progress & Current Objective Banner - Sticky on scroll with floating space */}
+      <div className={`sticky top-[4.25rem] z-20 p-4 sm:p-5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 backdrop-blur-md transition-all shadow-md ${
+        isDark ? 'bg-[#09090b]/90 border-zinc-800 shadow-black/30' : 'bg-white/90 border-zinc-200 shadow-zinc-200/50'
       }`}>
         <div className="space-y-1.5 flex-1 max-w-lg">
           <div className="flex items-center justify-between text-xs font-medium">
@@ -167,7 +168,7 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
       )}
 
       {/* Vertical Checklist Progress Track & Clean Cards */}
-      <div className="relative space-y-4">
+      <div key={activeTab} className="relative space-y-4 animate-fade-in">
         {/* Continuous Background Track Line */}
         <div 
           className={`absolute left-3.5 sm:left-4 top-5 bottom-6 w-0.5 -translate-x-1/2 ${

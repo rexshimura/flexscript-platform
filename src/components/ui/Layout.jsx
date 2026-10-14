@@ -18,6 +18,17 @@ export default function Layout({ theme, setTheme, completedCount, student, setSt
     navigate('/');
   };
 
+  // Stable key for page-level transitions: isolates internal tab switching from re-triggering whole-page animations
+  const getPageTransitionKey = (pathname) => {
+    if (pathname.startsWith('/objectives/view/') || pathname.startsWith('/objectives/detail/')) {
+      return pathname;
+    }
+    if (pathname.startsWith('/objectives')) {
+      return '/objectives';
+    }
+    return pathname;
+  };
+
   const navClass = ({ isActive }) =>
     `px-3 py-1.5 rounded-md text-xs font-medium transition ${
       isActive
@@ -33,7 +44,7 @@ export default function Layout({ theme, setTheme, completedCount, student, setSt
 
   return (
     <div className={`min-h-screen transition-colors duration-150 ${isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'}`}>
-      <header className={`sticky top-0 z-20 border-b backdrop-blur-md ${isDark ? 'border-zinc-800/80 bg-[#09090b]/85' : 'border-zinc-200 bg-white/85'}`}>
+      <header className={`sticky top-0 z-30 border-b backdrop-blur-md ${isDark ? 'border-zinc-800/80 bg-[#09090b]/85' : 'border-zinc-200 bg-white/85'}`}>
         <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Link to="/" className="flex items-center gap-2.5 font-bold text-sm tracking-tight group">
@@ -97,7 +108,7 @@ export default function Layout({ theme, setTheme, completedCount, student, setSt
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-10">
-        <div key={location.pathname} className="animate-page-enter">
+        <div key={getPageTransitionKey(location.pathname)} className="animate-page-enter">
           <Outlet />
         </div>
       </main>

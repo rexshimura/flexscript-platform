@@ -386,7 +386,7 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
                 {/* Course Mastery Statement */}
                 <div className="max-w-2xl mx-auto text-xs leading-relaxed opacity-85 space-y-2">
                   <p>
-                    has successfully satisfied all rigorous laboratory requirements, interactive knowledge assessments, and sequential modules for:
+                    has successfully satisfied all rigorous laboratory requirements, interactive knowledge assessments, and sequential chapters for:
                   </p>
                   <p className="font-bold text-sm tracking-wide">
                     JavaScript Programming Fundamentals

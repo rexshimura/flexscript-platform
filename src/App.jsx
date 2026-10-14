@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
-import { lazy, Suspense, useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect, useRef } from 'react';
 import Layout from './components/ui/Layout';
 import PageLoading from './components/ui/PageLoading';
 
@@ -12,14 +12,27 @@ const Playground = lazy(() => import('./pages/Playground'));
 const Quiz = lazy(() => import('./pages/Quiz'));
 const Account = lazy(() => import('./pages/Account'));
 
-// Global Scroll Restoration: scrolls to top on route change
+// Global Scroll Restoration: scrolls to top on major route changes, not when filtering category tabs
 function ScrollToTop() {
   const { pathname } = useLocation();
+  const prevPageKeyRef = useRef(null);
+
   useEffect(() => {
-    if (window.scrollY !== 0) {
-      window.scrollTo(0, 0);
+    const getPageKey = (p) => {
+      if (p.startsWith('/objectives/view/') || p.startsWith('/objectives/detail/')) return p;
+      if (p.startsWith('/objectives')) return '/objectives';
+      return p;
+    };
+
+    const currentKey = getPageKey(pathname);
+    if (prevPageKeyRef.current !== currentKey) {
+      if (window.scrollY !== 0) {
+        window.scrollTo(0, 0);
+      }
+      prevPageKeyRef.current = currentKey;
     }
   }, [pathname]);
+
   return null;
 }
 
@@ -104,10 +117,6 @@ function App() {
             
             {/* Objectives Master & Sequential Routes */}
             <Route
-              path="/objectives"
-              element={<Objectives theme={theme} completed={completed} toggleComplete={toggleComplete} resetProgress={resetProgress} />}
-            />
-            <Route
               path="/objectives/view/:id"
               element={<ObjectiveDetail theme={theme} completed={completed} toggleComplete={toggleComplete} />}
             />
@@ -116,7 +125,7 @@ function App() {
               element={<ObjectiveDetail theme={theme} completed={completed} toggleComplete={toggleComplete} />}
             />
             <Route
-              path="/objectives/:category"
+              path="/objectives/:category?"
               element={<Objectives theme={theme} completed={completed} toggleComplete={toggleComplete} resetProgress={resetProgress} />}
             />
 

@@ -94,7 +94,7 @@ export default function Landing({ theme, setTheme, student }) {
           </div>
 
           <p className={`text-base leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            An interactive and informative learning website designed for IT students to understand JavaScript fundamentals, featuring step-by-step syllabus modules, hands-on code experiments, and interactive knowledge checks.
+            An interactive and informative learning website designed for IT students to understand JavaScript fundamentals, featuring step-by-step syllabus chapters, hands-on code experiments, and interactive knowledge checks.
           </p>
 
           <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -117,7 +117,7 @@ export default function Landing({ theme, setTheme, student }) {
           {[
             {
               icon: BookOpen,
-              title: `${SYLLABUS_OBJECTIVES.length} Core Objectives`,
+              title: `${SYLLABUS_OBJECTIVES.length} Core Chapters`,
               desc: 'Structured sequential syllabus covering syntax, control flow, functions, arrays, DOM, and async JavaScript.'
             },
             {
@@ -128,7 +128,7 @@ export default function Landing({ theme, setTheme, student }) {
             {
               icon: CheckCircle2,
               title: 'Self-Assessment',
-              desc: 'Track module completion and evaluate comprehension with an interactive verification quiz.'
+              desc: 'Track chapter completion and evaluate comprehension with an interactive verification quiz.'
             }
           ].map((item, i) => {
             const Icon = item.icon;
