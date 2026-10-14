@@ -1,6 +1,6 @@
 export const topic11 = {
   id: 11,
-  code: 'OBJ-11',
+  code: 'Chapter 11',
   title: 'Web APIs, HTTP Fetch & Client Storage',
   subtitle: 'The Window & Navigator APIs, Fetch HTTP networking, JSON parsing, and LocalStorage client persistence',
   category: 'advanced',

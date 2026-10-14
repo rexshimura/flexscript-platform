@@ -1,6 +1,6 @@
 export const topic05 = {
   id: 5,
-  code: 'OBJ-05',
+  code: 'Chapter 5',
   title: 'Introductory DOM & Interactive HTML',
   subtitle: 'The DOM tree, selecting elements, quote delimiters, and introductory click events',
   category: 'basics',

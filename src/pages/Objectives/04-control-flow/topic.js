@@ -1,6 +1,6 @@
 export const topic04 = {
   id: 4,
-  code: 'OBJ-04',
+  code: 'Chapter 4',
   title: 'Core Data Structures: Strings, Numbers, Arrays & Objects',
   subtitle: 'String manipulation, Math algorithms, Array indexing & methods, and Object key-value pairs',
   category: 'basics',

@@ -1,6 +1,6 @@
 export const topic13 = {
   id: 13,
-  code: 'OBJ-13',
+  code: 'Chapter 13',
   title: 'Engine Internals, Performance, Design Patterns & Ecosystem',
   subtitle: 'V8 Engine pipeline, Call Stack & Event Loop, Garbage Collection, GoF patterns, Vite & TypeScript',
   category: 'expert',
@@ -123,7 +123,7 @@ const unsubscribe = portalBus.subscribe('moduleComplete', (id) => {
   console.log(\`[EventBus] Awarding student badge for module: \${id}\`);
 });
 
-portalBus.publish('moduleComplete', 'OBJ-13');
+portalBus.publish('moduleComplete', 'Chapter 13');
 unsubscribe(); // Clean teardown`,
       keyTakeaway: 'Decouple complex software using architectural patterns like Pub-Sub, and protect codebases using TypeScript and automated testing.'
     }

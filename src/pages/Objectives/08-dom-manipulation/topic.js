@@ -1,6 +1,6 @@
 export const topic08 = {
   id: 8,
-  code: 'OBJ-08',
+  code: 'Chapter 8',
   title: 'DOM Navigation, Event System & Browser Graphics',
   subtitle: 'Node traversal, event bubbling, event delegation, preventDefault, and HTML5 Canvas & SVG graphics',
   category: 'intermediate',

@@ -1,6 +1,6 @@
 export const topic12 = {
   id: 12,
-  code: 'OBJ-12',
+  code: 'Chapter 12',
   title: 'Advanced Features, OOP Classes & Modern Modules',
   subtitle: 'Closures, Prototypes, ES6 Classes, ES Modules, Meta-programming Proxies, and Legacy AJAX/jQuery Transitions',
   category: 'advanced',

@@ -50,67 +50,67 @@ export const isObjectiveUnlocked = isUnlockedHelper;
 // --- SELF-ASSESSMENT QUIZ QUESTIONS (13 Questions matching all 13 Objectives) ---
 export const QUIZ_QUESTIONS = [
   {
-    q: 'OBJ-01: Which HTML attribute should be added to a <script> tag in the <head> to ensure it executes only after the HTML DOM is fully constructed?',
-    options: ['defer', 'async', 'wait', 'preload'],
+    q: 'Chapter 1: Which method is used to access an HTML element by ID and change its HTML content?',
+    options: ['document.getElementById("demo").innerHTML', 'document.write()', 'console.log()', 'window.alert()'],
     ans: 0
   },
   {
-    q: 'OBJ-02: Which keyword declares a block-scoped variable whose reference binding cannot be reassigned?',
+    q: 'Chapter 2: Which keyword declares a block-scoped variable whose reference binding cannot be reassigned?',
     options: ['var', 'let', 'const'],
     ans: 2
   },
   {
-    q: "OBJ-03: Which loop is guaranteed to execute its code block at least once before testing the condition?",
-    options: ['while loop', 'do...while loop', 'for loop'],
+    q: 'Chapter 3: What does the typeof operator return when evaluated on the expression (3 + 4)?',
+    options: ['"string"', '"number"', '"boolean"', '"undefined"'],
     ans: 1
   },
   {
-    q: 'OBJ-04: Which method extracts a section of an array and returns a new copy WITHOUT mutating the original array?',
+    q: 'Chapter 4: Which method extracts a section of an array and returns a new copy WITHOUT mutating the original array?',
     options: ['.splice()', '.slice()', '.pop()'],
     ans: 1
   },
   {
-    q: 'OBJ-05: Why is element.textContent preferred over element.innerHTML when displaying user-supplied text?',
+    q: 'Chapter 5: Why is element.textContent preferred over element.innerHTML when displaying user-supplied text?',
     options: ['It renders faster', 'It prevents Cross-Site Scripting (XSS) by not parsing HTML tags', 'It only works with numbers'],
     ans: 1
   },
   {
-    q: 'OBJ-06: What is the return value of an arrow function defined as: const sum = (a, b) => a + b; ?',
+    q: 'Chapter 6: What is the return value of an arrow function defined as: const sum = (a, b) => a + b; ?',
     options: ['undefined', 'The sum of a and b', 'A string "[object Function]"'],
     ans: 1
   },
   {
-    q: 'OBJ-07: How can you quickly remove all duplicate values from an array in modern JavaScript?',
+    q: 'Chapter 7: How can you quickly remove all duplicate values from an array in modern JavaScript?',
     options: ['array.deduplicate()', '[...new Set(array)]', 'array.unique()'],
     ans: 1
   },
   {
-    q: 'OBJ-08: What are the three sequential phases of JavaScript Event Propagation?',
+    q: 'Chapter 8: What are the three sequential phases of JavaScript Event Propagation?',
     options: ['Capturing, Target, Bubbling', 'Bubbling, Freezing, Boiling', 'Input, Processing, Output'],
     ans: 0
   },
   {
-    q: 'OBJ-09: Which block in a try...catch statement is guaranteed to execute regardless of whether an exception occurred?',
+    q: 'Chapter 9: Which block in a try...catch statement is guaranteed to execute regardless of whether an exception occurred?',
     options: ['catch', 'finally', 'then'],
     ans: 1
   },
   {
-    q: 'OBJ-10: What keyword allows pausing function execution until a Promise settles inside an async function?',
+    q: 'Chapter 10: What keyword allows pausing function execution until a Promise settles inside an async function?',
     options: ['await', 'defer', 'pause'],
     ans: 0
   },
   {
-    q: 'OBJ-11: Does the Fetch API reject its Promise if the server responds with an HTTP 404 Not Found error?',
+    q: 'Chapter 11: Does the Fetch API reject its Promise if the server responds with an HTTP 404 Not Found error?',
     options: ['Yes, it rejects immediately', 'No, it resolves with response.ok === false', 'It throws a SyntaxError'],
     ans: 1
   },
   {
-    q: 'OBJ-12: How do you declare a truly private class field in modern JavaScript?',
+    q: 'Chapter 12: How do you declare a truly private class field in modern JavaScript?',
     options: ['private field;', 'this._field = 0;', '#fieldName;'],
     ans: 2
   },
   {
-    q: 'OBJ-13: In the V8 Event Loop, which queue is given strict priority and emptied first before the next macrotask (setTimeout)?',
+    q: 'Chapter 13: In the V8 Event Loop, which queue is given strict priority and emptied first before the next macrotask (setTimeout)?',
     options: ['Microtask Queue (Promises)', 'Macrotask Queue', 'Worker Thread Queue'],
     ans: 0
   }

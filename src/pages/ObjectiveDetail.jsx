@@ -14,13 +14,11 @@ import {
   CheckCircle2,
   Sparkles,
   Lightbulb,
-  Play,
   RotateCcw,
   HelpCircle,
   ChevronLeft,
   ChevronRight,
-  Layers,
-  Terminal
+  Layers
 } from 'lucide-react';
 import { SYLLABUS_OBJECTIVES, isObjectiveUnlocked } from '../data/datasets';
 import CodeHighlight from '../components/ui/CodeHighlight';
@@ -98,16 +96,6 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
 
   useEffect(() => {
     setExerciseAnswers({});
-  }, [id]);
-
-  // Interactive Live Compiler Sandbox state
-  const [sandboxLogs, setSandboxLogs] = useState([]);
-  const [isSandboxRunning, setIsSandboxRunning] = useState(false);
-  const [hasRunSandbox, setHasRunSandbox] = useState(false);
-
-  useEffect(() => {
-    setSandboxLogs([]);
-    setHasRunSandbox(false);
   }, [id]);
 
   // If objective doesn't exist
@@ -222,49 +210,6 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
       console.warn('Could not store snippet to localStorage', err);
     }
     window.open('/playground', '_blank');
-  };
-
-  // Run in-place Sandbox code
-  const handleRunSandbox = () => {
-    setIsSandboxRunning(true);
-    const logs = [];
-
-    const fakeConsole = {
-      log: (...args) => logs.push({ type: 'log', text: args.map(formatConsoleArg).join(' ') }),
-      warn: (...args) => logs.push({ type: 'warn', text: args.map(formatConsoleArg).join(' ') }),
-      error: (...args) => logs.push({ type: 'error', text: args.map(formatConsoleArg).join(' ') }),
-      info: (...args) => logs.push({ type: 'info', text: args.map(formatConsoleArg).join(' ') }),
-      table: (data) => logs.push({ type: 'log', text: JSON.stringify(data, null, 2) })
-    };
-
-    try {
-      const codeToExecute = currentObj.snippet || currentObj.exemplarCode || '';
-      // Safe execution using Function constructor
-      const wrapped = new Function('console', codeToExecute);
-      wrapped(fakeConsole);
-      if (logs.length === 0) {
-        logs.push({ type: 'info', text: 'Script executed with no logged console output.' });
-      }
-    } catch (err) {
-      logs.push({ type: 'error', text: `${err.name}: ${err.message}` });
-    }
-
-    setSandboxLogs(logs);
-    setIsSandboxRunning(false);
-    setHasRunSandbox(true);
-  };
-
-  const formatConsoleArg = (arg) => {
-    if (arg === undefined) return 'undefined';
-    if (arg === null) return 'null';
-    if (typeof arg === 'object') {
-      try {
-        return JSON.stringify(arg);
-      } catch (e) {
-        return String(arg);
-      }
-    }
-    return String(arg);
   };
 
   const handleCompleteAndScroll = () => {
@@ -704,7 +649,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
                 </div>
 
                 {/* Explanation */}
-                <p className={`text-xs sm:text-sm leading-relaxed ${
+                <p className={`text-xs sm:text-sm leading-relaxed text-justify whitespace-pre-line ${
                   isDark ? 'text-zinc-300' : 'text-zinc-700'
                 }`}>
                   {card.description}
@@ -716,7 +661,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
                     isDark ? 'bg-zinc-950/50 border-zinc-800/80 text-zinc-300' : 'bg-zinc-50 border-zinc-200 text-zinc-700'
                   }`}>
                     <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-                    <span><strong>Analogy:</strong> {card.analogy}</span>
+                    <span className="text-justify"><strong>Analogy:</strong> {card.analogy}</span>
                   </div>
                 )}
 
@@ -735,7 +680,8 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
                               : 'border-emerald-300 text-emerald-800 hover:bg-emerald-50'
                           }`}
                         >
-                          <Play className="w-2.5 h-2.5 fill-current" /> Try It Yourself
+                          <span>Open To Playground</span>
+                          <ArrowRight className="w-2.5 h-2.5" />
                         </button>
                         <button
                           type="button"
@@ -779,7 +725,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
                       : isDark ? 'bg-zinc-950/40 border-zinc-800/80 text-zinc-400' : 'bg-zinc-50 border-zinc-200 text-zinc-600'
                   }`}>
                     <Sparkles className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                    <span><strong>Key takeaway:</strong> {card.keyTakeaway}</span>
+                    <span className="text-justify"><strong>Key takeaway:</strong> {card.keyTakeaway}</span>
                   </div>
                 )}
               </div>
@@ -797,34 +743,23 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
             <div className="flex items-center gap-2">
               <Code2 className="w-4 h-4 text-emerald-500 shrink-0" />
               <h2 className={`text-base font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                Live Compiler Sandbox & Exemplar Script
+                Exemplar Script
               </h2>
             </div>
             <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-              Execute this code in the embedded runner or launch it in the full interactive compiler.
+              Inspect this reference implementation or open and test it directly in the interactive Playground.
             </p>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={handleRunSandbox}
-              disabled={isSandboxRunning}
+              onClick={() => handleTryInPlayground(currentObj.snippet)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-xs text-white ${
                 isDark ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-emerald-600 hover:bg-emerald-500'
               }`}
             >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>{isSandboxRunning ? 'Running...' : 'Run in Sandbox'}</span>
-            </button>
-
-            <button
-              onClick={() => handleTryInPlayground(currentObj.snippet)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition cursor-pointer ${
-                isDark ? 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700' : 'border-zinc-300 bg-zinc-100 text-zinc-800 hover:bg-zinc-200'
-              }`}
-            >
-              <span>Open in Full Playground</span>
-              <ArrowRight className="w-3 h-3" />
+              <span>Open To Playground</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
 
             <button
@@ -847,44 +782,6 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
         }`}>
           <CodeHighlight code={currentObj.snippet} isDark={isDark} />
         </pre>
-
-        {/* Live In-place Output Console */}
-        {hasRunSandbox && (
-          <div className={`p-4 rounded-xl border space-y-2 animate-fade-in ${
-            isDark ? 'bg-[#050505] border-zinc-800' : 'bg-zinc-900 text-zinc-100 border-zinc-700'
-          }`}>
-            <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400 border-b border-zinc-800 pb-2">
-              <span className="flex items-center gap-1.5">
-                <Terminal className="w-3.5 h-3.5 text-emerald-400" />
-                <span>SANDBOX TERMINAL OUTPUT</span>
-              </span>
-              <button
-                onClick={() => setHasRunSandbox(false)}
-                className="hover:text-zinc-200 text-xs px-1 cursor-pointer"
-              >
-                ✕ Clear
-              </button>
-            </div>
-
-            <div className="space-y-1 font-mono text-xs max-h-48 overflow-y-auto">
-              {sandboxLogs.map((log, lIdx) => (
-                <div
-                  key={lIdx}
-                  className={`leading-relaxed ${
-                    log.type === 'error'
-                      ? 'text-rose-400'
-                      : log.type === 'warn'
-                      ? 'text-amber-400'
-                      : 'text-zinc-300'
-                  }`}
-                >
-                  <span className="opacity-40 mr-2">&gt;</span>
-                  {log.text}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* LAYER 4: Common Pitfalls & Best Practices */}

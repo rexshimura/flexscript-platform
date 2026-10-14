@@ -17,7 +17,9 @@ import {
   BookOpen,
   Globe,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  LayoutList,
+  List
 } from 'lucide-react';
 
 // Lightweight, safe syntax highlighter for JavaScript and HTML snippets
@@ -194,7 +196,7 @@ return { sum: a + b, product: a * b, diceRoll };`
   {
     id: 'variables',
     name: 'Variables & Scope',
-    code: `// OBJ-02: Variables, Scoping & Immutability
+    code: `// Chapter 2: Variables, Scoping & Immutability
 console.log('--- Variable Scoping Demonstration ---');
 
 const MAX_STUDENTS = 40;
@@ -265,7 +267,7 @@ return { student: studentName, average: \`\${weightedAverage}%\`, grade: letterG
   {
     id: 'arrays',
     name: 'Array Pipeline (.map/.filter)',
-    code: `// OBJ-06: Higher-Order Array Operations (.map, .filter, .reduce)
+    code: `// Chapter 6: Higher-Order Array Operations (.map, .filter, .reduce)
 const studentRoster = [
   { id: '0000001', name: 'Alexander Vance', score: 94 },
   { id: '1339523', name: 'John Paul Mahilom', score: 98 },
@@ -290,7 +292,7 @@ return { totalPassers: passers.length, classAverage: \`\${classAverage}%\` };`
   {
     id: 'async',
     name: 'Async & Fetch Simulation',
-    code: `// OBJ-10: Asynchronous JavaScript (Promises & async/await)
+    code: `// Chapter 10: Asynchronous JavaScript (Promises & async/await)
 console.log('1. Initiating asynchronous simulated SIS authentication...');
 
 const fakeAuthRequest = (studentId) => {
@@ -319,7 +321,7 @@ return \`Authenticated student \${authData.studentId} successfully.\`;`
   {
     id: 'dom',
     name: 'Live DOM Sandbox',
-    code: `// OBJ-08: Live DOM Manipulation
+    code: `// Chapter 8: Live DOM Manipulation
 // The 'sandbox' variable points directly to the Sandbox Preview container!
 
 if (sandbox) {
@@ -530,6 +532,41 @@ export default function Playground({ theme }) {
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'log' | 'warn' | 'error'
   const [presetCategory, setPresetCategory] = useState('micro'); // 'micro' | 'curriculum'
   const [copiedOutput, setCopiedOutput] = useState(false);
+
+  // Console display preferences: container boxes and timestamp visibility
+  const [consoleInContainers, setConsoleInContainers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('playground_console_containers');
+      return saved !== null ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
+
+  const [showConsoleTime, setShowConsoleTime] = useState(() => {
+    try {
+      const saved = localStorage.getItem('playground_console_time');
+      return saved !== null ? JSON.parse(saved) : true;
+    } catch {
+      return true;
+    }
+  });
+
+  const toggleConsoleContainers = () => {
+    setConsoleInContainers((prev) => {
+      const next = !prev;
+      try { localStorage.setItem('playground_console_containers', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
+  const toggleConsoleTime = () => {
+    setShowConsoleTime((prev) => {
+      const next = !prev;
+      try { localStorage.setItem('playground_console_time', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
 
   // Layout mode: 'split' (side-by-side) or 'below' (console below script)
   const [layoutMode, setLayoutMode] = useState(() => {
@@ -1088,29 +1125,65 @@ export default function Playground({ theme }) {
             </div>
 
             {/* Benchmark & Status Actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               {execTime !== null && (
                 <span className="text-[10px] font-mono text-zinc-500 flex items-center gap-1">
                   <Clock className="w-3 h-3" /> {execTime}ms
                 </span>
               )}
 
-              {activeTab === 'console' && output.length > 0 && (
+              {activeTab === 'console' && (
                 <>
+                  {/* Toggle 1: Containers each line vs plain lines */}
                   <button
-                    onClick={handleCopyOutput}
-                    title="Copy console output"
-                    className="p-1 rounded text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
+                    type="button"
+                    onClick={toggleConsoleContainers}
+                    title={consoleInContainers ? "Containers: ON (Click for plain lines)" : "Containers: OFF (Click for container boxes)"}
+                    className={`p-1 rounded transition cursor-pointer flex items-center justify-center ${
+                      consoleInContainers
+                        ? isDark ? 'text-emerald-400 bg-zinc-800' : 'text-emerald-800 bg-zinc-200 font-bold'
+                        : isDark ? 'text-zinc-500 hover:text-zinc-300' : 'text-zinc-400 hover:text-zinc-700'
+                    }`}
                   >
-                    {copiedOutput ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    {consoleInContainers ? (
+                      <LayoutList className="w-3.5 h-3.5" />
+                    ) : (
+                      <List className="w-3.5 h-3.5" />
+                    )}
                   </button>
+
+                  {/* Toggle 2: Show / hide timestamp */}
                   <button
-                    onClick={handleClearOutput}
-                    title="Clear console"
-                    className="p-1 rounded text-zinc-400 hover:text-rose-400 transition cursor-pointer"
+                    type="button"
+                    onClick={toggleConsoleTime}
+                    title={showConsoleTime ? "Timestamps: ON (Click to hide time)" : "Timestamps: OFF (Click to show time)"}
+                    className={`p-1 rounded transition cursor-pointer flex items-center justify-center ${
+                      showConsoleTime
+                        ? isDark ? 'text-emerald-400 bg-zinc-800' : 'text-emerald-800 bg-zinc-200 font-bold'
+                        : isDark ? 'text-zinc-500 hover:text-zinc-300' : 'text-zinc-400 hover:text-zinc-700'
+                    }`}
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Clock className={`w-3.5 h-3.5 ${!showConsoleTime ? 'opacity-35' : ''}`} />
                   </button>
+
+                  {output.length > 0 && (
+                    <>
+                      <button
+                        onClick={handleCopyOutput}
+                        title="Copy console output"
+                        className="p-1 rounded text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
+                      >
+                        {copiedOutput ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                      <button
+                        onClick={handleClearOutput}
+                        title="Clear console"
+                        className="p-1 rounded text-zinc-400 hover:text-rose-400 transition cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -1217,43 +1290,92 @@ export default function Playground({ theme }) {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {filteredOutput.map((item) => (
-                    <div
-                      key={item.id}
-                      className={`p-3 rounded-lg border flex items-start gap-3 text-xs leading-relaxed animate-fade-in ${
-                        item.type === 'error'
-                          ? isDark
-                            ? 'bg-rose-500/10 border-rose-500/40 text-rose-300'
-                            : 'bg-rose-50 border-rose-300 text-rose-950 font-medium'
-                          : item.type === 'warn'
-                          ? isDark
-                            ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
-                            : 'bg-amber-50 border-amber-300 text-amber-950 font-medium'
-                          : item.type === 'info'
-                          ? isDark
-                            ? 'bg-sky-500/10 border-sky-500/40 text-sky-300'
-                            : 'bg-sky-50 border-sky-300 text-sky-950 font-medium'
-                          : item.type === 'return'
-                          ? isDark
-                            ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300 font-semibold'
-                            : 'bg-emerald-50 border-emerald-300 text-emerald-950 font-semibold'
-                          : isDark
-                          ? 'bg-zinc-900/60 border-zinc-800 text-zinc-200'
-                          : 'bg-zinc-100 border-zinc-300 text-zinc-900 font-medium'
-                      }`}
-                    >
-                      <span className={`text-[10px] font-mono shrink-0 pt-0.5 ${
-                        isDark ? 'text-zinc-500' : 'text-zinc-600 font-semibold'
-                      }`}>
-                        {item.timestamp}
-                      </span>
-                      <pre className="flex-1 whitespace-pre-wrap break-words font-mono text-xs leading-relaxed">
-                        {item.text}
-                      </pre>
-                    </div>
-                  ))}
-                </div>
+                consoleInContainers ? (
+                  <div className="space-y-2">
+                    {filteredOutput.map((item) => (
+                      <div
+                        key={item.id}
+                        className={`p-3 rounded-lg border flex items-start gap-3 text-xs leading-relaxed animate-fade-in ${
+                          item.type === 'error'
+                            ? isDark
+                              ? 'bg-rose-500/10 border-rose-500/40 text-rose-300'
+                              : 'bg-rose-50 border-rose-300 text-rose-950 font-medium'
+                            : item.type === 'warn'
+                            ? isDark
+                              ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
+                              : 'bg-amber-50 border-amber-300 text-amber-950 font-medium'
+                            : item.type === 'info'
+                            ? isDark
+                              ? 'bg-sky-500/10 border-sky-500/40 text-sky-300'
+                              : 'bg-sky-50 border-sky-300 text-sky-950 font-medium'
+                            : item.type === 'return'
+                            ? isDark
+                              ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300 font-semibold'
+                              : 'bg-emerald-50 border-emerald-300 text-emerald-950 font-semibold'
+                            : isDark
+                            ? 'bg-zinc-900/60 border-zinc-800 text-zinc-200'
+                            : 'bg-zinc-100 border-zinc-300 text-zinc-900 font-medium'
+                        }`}
+                      >
+                        {showConsoleTime && (
+                          <span className={`text-[10px] font-mono shrink-0 pt-0.5 select-none ${
+                            isDark ? 'text-zinc-500' : 'text-zinc-600 font-semibold'
+                          }`}>
+                            {item.timestamp}
+                          </span>
+                        )}
+                        <pre className="flex-1 whitespace-pre-wrap break-words font-mono text-xs leading-relaxed">
+                          {item.text}
+                        </pre>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className={`font-mono text-xs rounded-lg overflow-hidden border divide-y ${
+                    isDark
+                      ? 'border-zinc-800/80 bg-[#09090b]/80 divide-zinc-800/60'
+                      : 'border-zinc-200 bg-white divide-zinc-200/80'
+                  }`}>
+                    {filteredOutput.map((item) => (
+                      <div
+                        key={item.id}
+                        className={`py-1.5 px-3 flex items-start gap-2.5 leading-relaxed transition ${
+                          item.type === 'error'
+                            ? isDark
+                              ? 'text-rose-400 bg-rose-500/10 border-l-2 border-l-rose-500'
+                              : 'text-rose-800 bg-rose-50 border-l-2 border-l-rose-600 font-medium'
+                            : item.type === 'warn'
+                            ? isDark
+                              ? 'text-amber-400 bg-amber-500/10 border-l-2 border-l-amber-500'
+                              : 'text-amber-800 bg-amber-50 border-l-2 border-l-amber-600 font-medium'
+                            : item.type === 'info'
+                            ? isDark
+                              ? 'text-sky-400 bg-sky-500/10 border-l-2 border-l-sky-500'
+                              : 'text-sky-800 bg-sky-50 border-l-2 border-l-sky-600 font-medium'
+                            : item.type === 'return'
+                            ? isDark
+                              ? 'text-emerald-400 bg-emerald-500/10 font-semibold border-l-2 border-l-emerald-500'
+                              : 'text-emerald-800 bg-emerald-50 font-semibold border-l-2 border-l-emerald-600'
+                            : isDark
+                            ? 'text-zinc-200 hover:bg-zinc-900/50 border-l-2 border-l-transparent'
+                            : 'text-zinc-900 hover:bg-zinc-100/70 border-l-2 border-l-transparent'
+                        }`}
+                      >
+                        <span className="opacity-35 select-none text-[11px] pt-0.5 font-bold">&gt;</span>
+                        {showConsoleTime && (
+                          <span className={`text-[10px] font-mono shrink-0 pt-0.5 select-none ${
+                            isDark ? 'text-zinc-500' : 'text-zinc-500 font-medium'
+                          }`}>
+                            {item.timestamp}
+                          </span>
+                        )}
+                        <pre className="flex-1 whitespace-pre-wrap break-words font-mono text-xs leading-relaxed">
+                          {item.text}
+                        </pre>
+                      </div>
+                    ))}
+                  </div>
+                )
               )
             ) : (
               /* Live Web Browser Preview View - Clean full-frame preview without inner banner */

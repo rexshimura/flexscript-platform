@@ -1,6 +1,6 @@
 export const topic09 = {
   id: 9,
-  code: 'OBJ-09',
+  code: 'Chapter 9',
   title: 'Code Quality, Debugging & Error Handling',
   subtitle: 'Error types, try...catch...finally, custom exceptions, browser DevTools debugging, and style guides',
   category: 'intermediate',

@@ -1,6 +1,6 @@
 export const topic06 = {
   id: 6,
-  code: 'OBJ-06',
+  code: 'Chapter 6',
   title: 'Functions, Scope & Timers',
   subtitle: 'Declarations, expressions, arrow functions, parameter patterns, lexical scope, and asynchronous timers',
   category: 'intermediate',

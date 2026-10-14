@@ -1,6 +1,6 @@
 export const topic07 = {
   id: 7,
-  code: 'OBJ-07',
+  code: 'Chapter 7',
   title: 'Advanced Built-ins, Collections & Regex',
   subtitle: 'Dates & Temporal API, Sets & Maps, Iterables & Generators, and Regular Expressions',
   category: 'intermediate',

@@ -1,6 +1,6 @@
 export const topic10 = {
   id: 10,
-  code: 'OBJ-10',
+  code: 'Chapter 10',
   title: 'Asynchronous JavaScript: Callbacks, Promises & Async/Await',
   subtitle: 'The non-blocking model, callback hell, Promise states, and async/await syntax',
   category: 'advanced',
