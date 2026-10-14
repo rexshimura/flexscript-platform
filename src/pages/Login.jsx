@@ -283,18 +283,10 @@ export default function Login({ theme, setStudent }) {
             </button>
           </form>
 
-          <div className={`mt-5 pt-4 border-t flex items-center justify-between text-[11px] ${
-            isDark ? 'border-zinc-800/80 text-zinc-500' : 'border-zinc-200 text-zinc-400'
+          <div className={`mt-5 pt-4 border-t text-center text-[11px] ${
+            isDark ? 'border-zinc-800/80 text-zinc-500' : 'border-zinc-200 text-zinc-500'
           }`}>
-            <span>Protected SIS Portal</span>
-            <Link
-              to="/admin/login"
-              className={`font-mono transition ${
-                isDark ? 'text-zinc-500 hover:text-emerald-400' : 'text-zinc-500 hover:text-emerald-600'
-              }`}
-            >
-              Dev & Admin Access →
-            </Link>
+            <span>Protected Student Information System • FlexScript</span>
           </div>
         </div>
       </div>
