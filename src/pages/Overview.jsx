@@ -211,7 +211,7 @@ export default function Overview({ theme, completed, student }) {
         {[
           { label: 'Course Program', value: 'JavaScript Programming' },
           { label: 'Curriculum Scope', value: `${total} Sequential Chapters (13+ Hours)` },
-          { label: 'Evaluation Structure', value: 'Live Code & Quiz' }
+          { label: 'Evaluation Structure', value: 'Interactive Code & Exercises' }
         ].map((item, idx) => (
           <div key={idx} className={`p-4 rounded-xl border ${isDark ? 'bg-zinc-900/30 border-zinc-800/80' : 'bg-white border-zinc-200'}`}>
             <p className="text-xs text-zinc-500">{item.label}</p>
@@ -239,12 +239,12 @@ export default function Overview({ theme, completed, student }) {
           Open Code Playground
         </Link>
         <Link
-          to="/quiz"
+          to="/account"
           className={`px-4 py-2 rounded-lg text-xs font-medium border transition ${
             isDark ? 'border-zinc-800 hover:bg-zinc-900 text-zinc-300' : 'border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-700'
           }`}
         >
-          Take Self-Assessment
+          Account & Certificate
         </Link>
       </div>
     </div>

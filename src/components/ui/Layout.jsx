@@ -60,7 +60,6 @@ export default function Layout({ theme, setTheme, completedCount, student, setSt
               <NavLink to="/overview" className={navClass}>Overview</NavLink>
               <NavLink to="/objectives" className={navClass}>Objectives</NavLink>
               <NavLink to="/playground" className={navClass}>Playground</NavLink>
-              <NavLink to="/quiz" className={navClass}>Quiz</NavLink>
               <NavLink to="/account" className={navClass}>Account</NavLink>
             </nav>
           </div>

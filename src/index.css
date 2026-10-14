@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Pinyon+Script&family=Alex+Brush&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -10,6 +10,22 @@ html {
 
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.font-cinzel {
+  font-family: 'Cinzel', Georgia, serif;
+}
+
+.font-playfair {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-script {
+  font-family: 'Alex Brush', cursive;
+}
+
+.font-pinyon {
+  font-family: 'Pinyon Script', 'Alex Brush', cursive;
 }
 
 /* Minimal sleek scrollbar that prevents layout shift */
@@ -79,28 +95,45 @@ body {
   animation: layoutShift 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Print Styling: isolates certificate for PDF export */
+/* Print Styling: isolates certificate for A4 Landscape PDF export */
 @media print {
-  body {
-    background: #ffffff !important;
-    color: #000000 !important;
+  @page {
+    size: 297mm 210mm;
+    margin: 0;
   }
-  header, footer, nav, button, a {
+  
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  header, footer, nav, button, a, .no-print {
     display: none !important;
   }
+  
+  #certificate-print-wrapper {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
   #printable-certificate {
     display: block !important;
-    position: fixed;
-    inset: 0;
-    margin: auto;
-    border: 2px solid #000000 !important;
+    width: 297mm !important;
+    height: 210mm !important;
+    min-height: 210mm !important;
+    max-width: none !important;
+    margin: 0 auto !important;
     box-shadow: none !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    padding: 24px !important;
-  }
-  #printable-certificate * {
-    color: #000000 !important;
-    border-color: #333333 !important;
+    border-radius: 0 !important;
+    page-break-inside: avoid !important;
+    page-break-after: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }

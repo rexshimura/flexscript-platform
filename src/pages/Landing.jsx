@@ -1,6 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Sun, Moon, BookOpen, Code2, CheckCircle2, Clock } from 'lucide-react';
+import { 
+  ArrowRight, 
+  Sun, 
+  Moon, 
+  BookOpen, 
+  Code2, 
+  CheckCircle2, 
+  Clock,
+  ShieldCheck,
+  Award
+} from 'lucide-react';
 import TechText from '../components/ui/TechText';
 import PageLoading from '../components/ui/PageLoading';
 import { 
@@ -48,7 +58,7 @@ export default function Landing({ theme, setTheme, student }) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setTheme(isDark ? 'light' : 'dark')}
-              className={`p-2 rounded-md border transition ${
+              className={`p-2 rounded-md border transition cursor-pointer ${
                 isDark ? 'border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800' : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100'
               }`}
               title="Toggle Theme (Alt + P)"
@@ -101,6 +111,7 @@ export default function Landing({ theme, setTheme, student }) {
             An interactive and informative learning website designed for IT students to understand JavaScript fundamentals, featuring step-by-step syllabus chapters, hands-on code experiments, and interactive knowledge checks.
           </p>
 
+          {/* Action Buttons: Student Access & Dedicated Verify Certificate Page Link */}
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
               onClick={() => handleLaunch(targetPath)}
@@ -112,6 +123,18 @@ export default function Landing({ theme, setTheme, student }) {
             >
               <span>{student ? 'Continue as ' + (student.username || student.name) : 'Access Student Portal'}</span>
               <ArrowRight className="w-4 h-4 text-white" />
+            </button>
+
+            <button
+              onClick={() => handleLaunch('/verify/certificate')}
+              className={`px-4 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition cursor-pointer border ${
+                isDark
+                  ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                  : 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 shadow-xs'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4 text-emerald-500" />
+              <span>Verify Certificate</span>
             </button>
           </div>
         </div>
@@ -135,9 +158,9 @@ export default function Landing({ theme, setTheme, student }) {
               desc: 'Execute and test real-time JavaScript expressions and array methods directly inside the browser.'
             },
             {
-              icon: CheckCircle2,
-              title: 'Self-Assessment',
-              desc: 'Track chapter completion and evaluate comprehension with an interactive verification quiz.'
+              icon: Award,
+              title: 'Academic Certification',
+              desc: 'Cryptographically verified SHA-256 certificate awarded upon completing all 26 curriculum chapters.'
             }
           ].map((item, i) => {
             const Icon = item.icon;

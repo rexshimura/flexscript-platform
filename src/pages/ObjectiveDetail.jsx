@@ -1205,24 +1205,24 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
             All 26 Chapters Completed! Curriculum Mastered!
           </h3>
           <p className={`text-xs max-w-md mx-auto ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            Outstanding work! You have satisfied all course learning objectives across Basic, Intermediate, Advanced, and Expert tiers. Verify your mastery with the Self-Assessment Quiz or view your Certificate in Account.
+            Outstanding work! You have satisfied all course learning objectives across Basic, Intermediate, Advanced, and Expert tiers. Claim and view your official Certificate of Completion in your Account.
           </p>
           <div className="pt-2 flex justify-center gap-3">
             <Link
-              to="/quiz"
+              to="/account"
               className={`px-4 py-2 rounded-lg text-xs font-semibold border transition flex items-center gap-1.5 ${
                 isDark ? 'bg-zinc-100 text-zinc-950 hover:bg-zinc-300' : 'bg-zinc-900 text-white hover:bg-zinc-800'
               }`}
             >
-              Launch Self-Assessment Quiz
+              View Official Certificate & Account
             </Link>
             <Link
-              to="/account"
+              to="/playground"
               className={`px-4 py-2 rounded-lg text-xs font-medium border transition ${
                 isDark ? 'border-zinc-800 text-zinc-300 hover:bg-zinc-800' : 'border-zinc-200 text-zinc-700 hover:bg-zinc-100'
               }`}
             >
-              View Certificate & Account
+              Open Code Playground
             </Link>
           </div>
         </div>

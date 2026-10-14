@@ -9,8 +9,9 @@ const Overview = lazy(() => import('./pages/Overview'));
 const Objectives = lazy(() => import('./pages/Objectives'));
 const ObjectiveDetail = lazy(() => import('./pages/ObjectiveDetail'));
 const Playground = lazy(() => import('./pages/Playground'));
-const Quiz = lazy(() => import('./pages/Quiz'));
 const Account = lazy(() => import('./pages/Account'));
+const VerifyCertificate = lazy(() => import('./pages/VerifyCertificate'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Global Scroll Restoration: scrolls to top on major route changes, not when filtering category tabs
 function ScrollToTop() {
@@ -42,6 +43,12 @@ function RouteMiddleware({ student }) {
     return <Navigate to="/login" replace />;
   }
   return <Outlet />;
+}
+
+// 404 Route Helper: Preserves attempted path when redirecting to /not-found
+function NotFoundRedirect() {
+  const location = useLocation();
+  return <Navigate to="/not-found" state={{ attemptedPath: location.pathname }} replace />;
 }
 
 function App() {
@@ -99,6 +106,10 @@ function App() {
         {/* Public Routes */}
         <Route path="/" element={<Landing theme={theme} setTheme={setTheme} student={student} />} />
         <Route path="/login" element={<Login theme={theme} setStudent={setStudent} />} />
+        <Route path="/verify/certificate" element={<VerifyCertificate theme={theme} setTheme={setTheme} student={student} />} />
+        <Route path="/verify" element={<Navigate to="/verify/certificate" replace />} />
+        <Route path="/not-found" element={<NotFound theme={theme} setTheme={setTheme} student={student} />} />
+        <Route path="/404" element={<Navigate to="/not-found" replace />} />
 
         {/* Protected Course Routes (Requires Login via RouteMiddleware) */}
         <Route element={<RouteMiddleware student={student} />}>
@@ -130,7 +141,7 @@ function App() {
             />
 
             <Route path="/playground" element={<Playground theme={theme} />} />
-            <Route path="/quiz" element={<Quiz theme={theme} />} />
+            <Route path="/quiz" element={<Navigate to="/objectives" replace />} />
             <Route
               path="/account"
               element={
@@ -145,8 +156,8 @@ function App() {
           </Route>
         </Route>
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Fallback for all other non-existing routes */}
+        <Route path="*" element={<NotFoundRedirect />} />
       </Routes>
     </Suspense>
   );

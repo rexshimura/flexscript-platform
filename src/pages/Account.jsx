@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { 
   Award, 
@@ -12,9 +13,12 @@ import {
   ArrowRight,
   Maximize2,
   X,
-  Mail
+  Mail,
+  Copy
 } from 'lucide-react';
 import { SYLLABUS_OBJECTIVES, REGISTERED_STUDENTS } from '../data/datasets';
+import CertificatePaper from '../components/CertificatePaper';
+import { getCertificateRecord, registerCertificate } from '../utils/certificateRegistry';
 
 export default function Account({ theme, student, setStudent, completed = [] }) {
   const isDark = theme === 'dark';
@@ -39,6 +43,25 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
 
   // Fullscreen Certificate Modal
   const [showModal, setShowModal] = useState(false);
+
+  // Lock body scroll and listen for Escape key when fullscreen modal is active
+  useEffect(() => {
+    if (!showModal) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowModal(false);
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showModal]);
 
   const handleSaveUsername = (e) => {
     e.preventDefault();
@@ -75,10 +98,31 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
   const certificateId = `CTU-JS101-${student?.studentId || '0000001'}-2026`;
   const currentUsername = student?.username || student?.name || initialUsername;
 
+  // Authoritative certificate record with deterministic SHA-256
+  const certRecord = getCertificateRecord(
+    { studentId: student?.studentId || '0000001', realName, email, section: student?.section },
+    currentDateFormatted
+  );
+  const [copiedSha, setCopiedSha] = useState(false);
+
+  const handleCopySha = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    navigator.clipboard.writeText(certRecord.sha256);
+    setCopiedSha(true);
+    setTimeout(() => setCopiedSha(false), 2000);
+  };
+
+  // When certified, register the unique certificate for public verification on Landing
+  useEffect(() => {
+    if (isCertified) {
+      registerCertificate(certRecord);
+    }
+  }, [isCertified, certRecord]);
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Page Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">My Student Account</h1>
           <p className={`text-xs mt-1 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
@@ -99,7 +143,7 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
       </div>
 
       {/* Account Profile Card */}
-      <div className={`p-6 sm:p-7 rounded-2xl border space-y-6 ${
+      <div className={`p-6 sm:p-7 rounded-2xl border space-y-6 no-print ${
         isDark ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-zinc-200'
       }`}>
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5">
@@ -256,7 +300,7 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
       </div>
 
       {/* Curriculum Mastery Progress Track */}
-      <div className={`p-6 rounded-2xl border space-y-4 ${
+      <div className={`p-6 rounded-2xl border space-y-4 no-print ${
         isDark ? 'bg-zinc-900/30 border-zinc-800' : 'bg-white border-zinc-200'
       }`}>
         <div className="flex items-center justify-between text-xs">
@@ -290,7 +334,7 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
 
       {/* Certificate Reward Section */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between no-print">
           <div className="flex items-center gap-2">
             <Award className="w-5 h-5 text-zinc-400" />
             <h2 className="text-lg font-bold tracking-tight">Course Completion Certificate</h2>
@@ -321,7 +365,7 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
         {isCertified ? (
           /* UNLOCKED OFFICIAL CERTIFICATE */
           <div className="space-y-4">
-            <div className={`p-4 rounded-xl border flex items-center gap-3 text-xs ${
+            <div className={`p-4 rounded-xl border flex items-center gap-3 text-xs no-print ${
               isDark 
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
                 : 'bg-emerald-100/90 border-emerald-300 text-zinc-950 font-medium'
@@ -332,91 +376,97 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
               </span>
             </div>
 
-            {/* Certificate Display Paper */}
+            {/* Certificate Display Paper Container */}
             <div 
-              id="printable-certificate"
-              className={`p-8 sm:p-12 rounded-2xl border relative overflow-hidden transition ${
+              id="certificate-print-wrapper"
+              className={`p-3 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border flex justify-center items-center overflow-x-auto shadow-xl transition ${
                 isDark 
-                  ? 'bg-gradient-to-b from-zinc-900 via-zinc-950 to-zinc-900 border-zinc-700 text-zinc-100 shadow-xl' 
-                  : 'bg-gradient-to-b from-amber-50/40 via-white to-amber-50/40 border-zinc-300 text-zinc-900 shadow-md'
+                  ? 'bg-zinc-950/80 border-zinc-800' 
+                  : 'bg-zinc-100/90 border-zinc-200'
               }`}
             >
-              {/* Outer decorative border line */}
-              <div className={`border-2 border-dashed p-6 sm:p-10 rounded-xl space-y-8 text-center relative ${
-                isDark ? 'border-zinc-700/80' : 'border-zinc-300'
+              <CertificatePaper
+                student={student}
+                realName={realName}
+                email={email}
+                certificateId={certificateId}
+                currentDateFormatted={currentDateFormatted}
+                id="printable-certificate"
+              />
+            </div>
+
+            {/* Dedicated Certificate SHA-256 Verification Card (Outside Certificate) */}
+            <div className={`p-4 sm:p-5 rounded-2xl border space-y-3.5 no-print ${
+              isDark ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-zinc-300 shadow-sm'
+            }`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className={`p-2 rounded-xl shrink-0 ${
+                    isDark ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800/60' : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                  }`}>
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className={`text-sm font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-zinc-950'}`}>
+                      Official Certificate SHA-256 Hash
+                    </h3>
+                    <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600 font-medium'}`}>
+                      Unique cryptographic signature verifying this certificate's authenticity.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleCopySha}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer shrink-0 border ${
+                    copiedSha
+                      ? 'bg-emerald-600 text-white border-emerald-500 shadow-xs'
+                      : isDark
+                        ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border-zinc-700'
+                        : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900 font-semibold border-zinc-300 shadow-2xs'
+                  }`}
+                  title="Copy 64-character SHA-256 Hash"
+                >
+                  {copiedSha ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 stroke-[3] text-white" />
+                      <span>Copied SHA to Clipboard!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className={`w-3.5 h-3.5 ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`} />
+                      <span>Copy Full SHA-256</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* SHA in plain selectable text - high contrast in both dark and light modes */}
+              <div className={`p-3 rounded-xl border flex items-center justify-between gap-2 overflow-x-auto ${
+                isDark ? 'bg-zinc-950 border-zinc-800/80' : 'bg-zinc-100/90 border-zinc-300 shadow-2xs'
               }`}>
-                {/* Header / University Seal */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <img
-                      src="/main.svg"
-                      alt="FlexScript Seal"
-                      className={`w-7 h-7 object-contain ${isDark ? '' : 'invert'}`}
-                    />
-                  </div>
-                  <h3 className="text-xs sm:text-sm font-semibold tracking-widest uppercase opacity-80 font-mono">
-                    Cebu Technological University
-                  </h3>
-                  <p className="text-[11px] tracking-wider uppercase opacity-60">
-                    College of Computer, Information and Communications Technology
-                  </p>
-                </div>
+                <code className={`font-mono text-xs sm:text-[13px] select-all tracking-wider break-all ${
+                  isDark ? 'text-emerald-400 font-semibold' : 'text-zinc-950 font-bold'
+                }`}>
+                  {certRecord.sha256}
+                </code>
+              </div>
 
-                {/* Certificate Title */}
-                <div className="space-y-2">
-                  <div className="inline-block px-4 py-1 rounded-full border text-[10px] font-mono font-bold tracking-widest uppercase opacity-75">
-                    Official Academic Credential
-                  </div>
-                  <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight font-serif uppercase">
-                    Certificate of Completion
-                  </h1>
-                </div>
-
-                {/* Recipient Details - Uses Student Real Name */}
-                <div className="space-y-3 max-w-xl mx-auto">
-                  <p className="text-xs italic opacity-75">This proudly certifies that</p>
-                  <p className="text-2xl sm:text-3xl font-bold tracking-tight underline decoration-1 underline-offset-8">
-                    {realName}
-                  </p>
-                  <p className="text-xs font-mono opacity-80 pt-1">
-                    Student ID: {student?.studentId || '0000001'} • Section: {student?.section || 'BSIT 4-B'} • Email: {email}
-                  </p>
-                </div>
-
-                {/* Course Mastery Statement */}
-                <div className="max-w-2xl mx-auto text-xs leading-relaxed opacity-85 space-y-2">
-                  <p>
-                    has successfully satisfied all rigorous laboratory requirements, interactive knowledge assessments, and sequential chapters for:
-                  </p>
-                  <p className="font-bold text-sm tracking-wide">
-                    JavaScript Programming Fundamentals
-                  </p>
-                  <p className="text-[11px] opacity-75 max-w-lg mx-auto">
-                    Demonstrating proficiency in ECMAScript standards, variable scoping, logic control flows, first-class functions and closures, modern array pipelines, object prototypes, DOM manipulation, event bubbling, and asynchronous HTTP architectures.
-                  </p>
-                </div>
-
-                {/* Verification Metadata & Signatures */}
-                <div className="pt-6 grid grid-cols-1 sm:grid-cols-2 gap-8 text-xs border-t border-dashed border-zinc-700/50">
-                  <div className="space-y-1">
-                    <div className="font-bold text-sm">Arve Baes</div>
-                    <div className="text-[11px] opacity-70">Course Evaluator & Facilitator</div>
-                    <div className="text-[10px] font-mono opacity-50">arve.baes@ctu.edu.ph</div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="font-bold text-sm">John Paul P. Mahilom (Rexshimura)</div>
-                    <div className="text-[11px] opacity-70">Platform Architect & Lead Student</div>
-                    <div className="text-[10px] font-mono opacity-50">FlexScript Engine v1.0</div>
-                  </div>
-                </div>
-
-                {/* Footer Credential Stamp */}
-                <div className="pt-2 flex flex-col sm:flex-row items-center justify-between text-[10px] font-mono opacity-60 gap-2 border-t border-zinc-800/40">
-                  <span>Certificate ID: {certificateId}</span>
-                  <span>Issued: {currentDateFormatted}</span>
-                  <span>Recipient: {realName} ({email})</span>
-                </div>
+              {/* High contrast metadata row */}
+              <div className="flex flex-wrap items-center justify-between text-[11px] gap-2 pt-0.5">
+                <span className={isDark ? 'text-zinc-400' : 'text-zinc-600 font-medium'}>
+                  Cert ID: <strong className={`font-mono ${isDark ? 'text-zinc-300' : 'text-zinc-900 font-bold'}`}>{certRecord.certificateId}</strong> • Date Issued: <strong className={isDark ? 'text-zinc-300' : 'text-zinc-900 font-bold'}>{certRecord.dateIssued}</strong>
+                </span>
+                <Link 
+                  to="/verify/certificate" 
+                  className={`hover:underline flex items-center gap-1 font-semibold ${
+                    isDark ? 'text-emerald-400' : 'text-emerald-700'
+                  }`}
+                >
+                  <span>Verify this certificate at /verify/certificate</span>
+                  <ArrowRight className="w-3 h-3" />
+                </Link>
               </div>
             </div>
           </div>
@@ -453,55 +503,76 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
         )}
       </div>
 
-      {/* Fullscreen Certificate Modal */}
-      {showModal && isCertified && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in">
-          <div className="relative max-w-4xl w-full my-auto space-y-4">
-            <div className="flex items-center justify-between text-white">
-              <span className="text-xs font-mono">Certificate Fullscreen View</span>
-              <button
-                onClick={() => setShowModal(false)}
-                className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="bg-zinc-950 p-6 sm:p-10 rounded-2xl border border-zinc-800 text-zinc-100">
-              <div className="border-2 border-dashed border-zinc-700 p-6 sm:p-10 rounded-xl space-y-6 text-center">
-                <div className="flex items-center justify-center gap-2">
-                  <img src="/main.svg" alt="FlexScript" className="w-8 h-8 object-contain" />
-                </div>
-                <h3 className="text-xs tracking-widest uppercase opacity-75 font-mono">
-                  Cebu Technological University • Main Campus
-                </h3>
-                <h1 className="text-2xl sm:text-3xl font-extrabold uppercase font-serif">
-                  Certificate of Completion
-                </h1>
-                <p className="text-xs italic opacity-70">Presented to</p>
-                <p className="text-2xl sm:text-3xl font-bold underline decoration-1 underline-offset-8">
-                  {realName}
-                </p>
-                <p className="text-xs font-mono opacity-80">
-                  ID: {student?.studentId} • Section: {student?.section} • Email: {email}
-                </p>
-                <p className="text-xs max-w-lg mx-auto opacity-80">
-                  For comprehensive mastery of the JavaScript Programming Curriculum across 10 sequential objectives.
-                </p>
-                <div className="pt-6 grid grid-cols-2 gap-4 text-xs border-t border-dashed border-zinc-800">
-                  <div>
-                    <div className="font-bold">Arve Baes</div>
-                    <div className="text-[11px] opacity-70">Course Evaluator</div>
-                  </div>
-                  <div>
-                    <div className="font-bold">John Paul P. Mahilom</div>
-                    <div className="text-[11px] opacity-70">Lead Developer</div>
-                  </div>
-                </div>
+      {/* Fullscreen Certificate Modal rendered via React Portal directly into body */}
+      {showModal && isCertified && createPortal(
+        <div 
+          className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-y-auto animate-fade-in no-print"
+          onClick={() => setShowModal(false)}
+        >
+          <div 
+            className="relative max-w-5xl w-full my-auto space-y-3 flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between text-white w-full px-1">
+              <span className="text-xs font-mono flex items-center gap-2">
+                <Award className="w-4 h-4 text-emerald-400" />
+                <span>Certificate Fullscreen View (A4 Landscape 3508 × 2480 px)</span>
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleCopySha}
+                  className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-zinc-200 flex items-center gap-1.5 transition border border-zinc-700 cursor-pointer"
+                  title="Copy SHA-256 Hash"
+                >
+                  {copiedSha ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-emerald-400" />}
+                  <span>{copiedSha ? 'Copied SHA!' : 'Copy SHA'}</span>
+                </button>
+                <button
+                  onClick={handlePrint}
+                  className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-zinc-200 flex items-center gap-1.5 transition border border-zinc-700 cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5" /> Print / Save PDF
+                </button>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition border border-zinc-700 cursor-pointer"
+                  title="Close (Esc)"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
             </div>
+
+            <div className="w-full flex justify-center items-center py-1 overflow-x-auto">
+              <CertificatePaper
+                student={student}
+                realName={realName}
+                email={email}
+                certificateId={certificateId}
+                currentDateFormatted={currentDateFormatted}
+                id="printable-certificate-modal"
+              />
+            </div>
+
+            {/* SHA text display in fullscreen modal */}
+            <div className="w-full p-2.5 sm:p-3 rounded-xl bg-zinc-900/90 border border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <span className="font-mono text-[11px] text-zinc-400 whitespace-nowrap">SHA-256:</span>
+                <code className="font-mono text-[11px] sm:text-xs text-emerald-400 select-all truncate">
+                  {certRecord.sha256}
+                </code>
+              </div>
+              <button
+                onClick={handleCopySha}
+                className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-[11px] font-mono text-zinc-200 shrink-0 flex items-center justify-center gap-1.5 border border-zinc-700 cursor-pointer self-start sm:self-auto"
+              >
+                {copiedSha ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-emerald-400" />}
+                <span>{copiedSha ? 'Copied!' : 'Copy SHA'}</span>
+              </button>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

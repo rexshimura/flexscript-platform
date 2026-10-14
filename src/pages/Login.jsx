@@ -15,6 +15,16 @@ export default function Login({ theme, setStudent }) {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Maximum allowed birthdate: strictly before today (yesterday or earlier)
+  const maxBirthdate = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  })();
+
   // Rate Limiter States
   const [attempts, setAttempts] = useState(() => Number(sessionStorage.getItem('login_attempts') || 0));
   const [lockoutTime, setLockoutTime] = useState(() => Number(sessionStorage.getItem('login_lockout_until') || 0));
@@ -51,6 +61,11 @@ export default function Login({ theme, setStudent }) {
 
     if (!studentId.trim() || !birthdate) {
       setError('Please enter both your Student ID Number and Birthdate.');
+      return;
+    }
+
+    if (birthdate > maxBirthdate) {
+      setError('Birthdate cannot be today or a future date.');
       return;
     }
 
@@ -179,7 +194,7 @@ export default function Login({ theme, setStudent }) {
               <input
                 type="date"
                 min="1900-01-01"
-                max="2099-12-31"
+                max={maxBirthdate}
                 value={birthdate}
                 disabled={isLoading || isLocked}
                 onChange={(e) => {
@@ -190,7 +205,11 @@ export default function Login({ theme, setStudent }) {
                       parts[0] = parts[0].slice(0, 4);
                       val = parts.join('-');
                     }
+                    if (val > maxBirthdate) {
+                      val = maxBirthdate;
+                    }
                   }
+                  setError('');
                   setBirthdate(val);
                 }}
                 style={{ colorScheme: isDark ? 'dark' : 'light' }}
