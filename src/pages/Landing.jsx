@@ -53,6 +53,11 @@ export default function Landing({ theme, setTheme, student }) {
               className={`w-4.5 h-4.5 object-contain transition-all ${isDark ? '' : 'invert'}`}
             />
             <span className="font-bold text-sm tracking-tight">Flex<span className="text-emerald-500">Script</span></span>
+            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border font-semibold ${
+              isDark ? 'bg-zinc-900 border-zinc-800 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+            }`}>
+              V1.7 Alpha
+            </span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -81,10 +86,17 @@ export default function Landing({ theme, setTheme, student }) {
       {/* Center Hero Section */}
       <main className="max-w-4xl mx-auto px-6 py-16 space-y-12 animate-fade-in">
         <div className="space-y-4 max-w-3xl">
-          <div className={`inline-block text-xs font-mono px-2.5 py-1 rounded border ${
-            isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-400' : 'bg-zinc-100 border-zinc-200 text-zinc-600'
-          }`}>
-            Cebu Technological University • College of Computer Studies
+          <div className="flex flex-wrap items-center gap-2">
+            <div className={`text-xs font-mono px-2.5 py-1 rounded border ${
+              isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-400' : 'bg-zinc-100 border-zinc-200 text-zinc-600'
+            }`}>
+              Cebu Technological University • College of Computer Studies
+            </div>
+            <span className={`text-[11px] font-mono px-2 py-0.5 rounded border font-semibold ${
+              isDark ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            }`}>
+              V1.7 Alpha
+            </span>
           </div>
 
           {/* Interactive TechText Header */}
@@ -185,7 +197,7 @@ export default function Landing({ theme, setTheme, student }) {
       {/* Minimal Footer */}
       <footer className={`border-t py-6 text-xs ${isDark ? 'border-zinc-900 text-zinc-500' : 'border-zinc-200 text-zinc-500'}`}>
         <div className="max-w-4xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Rexshimura | 2026</span>
+          <span>FlexScript • V1.7 Alpha • Rexshimura | 2026</span>
           <span>Press Alt + P to toggle theme</span>
         </div>
       </footer>
