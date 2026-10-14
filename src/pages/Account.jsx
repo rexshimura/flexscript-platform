@@ -87,8 +87,12 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
         </div>
 
         {isCertified && (
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
-            <Award className="w-4 h-4" />
+          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium ${
+            isDark
+              ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60'
+              : 'bg-emerald-100/90 text-zinc-950 border-emerald-300 shadow-xs'
+          }`}>
+            <Award className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-zinc-950'}`} />
             <span>Curriculum Certified</span>
           </div>
         )}
@@ -195,8 +199,13 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
                 }`}>
                   {student?.section || 'BSIT 4-B'}
                 </span>
-                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-medium">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Verified Student
+                <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-0.5 rounded-full border ${
+                  isDark
+                    ? 'bg-emerald-950/50 text-emerald-400 border-emerald-800/70'
+                    : 'bg-emerald-100/90 text-zinc-950 border-emerald-300 shadow-2xs'
+                }`}>
+                  <ShieldCheck className={`w-3.5 h-3.5 ${isDark ? 'text-emerald-400' : 'text-zinc-950'}`} />
+                  <span>Verified Student</span>
                 </span>
               </div>
             </div>
@@ -312,10 +321,14 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
         {isCertified ? (
           /* UNLOCKED OFFICIAL CERTIFICATE */
           <div className="space-y-4">
-            <div className={`p-4 rounded-xl border flex items-center gap-3 bg-emerald-500/10 border-emerald-500/30 text-emerald-400 text-xs`}>
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <div className={`p-4 rounded-xl border flex items-center gap-3 text-xs ${
+              isDark 
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                : 'bg-emerald-100/90 border-emerald-300 text-zinc-950 font-medium'
+            }`}>
+              <CheckCircle2 className={`w-4 h-4 shrink-0 ${isDark ? 'text-emerald-400' : 'text-zinc-950'}`} />
               <span>
-                <strong>Academic Distinction:</strong> You have completed 100% of the IT-JS101 syllabus. Your official Certificate of Completion is issued and verified below.
+                <strong>Academic Distinction:</strong> You have completed 100% of the JavaScript curriculum. Your official Certificate of Completion is issued and verified below.
               </span>
             </div>
 
@@ -376,7 +389,7 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
                     has successfully satisfied all rigorous laboratory requirements, interactive knowledge assessments, and sequential modules for:
                   </p>
                   <p className="font-bold text-sm tracking-wide">
-                    IT-JS101: JavaScript Programming Fundamentals
+                    JavaScript Programming Fundamentals
                   </p>
                   <p className="text-[11px] opacity-75 max-w-lg mx-auto">
                     Demonstrating proficiency in ECMAScript standards, variable scoping, logic control flows, first-class functions and closures, modern array pipelines, object prototypes, DOM manipulation, event bubbling, and asynchronous HTTP architectures.
@@ -473,7 +486,7 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
                   ID: {student?.studentId} • Section: {student?.section} • Email: {email}
                 </p>
                 <p className="text-xs max-w-lg mx-auto opacity-80">
-                  For comprehensive mastery of IT-JS101 JavaScript Programming Curriculum across 10 sequential objectives.
+                  For comprehensive mastery of the JavaScript Programming Curriculum across 10 sequential objectives.
                 </p>
                 <div className="pt-6 grid grid-cols-2 gap-4 text-xs border-t border-dashed border-zinc-800">
                   <div>

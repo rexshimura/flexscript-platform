@@ -38,7 +38,7 @@ export default function Landing({ theme, setTheme, student }) {
               alt="FlexScript Logo"
               className={`w-4.5 h-4.5 object-contain transition-all ${isDark ? '' : 'invert'}`}
             />
-            <span className="font-bold text-sm tracking-tight">FlexScript</span>
+            <span className="font-bold text-sm tracking-tight">Flex<span className="text-emerald-500">Script</span></span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -100,11 +100,13 @@ export default function Landing({ theme, setTheme, student }) {
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
               onClick={() => handleLaunch(targetPath)}
-              className={`px-5 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition cursor-pointer ${
-                isDark ? 'bg-zinc-100 text-zinc-950 hover:bg-zinc-300' : 'bg-zinc-900 text-white hover:bg-zinc-800'
+              className={`px-5 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition cursor-pointer shadow-sm ${
+                isDark
+                  ? 'bg-emerald-500 text-zinc-950 hover:bg-emerald-400 shadow-emerald-500/20'
+                  : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-emerald-600/20'
               }`}
             >
-              <span>{student ? 'Continue as ' + student.name : 'Access Student Portal'}</span>
+              <span>{student ? 'Continue as ' + (student.username || student.name) : 'Access Student Portal'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

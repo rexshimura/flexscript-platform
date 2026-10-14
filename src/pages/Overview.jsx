@@ -1,12 +1,33 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, CheckCircle2, Play, Award } from 'lucide-react';
 import { SYLLABUS_OBJECTIVES } from '../data/datasets';
+import TextType from '../components/ui/TextType';
 
 export default function Overview({ theme, completed, student }) {
   const isDark = theme === 'dark';
   const total = SYLLABUS_OBJECTIVES.length;
   const percent = Math.round((completed.length / total) * 100);
   const username = student?.username || student?.name || 'Student';
+
+  // 10 personalized welcome messages: first is always "Welcome, {username}!", rest are shuffled randomly
+  const welcomeMessages = useMemo(() => {
+    const firstMessage = `Welcome, ${username}!`;
+    const remainingMessages = [
+      `${username}, are you ready to script?`,
+      `Let's write clean JavaScript today, ${username}!`,
+      `Ready to code and conquer, ${username}?`,
+      `${username}, your JavaScript journey continues!`,
+      `Welcome back, ${username}! hope you're doing well`,
+      `Master JavaScript step-by-step, ${username}!`,
+      `Hello, ${username}! Time to level up your logic.`,
+      `Great developers start with "Hello World", ${username}!`,
+      `Let's turn coffee into working code, ${username}!`
+    ];
+    // Randomize the 9 subsequent messages
+    const shuffled = [...remainingMessages].sort(() => Math.random() - 0.5);
+    return [firstMessage, ...shuffled];
+  }, [username]);
 
   // Find the first uncompleted objective, or the first one if none completed
   const currentObjective = SYLLABUS_OBJECTIVES.find((o) => !completed.includes(o.id)) || SYLLABUS_OBJECTIVES[SYLLABUS_OBJECTIVES.length - 1];
@@ -20,33 +41,49 @@ export default function Overview({ theme, completed, student }) {
           </p>
         </div>
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Welcome, <span className="text-emerald-500">{username}</span>!
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight min-h-[40px] flex items-center">
+            <TextType
+              text={welcomeMessages}
+              as="span"
+              typingSpeed={40}
+              pauseDuration={2200}
+              deletingSpeed={25}
+              loop={true}
+              cursorCharacter="|"
+              cursorClassName="text-emerald-500 font-bold"
+              highlightWord={username}
+              highlightClassName="text-emerald-500"
+              className={isDark ? 'text-zinc-100' : 'text-zinc-900'}
+            />
           </h1>
           <p className={`text-base font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
             JavaScript Basic Course Objectives
           </p>
         </div>
         <p className={`text-sm leading-relaxed max-w-2xl ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-          Welcome to the IT-JS101 interactive academic portal. Master JavaScript programming fundamentals through our structured sequential curriculum, interactive playground runtime, and self-assessment evaluations.
+          Welcome to the interactive JavaScript academic portal. Master JavaScript programming fundamentals through our structured sequential curriculum, interactive playground runtime, and self-assessment evaluations.
         </p>
       </div>
 
       {/* 100% Completion Certificate Callout Banner */}
       {completed.length >= total && (
-        <div className="p-5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-emerald-500/10 border-emerald-500/30 text-emerald-400 animate-fade-in">
+        <div className={`p-5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in ${
+          isDark 
+            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+            : 'bg-emerald-100/90 border-emerald-300 text-zinc-950 font-medium'
+        }`}>
           <div className="flex items-center gap-3">
-            <Award className="w-6 h-6 shrink-0" />
+            <Award className={`w-6 h-6 shrink-0 ${isDark ? 'text-emerald-400' : 'text-zinc-950'}`} />
             <div>
-              <p className="font-bold text-sm text-emerald-300">Curriculum Mastery 100% Achieved!</p>
-              <p className="text-xs text-emerald-400/80">
+              <p className={`font-bold text-sm ${isDark ? 'text-emerald-300' : 'text-zinc-950'}`}>Curriculum Mastery 100% Achieved!</p>
+              <p className={`text-xs ${isDark ? 'text-emerald-400/80' : 'text-zinc-700'}`}>
                 You have finished all 10 modules. Your official Certificate of Completion is ready.
               </p>
             </div>
           </div>
           <Link
             to="/account"
-            className="shrink-0 px-4 py-2 rounded-lg text-xs font-semibold bg-emerald-500 text-zinc-950 hover:bg-emerald-400 transition flex items-center gap-1.5"
+            className="shrink-0 px-4 py-2 rounded-lg text-xs font-semibold bg-zinc-950 text-white dark:bg-emerald-500 dark:text-zinc-950 transition flex items-center gap-1.5"
           >
             Claim Certificate <ArrowRight className="w-3.5 h-3.5" />
           </Link>
@@ -57,7 +94,7 @@ export default function Overview({ theme, completed, student }) {
       <div className={`p-5 rounded-xl border ${isDark ? 'bg-zinc-900/50 border-zinc-800' : 'bg-white border-zinc-200'}`}>
         <div className="flex justify-between items-center text-xs font-medium mb-2.5">
           <span className="flex items-center gap-1.5 font-semibold">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <CheckCircle2 className={`w-4 h-4 ${isDark ? 'text-emerald-500' : 'text-zinc-950'}`} />
             Curriculum Mastery Progress
           </span>
           <span className="font-mono text-zinc-500">
@@ -107,7 +144,7 @@ export default function Overview({ theme, completed, student }) {
       {/* Course Metadata */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: 'Course Code', value: 'IT-JS101' },
+          { label: 'Course Program', value: 'JavaScript Programming' },
           { label: 'Curriculum Scope', value: `${total} Sequential Modules` },
           { label: 'Evaluation Structure', value: 'Live Code & Quiz' }
         ].map((item, idx) => (

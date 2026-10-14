@@ -178,9 +178,21 @@ export default function Login({ theme, setStudent }) {
               <label className="block text-xs font-medium mb-1.5">Birthdate</label>
               <input
                 type="date"
+                min="1900-01-01"
+                max="2099-12-31"
                 value={birthdate}
                 disabled={isLoading || isLocked}
-                onChange={(e) => setBirthdate(e.target.value)}
+                onChange={(e) => {
+                  let val = e.target.value;
+                  if (val) {
+                    const parts = val.split('-');
+                    if (parts[0] && parts[0].length > 4) {
+                      parts[0] = parts[0].slice(0, 4);
+                      val = parts.join('-');
+                    }
+                  }
+                  setBirthdate(val);
+                }}
                 style={{ colorScheme: isDark ? 'dark' : 'light' }}
                 className={`w-full px-3 py-2 rounded-lg text-xs border font-mono transition focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
                   isDark

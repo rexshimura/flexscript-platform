@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 html {
   overflow-y: scroll;
   scrollbar-gutter: stable;
@@ -41,6 +43,21 @@ body {
 
 .page-enter {
   animation: pageEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes layoutShift {
+  0% {
+    opacity: 0.7;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-layout-shift {
+  animation: layoutShift 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Print Styling: isolates certificate for PDF export */

@@ -41,7 +41,7 @@ export default function Layout({ theme, setTheme, completedCount, student, setSt
                 alt="FlexScript Logo"
                 className={`w-4.5 h-4.5 object-contain transition-all ${isDark ? '' : 'invert'}`}
               />
-              <span className="font-bold text-sm tracking-tight">FlexScript</span>
+              <span className="font-bold text-sm tracking-tight">Flex<span className="text-emerald-500">Script</span></span>
             </Link>
 
             <nav className="flex items-center gap-1">
@@ -102,7 +102,7 @@ export default function Layout({ theme, setTheme, completedCount, student, setSt
       <footer className={`border-t py-6 text-center text-xs font-mono transition-colors ${
         isDark ? 'border-zinc-800/80 text-zinc-500' : 'border-zinc-200 text-zinc-500'
       }`}>
-        <p>FlexScript • IT-JS101 JavaScript Course Portal</p>
+        <p>Flex<span className="text-emerald-500">Script</span> • JavaScript Course Portal</p>
         <p className="mt-1 text-[11px] opacity-80">Developed by John Paul P. Mahilom (Rexshimura) — BSIT 4-B | CTU Main Campus</p>
       </footer>
 
