@@ -35,6 +35,9 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete, stud
   const numericId = Number(id);
   const currentObj = ALL_OBJECTIVES.find((o) => o.id === numericId || o.slug === id || String(o.id) === String(id));
 
+  const studentId = student?.student_profile?.id || student?.studentId || student?.id;
+  const isAdmin = studentId === '0000001';
+
   // Active step in the sticky steps progress bar: 'definitions' | 'flashcards' | 'exercise'
   const [activeSection, setActiveSection] = useState('definitions');
 
@@ -384,6 +387,25 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete, stud
           }`}>
             <Clock className="w-3 h-3" /> {currentObj.estimatedTime}
           </span>
+
+          {/* Clean Status Indicator */}
+          {!isOldTech && (
+            isDone ? (
+              <span className={`text-[11px] font-semibold px-2.5 py-1 rounded flex items-center gap-1.5 border ${
+                isDark ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60' : 'bg-emerald-100/90 text-zinc-950 border-emerald-300 shadow-2xs'
+              }`}>
+                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Chapter Completed</span>
+              </span>
+            ) : (
+              <span className={`text-[11px] font-medium px-2.5 py-1 rounded flex items-center gap-1.5 border ${
+                isDark ? 'bg-zinc-900/80 border-zinc-800 text-zinc-400' : 'bg-zinc-100 border-zinc-200 text-zinc-600'
+              }`}>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                <span>In Progress</span>
+              </span>
+            )
+          )}
         </div>
 
         <div>
@@ -400,47 +422,38 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete, stud
           </p>
         </div>
 
-        {/* Quick action bar */}
-        <div className="pt-2 flex flex-wrap items-center gap-3">
-          {!isOldTech && (
-            <button
-              onClick={handleCompleteAndScroll}
-              className={`px-4 py-2 rounded-lg text-xs font-medium flex items-center gap-2 border transition ${
-                isDone
-                  ? isDark
-                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/30'
-                    : 'bg-emerald-100/90 text-zinc-950 border-emerald-400 hover:bg-emerald-200/80 shadow-xs'
-                  : !allRead
-                  ? 'opacity-60 cursor-not-allowed border-zinc-700 bg-zinc-800 text-zinc-400'
-                  : isDark
-                  ? 'bg-zinc-100 text-zinc-950 border-zinc-100 hover:bg-zinc-300 font-semibold'
-                  : 'bg-zinc-900 text-white border-zinc-900 hover:bg-zinc-800 font-semibold'
-              }`}
-            >
-              <Check className={`w-4 h-4 stroke-[2.5] ${isDone ? (isDark ? 'text-emerald-400' : 'text-zinc-950') : ''}`} />
-              {isDone 
-                ? 'Marked Completed (Click to Undo)' 
-                : allRead 
-                ? 'Mark Chapter as Completed' 
-                : `Review & Check Cards Below (${acknowledged.length}/${cardsCount})`}
-            </button>
-          )}
+        {/* Top Action Bar: Only shows Next Chapter shortcut when completed, or Admin override */}
+        {((isDone && nextObj && isNextUnlocked) || isAdmin) && (
+          <div className="pt-2 flex flex-wrap items-center gap-3">
+            {isDone && nextObj && isNextUnlocked && (
+              <button
+                onClick={handleProceedToNext}
+                className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 border transition ${
+                  isDark
+                    ? 'bg-zinc-100 text-zinc-950 hover:bg-zinc-300'
+                    : 'bg-zinc-900 text-white hover:bg-zinc-800'
+                }`}
+              >
+                <span>Proceed to Next: {nextObj.code}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
 
-          {(isOldTech ? nextObj : (isDone && nextObj)) && (
-            <button
-              onClick={handleProceedToNext}
-              disabled={!isNextUnlocked}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 border transition ${
-                isDark
-                  ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700'
-                  : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border-zinc-300'
-              }`}
-            >
-              <span>Next: {nextObj.code}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
+            {isAdmin && (
+              <button
+                onClick={handleCompleteAndScroll}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium border transition ${
+                  isDark
+                    ? 'border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                    : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                }`}
+                title="Admin 0000001 Override"
+              >
+                <span>Admin: {isDone ? 'Undo Complete' : 'Force Complete'}</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Sticky Steps Progress Bar with floating space below navbar */}
@@ -1284,7 +1297,9 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete, stud
           {!isOldTech && (
             <button
               onClick={handleCompleteAndScroll}
-              className={`px-4 py-2 rounded-lg text-xs font-medium flex items-center gap-2 border transition ${
+              disabled={!isDone && !allRead}
+              title={!isDone && !allRead ? `Please verify all definition cards above (${acknowledged.length}/${cardsCount}) before completing` : undefined}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 border transition ${
                 isDone
                   ? isDark
                     ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
@@ -1292,12 +1307,16 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete, stud
                   : !allRead
                   ? 'opacity-60 cursor-not-allowed border-zinc-700 bg-zinc-800 text-zinc-400'
                   : isDark
-                  ? 'bg-zinc-100 text-zinc-950 hover:bg-zinc-300 font-semibold'
-                  : 'bg-zinc-900 text-white hover:bg-zinc-800 font-semibold'
+                  ? 'bg-zinc-100 text-zinc-950 hover:bg-zinc-300 font-semibold cursor-pointer shadow-sm'
+                  : 'bg-zinc-900 text-white hover:bg-zinc-800 font-semibold cursor-pointer shadow-sm'
               }`}
             >
               <Check className={`w-3.5 h-3.5 stroke-[2.5] ${isDone ? (isDark ? 'text-emerald-400' : 'text-zinc-950') : ''}`} />
-              {isDone ? 'Marked Done' : 'Complete Chapter'}
+              {isDone 
+                ? 'Marked Done' 
+                : allRead 
+                ? 'Complete Chapter' 
+                : `Read Cards Above (${acknowledged.length}/${cardsCount})`}
             </button>
           )}
 
