@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Loader2, Lock } from 'lucide-react';
 import { REGISTERED_STUDENTS } from '../data/datasets';
-import { syncStudentToFirestore } from '../utils/firebaseService';
+import { syncStudentToFirestore, fetchStudentFromFirestore } from '../utils/firebaseService';
 
 const MAX_ATTEMPTS = 4;
 const LOCKOUT_SECONDS = 30;
@@ -54,7 +54,7 @@ export default function Login({ theme, setStudent }) {
 
   const isLocked = remainingLockout > 0;
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     if (isLoading || isLocked) return;
 
@@ -70,11 +70,9 @@ export default function Login({ theme, setStudent }) {
       return;
     }
 
-    // Trigger loading animation to simulate SIS authentication handshake
     setIsLoading(true);
 
-    setTimeout(() => {
-      // Normalize date format if user enters MM/DD/YYYY or HTML5 YYYY-MM-DD
+    try {
       const normalizeDate = (d) => {
         if (!d) return '';
         const trimmed = d.trim();
@@ -88,12 +86,46 @@ export default function Login({ theme, setStudent }) {
       };
 
       const normalizedInputDate = normalizeDate(birthdate);
+      const cleanId = studentId.trim();
 
-      const matchedStudent = REGISTERED_STUDENTS.find(
-        (s) =>
-          s.studentId.toLowerCase() === studentId.trim().toLowerCase() &&
-          (s.birthdate === birthdate || s.birthdate === normalizedInputDate)
-      );
+      // 1. Query Firestore first to authenticate newly registered cloud students
+      let matchedStudent = null;
+      try {
+        const cloudDoc = await fetchStudentFromFirestore(cleanId);
+        if (cloudDoc) {
+          const p = cloudDoc.student_profile || {};
+          const cDate = normalizeDate(p.birthdate);
+          if (p.birthdate === birthdate || cDate === normalizedInputDate) {
+            matchedStudent = {
+              studentId: p.id || cleanId,
+              realName: p.realname || 'Student',
+              username: p.username || 'User',
+              email: p.email || '',
+              section: p.section || 'BSIT 4-B',
+              school: p.school || 'Cebu Technological University • Main Campus',
+              program: p.program || 'Bachelor of Science in Information Technology',
+              birthdate: p.birthdate,
+              student_profile: p,
+              student_progress: cloudDoc.student_progress,
+              student_certificate: cloudDoc.student_certificate
+            };
+          }
+        }
+      } catch (err) {
+        console.warn('Firestore student login fetch notice:', err);
+      }
+
+      // 2. Fall back to local REGISTERED_STUDENTS
+      if (!matchedStudent) {
+        const local = REGISTERED_STUDENTS.find(
+          (s) =>
+            s.studentId.toLowerCase() === cleanId.toLowerCase() &&
+            (s.birthdate === birthdate || normalizeDate(s.birthdate) === normalizedInputDate)
+        );
+        if (local) {
+          matchedStudent = local;
+        }
+      }
 
       if (!matchedStudent) {
         const nextAttempts = attempts + 1;
@@ -126,7 +158,10 @@ export default function Login({ theme, setStudent }) {
       syncStudentToFirestore(sessionData);
       setIsLoading(false);
       navigate('/overview');
-    }, 750);
+    } catch (err) {
+      setError('An error occurred during authentication. Please try again.');
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -247,6 +282,20 @@ export default function Login({ theme, setStudent }) {
               )}
             </button>
           </form>
+
+          <div className={`mt-5 pt-4 border-t flex items-center justify-between text-[11px] ${
+            isDark ? 'border-zinc-800/80 text-zinc-500' : 'border-zinc-200 text-zinc-400'
+          }`}>
+            <span>Protected SIS Portal</span>
+            <Link
+              to="/admin/login"
+              className={`font-mono transition ${
+                isDark ? 'text-zinc-500 hover:text-emerald-400' : 'text-zinc-500 hover:text-emerald-600'
+              }`}
+            >
+              Dev & Admin Access →
+            </Link>
+          </div>
         </div>
       </div>
     </div>

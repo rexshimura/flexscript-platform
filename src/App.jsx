@@ -13,6 +13,12 @@ const Account = lazy(() => import('./pages/Account'));
 const VerifyCertificate = lazy(() => import('./pages/VerifyCertificate'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
+// Admin & Developer Console Routes
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminManage = lazy(() => import('./pages/admin/AdminManage'));
+
 import { 
   seedInitialFirestoreData, 
   syncCompletedToFirestore, 
@@ -143,6 +149,14 @@ function App() {
         <Route path="/verify" element={<Navigate to="/verify/certificate" replace />} />
         <Route path="/not-found" element={<NotFound theme={theme} setTheme={setTheme} student={student} />} />
         <Route path="/404" element={<Navigate to="/not-found" replace />} />
+
+        {/* Admin & Developer Console Routes */}
+        <Route path="/admin/login" element={<AdminLogin theme={theme} />} />
+        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route element={<AdminLayout theme={theme} setTheme={setTheme} />}>
+          <Route path="/admin/dashboard" element={<AdminDashboard theme={theme} />} />
+          <Route path="/admin/manage" element={<AdminManage theme={theme} />} />
+        </Route>
 
         {/* Protected Course Routes (Requires Login via RouteMiddleware) */}
         <Route element={<RouteMiddleware student={student} />}>

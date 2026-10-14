@@ -5,6 +5,7 @@ import {
   getDocs, 
   setDoc, 
   updateDoc, 
+  deleteDoc,
   query, 
   where,
   limit
@@ -361,3 +362,225 @@ export async function fetchAllCertificatesFromFirestore() {
     return [];
   }
 }
+
+/**
+ * Fetches all student records from Cloud Firestore collection 'students'.
+ * Automatically merges with fallback registered datasets if missing.
+ */
+export async function fetchAllStudentsFromFirestore() {
+  try {
+    const studentsCol = collection(db, 'students');
+    const snap = await getDocs(studentsCol);
+    const cloudStudents = [];
+    
+    snap.forEach((d) => {
+      const data = d.data();
+      const p = data.student_profile || {};
+      const prog = data.student_progress || {};
+      const cert = data.student_certificate || {};
+      const id = p.id || d.id;
+      
+      cloudStudents.push({
+        id,
+        studentId: id,
+        realname: p.realname || 'Unknown',
+        realName: p.realname || 'Unknown',
+        username: p.username || 'user',
+        email: p.email || '',
+        section: p.section || 'BSIT 4-B',
+        school: p.school || 'Cebu Technological University • Main Campus',
+        program: p.program || 'Bachelor of Science in Information Technology',
+        birthdate: p.birthdate || '',
+        student_profile: p,
+        student_progress: prog,
+        student_certificate: cert,
+        completedCount: prog.completed_count || (prog.completed_chapters || []).length || 0,
+        percentage: prog.percentage || 0,
+        isCertified: !!prog.is_certified || (prog.completed_count >= 26),
+        sha256: cert.sha256 || '',
+        certificateId: cert.certificate_id || `CTU-JS101-${id}-2026`,
+        status: cert.status || (prog.is_certified ? 'COMPLETED' : 'IN_PROGRESS'),
+        dateIssued: cert.date_issued || (prog.is_certified ? 'Completed' : 'Pending Completion')
+      });
+    });
+
+    // Merge with any in REGISTERED_STUDENTS not yet in Firestore
+    for (const local of REGISTERED_STUDENTS) {
+      const p = local.student_profile || {};
+      const id = p.id || local.studentId;
+      if (!cloudStudents.some((s) => s.id === id)) {
+        const completedArr = local.completedObjectives || [];
+        cloudStudents.push({
+          id,
+          studentId: id,
+          realname: p.realname || local.realName,
+          realName: p.realname || local.realName,
+          username: p.username || local.username,
+          email: p.email || local.email,
+          section: p.section || local.section,
+          school: p.school || local.school,
+          program: p.program || local.program,
+          birthdate: p.birthdate || local.birthdate,
+          student_profile: p,
+          student_progress: {
+            completed_count: completedArr.length,
+            total_chapters: 26,
+            percentage: Math.round((completedArr.length / 26) * 100),
+            is_certified: completedArr.length >= 26,
+            completed_chapters: completedArr
+          },
+          student_certificate: {
+            certificate_id: `CTU-JS101-${id}-2026`,
+            sha256: '',
+            date_issued: 'Pending Completion',
+            course_title: 'Modern JavaScript & Web Systems Architecture',
+            status: 'IN_PROGRESS'
+          },
+          completedCount: completedArr.length,
+          percentage: Math.round((completedArr.length / 26) * 100),
+          isCertified: completedArr.length >= 26,
+          sha256: '',
+          certificateId: `CTU-JS101-${id}-2026`,
+          status: 'IN_PROGRESS',
+          dateIssued: 'Pending Completion'
+        });
+      }
+    }
+
+    return cloudStudents;
+  } catch (err) {
+    console.warn('Firestore fetch all students notice:', err.message);
+    return REGISTERED_STUDENTS.map((local) => {
+      const p = local.student_profile || {};
+      const id = p.id || local.studentId;
+      const completedArr = local.completedObjectives || [];
+      return {
+        id,
+        studentId: id,
+        realname: p.realname || local.realName,
+        realName: p.realname || local.realName,
+        username: p.username || local.username,
+        email: p.email || local.email,
+        section: p.section || local.section,
+        school: p.school || local.school,
+        program: p.program || local.program,
+        birthdate: p.birthdate || local.birthdate,
+        student_profile: p,
+        student_progress: {
+          completed_count: completedArr.length,
+          total_chapters: 26,
+          percentage: Math.round((completedArr.length / 26) * 100),
+          is_certified: completedArr.length >= 26,
+          completed_chapters: completedArr
+        },
+        student_certificate: {
+          certificate_id: `CTU-JS101-${id}-2026`,
+          sha256: '',
+          date_issued: 'Pending Completion',
+          course_title: 'Modern JavaScript & Web Systems Architecture',
+          status: 'IN_PROGRESS'
+        },
+        completedCount: completedArr.length,
+        percentage: Math.round((completedArr.length / 26) * 100),
+        isCertified: completedArr.length >= 26,
+        sha256: '',
+        certificateId: `CTU-JS101-${id}-2026`,
+        status: 'IN_PROGRESS',
+        dateIssued: 'Pending Completion'
+      };
+    });
+  }
+}
+
+/**
+ * Creates a brand new student in Cloud Firestore under students/{id}
+ * Enforces gold-standard schema and strict 7-digit numeric string ID.
+ */
+export async function createStudentInFirestore(studentData) {
+  const rawId = String(studentData.id || studentData.studentId || '').trim();
+  if (!/^\d{7}$/.test(rawId)) {
+    throw new Error('Student ID must be exactly a 7-digit numeric string (e.g. 1220491).');
+  }
+
+  const studentRef = doc(db, 'students', rawId);
+  const snap = await getDoc(studentRef);
+  if (snap.exists()) {
+    throw new Error(`Student with ID ${rawId} already exists in Firestore.`);
+  }
+
+  const realname = (studentData.realname || studentData.realName || '').trim();
+  if (!realname) {
+    throw new Error('Full name is required.');
+  }
+
+  const username = (studentData.username || realname.split(' ')[0]).trim();
+  const email = (studentData.email || `${realname.toLowerCase().replace(/[^a-z0-9]/g, '.')}@ctu.edu.ph`).trim();
+  const section = (studentData.section || 'BSIT 4-B').trim();
+  const school = (studentData.school || 'Cebu Technological University • Main Campus').trim();
+  const program = (studentData.program || 'Bachelor of Science in Information Technology').trim();
+  const birthdate = (studentData.birthdate || '2004-01-01').trim();
+
+  const newStudentDoc = {
+    student_profile: {
+      id: rawId,
+      realname,
+      username,
+      email,
+      section,
+      school,
+      program,
+      birthdate,
+      created_at: new Date().toISOString()
+    },
+    student_progress: {
+      completed_count: 0,
+      total_chapters: 26,
+      percentage: 0,
+      is_certified: false,
+      completed_chapters: []
+    },
+    student_certificate: {
+      certificate_id: `CTU-JS101-${rawId}-2026`,
+      sha256: '',
+      date_issued: 'Pending Completion',
+      course_title: 'Modern JavaScript & Web Systems Architecture',
+      status: 'IN_PROGRESS'
+    },
+    student_objectives: createDefaultObjectivesMap(false)
+  };
+
+  await setDoc(studentRef, newStudentDoc);
+  return newStudentDoc;
+}
+
+/**
+ * Deletes a student document from Firestore
+ */
+export async function deleteStudentFromFirestore(studentId) {
+  if (!studentId) return;
+  const studentRef = doc(db, 'students', String(studentId).trim());
+  await deleteDoc(studentRef);
+}
+
+/**
+ * Resets student progress in Firestore back to 0
+ */
+export async function resetStudentProgressInFirestore(studentId) {
+  if (!studentId) return;
+  const rawId = String(studentId).trim();
+  const studentRef = doc(db, 'students', rawId);
+  await updateDoc(studentRef, {
+    student_progress: {
+      completed_count: 0,
+      total_chapters: 26,
+      percentage: 0,
+      is_certified: false,
+      completed_chapters: []
+    },
+    'student_certificate.sha256': '',
+    'student_certificate.date_issued': 'Pending Completion',
+    'student_certificate.status': 'IN_PROGRESS',
+    student_objectives: createDefaultObjectivesMap(false)
+  });
+}
+
