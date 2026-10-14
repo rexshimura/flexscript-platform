@@ -53,15 +53,15 @@ FlexScript uses a **Gold-Standard Normalized Schema** in Cloud Firestore:
 ```
 firestore/
 ├── students/
-│   └── {studentId}/                      # e.g., "1220491" (Strict 7 digits, no dashes)
+│   └── {studentId}/                      # e.g., "1000001" (Strict 7 digits, no dashes)
 │       ├── student_profile: {            # Learner identity & academic details
-│       │     id: "1220491",
-│       │     realname: "Rex Mahilom",
-│       │     username: "Rex",
-│       │     email: "rex.mahilom@ctu.edu.ph",
+│       │     id: "1000001",
+│       │     realname: "Alex Vance",
+│       │     username: "Alex",
+│       │     email: "alex.vance@ctu.edu.ph",
 │       │     section: "BSIT 4-B",
 │       │     school: "Cebu Technological University",
-│       │     birthdate: "2005-01-20"
+│       │     birthdate: "2004-05-15"
 │       │   }
 │       ├── student_progress: {           # Live course progression
 │       │     completed_count: 0,
@@ -124,13 +124,13 @@ cp .env.example .env
 Open `.env` and fill in your Firebase Cloud Configuration keys:
 
 ```env
-VITE_FIREBASE_API_KEY=AIzaSyBiwOB6u9r903IpIuwNG8d4yKftaOpBib0
-VITE_FIREBASE_AUTH_DOMAIN=flexscript-8feb7.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=flexscript-8feb7
-VITE_FIREBASE_STORAGE_BUCKET=flexscript-8feb7.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=819816916111
-VITE_FIREBASE_APP_ID=1:819816916111:web:acfcfa53fed23ece523cfa
-VITE_FIREBASE_MEASUREMENT_ID=G-LGSW3P6LKT
+VITE_FIREBASE_API_KEY=your_firebase_api_key_here
+VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
 ```
 
 ### 5. Run the Local Development Server
@@ -151,7 +151,7 @@ The optimized production bundle will be generated in the `/dist` directory.
 
 1. Push your latest code to your GitHub repository.
 2. Sign in to [Vercel](https://vercel.com/) and click **"Add New..." $\rightarrow$ "Project"**.
-3. Import **`rexshimura/flexscript-platform`**.
+3. Import your repository (`flexscript-platform`).
 4. In the configuration window:
    * **Framework Preset**: `Vite` (auto-detected).
    * **Root Directory**: `./` (default).
@@ -167,31 +167,19 @@ The optimized production bundle will be generated in the `/dist` directory.
 
 ---
 
-## 🔑 Default Accounts & Access Credentials
+## 🔑 Authentication & Access Control
 
 ### 1. Developer & Admin Console (`/admin/login`)
-| Field | Value |
-| :--- | :--- |
-| **URL Route** | `/admin/login` |
-| **Username** | `rexshimura` |
-| **Password** | `admin123` |
-| **Permissions** | Full student roster management, student enrollment, progress reset, deletion |
+* **URL Route**: `/admin/login`
+* **Role**: Restricted administrative portal for course instructors and developers.
+* **Features**: Live learner telemetry, curriculum progress overview, new student enrollment, progress reset, and student record deletion.
+* **Security**: Protected route using authorized admin session tokens.
 
-### 2. Root Admin Learner Account (`/login`)
-| Field | Value |
-| :--- | :--- |
-| **Student ID Number** | `0000001` |
-| **Birthdate** | `2000-01-01` |
-| **Role** | Root Learner & Curriculum Tester (includes outside quick-mark & reset bypass) |
-
-### 3. Pre-Configured Student Accounts (`/login`)
-| Student ID | Full Name | Birthdate | Academic Section |
-| :--- | :--- | :--- | :--- |
-| `1220491` | Rex Mahilom | `2005-01-20` | BSIT 4-B |
-| `2026001` | Juan Dela Cruz | `2004-10-12` | BSIT 4-B |
-| `1339523` | Test Student | `2004-03-25` | BSIT 4-B |
-
-*(Additional students can be created on the fly via `/admin/manage`)*.
+### 2. Student Learning Portal (`/login`)
+* **URL Route**: `/login`
+* **Authentication Method**: Requires a registered **7-digit Student ID Number** and **Birthdate** credential.
+* **Student Enrollment**: Instructors can enroll new students dynamically through the `/admin/manage` console.
+* **Root Tester Account**: A development tester student account (`0000001`) is configured for local syllabus testing and quick-verification.
 
 ---
 
