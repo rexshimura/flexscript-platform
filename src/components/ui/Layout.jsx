@@ -35,10 +35,7 @@ export default function Layout({ theme, setTheme, completedCount, student, setSt
                 alt="FlexScript Logo"
                 className={`w-4.5 h-4.5 object-contain transition-all ${isDark ? '' : 'invert'}`}
               />
-              <div className="flex items-baseline gap-1.5">
-                <span className="font-bold text-sm tracking-tight">FlexScript</span>
-                <span className="text-[10px] font-mono text-zinc-500 hidden md:inline">by John Paul P. Mahilom</span>
-              </div>
+              <span className="font-bold text-sm tracking-tight">FlexScript</span>
             </Link>
 
             <nav className="flex items-center gap-1">
@@ -46,14 +43,25 @@ export default function Layout({ theme, setTheme, completedCount, student, setSt
               <NavLink to="/objectives" className={navClass}>Objectives</NavLink>
               <NavLink to="/playground" className={navClass}>Playground</NavLink>
               <NavLink to="/quiz" className={navClass}>Quiz</NavLink>
+              <NavLink to="/account" className={navClass}>Account</NavLink>
             </nav>
           </div>
 
           <div className="flex items-center gap-2.5">
             {student && (
-              <span className={`text-xs hidden sm:inline px-2 py-1 rounded border font-mono ${isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-300' : 'bg-zinc-100 border-zinc-200 text-zinc-700'}`}>
-                {student.name} • {completedCount}/{totalObjectives}
-              </span>
+              <Link
+                to="/account"
+                title="View My Account & Certificate"
+                className={`text-xs hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded border font-mono transition ${
+                  isDark
+                    ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:text-white'
+                    : 'bg-zinc-100 border-zinc-200 text-zinc-700 hover:border-zinc-300 hover:text-zinc-900'
+                }`}
+              >
+                <span>{student.name}</span>
+                <span className="opacity-40">•</span>
+                <span>{completedCount}/{totalObjectives}</span>
+              </Link>
             )}
 
             <button

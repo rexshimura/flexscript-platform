@@ -10,6 +10,7 @@ const Objectives = lazy(() => import('./pages/Objectives'));
 const ObjectiveDetail = lazy(() => import('./pages/ObjectiveDetail'));
 const Playground = lazy(() => import('./pages/Playground'));
 const Quiz = lazy(() => import('./pages/Quiz'));
+const Account = lazy(() => import('./pages/Account'));
 
 // Global Scroll Restoration: scrolls to top on route change
 function ScrollToTop() {
@@ -121,6 +122,17 @@ function App() {
 
             <Route path="/playground" element={<Playground theme={theme} />} />
             <Route path="/quiz" element={<Quiz theme={theme} />} />
+            <Route
+              path="/account"
+              element={
+                <Account
+                  theme={theme}
+                  student={student}
+                  setStudent={setStudent}
+                  completed={completed}
+                />
+              }
+            />
           </Route>
         </Route>
 

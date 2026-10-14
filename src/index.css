@@ -42,3 +42,29 @@ body {
 .page-enter {
   animation: pageEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Print Styling: isolates certificate for PDF export */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  header, footer, nav, button, a {
+    display: none !important;
+  }
+  #printable-certificate {
+    display: block !important;
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    border: 2px solid #000000 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 24px !important;
+  }
+  #printable-certificate * {
+    color: #000000 !important;
+    border-color: #333333 !important;
+  }
+}

@@ -57,12 +57,21 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
   const isDone = completed.includes(currentObj.id);
 
   // Interactive reading verification checklist
-  // Students must interactively check off the learning outcome cards to verify they read them
-  const outcomesCount = currentObj.whatYouNeedToKnow ? currentObj.whatYouNeedToKnow.length : 0;
+  // Students must interactively read and click each study card to verify comprehension
+  const studyCards = (currentObj.cards && currentObj.cards.length > 0)
+    ? currentObj.cards
+    : (currentObj.keyConcepts || []).map((kc, i) => ({
+        id: `card-${currentObj.id}-${i}`,
+        title: kc.title,
+        description: kc.explanation,
+        codeSample: kc.code,
+        keyTakeaway: currentObj.whatYouNeedToKnow?.[i] || ''
+      }));
+
+  const cardsCount = studyCards.length;
   const [acknowledged, setAcknowledged] = useState(() => {
-    // If already marked done in the past, initialize all as acknowledged
     if (isDone) {
-      return Array.from({ length: outcomesCount }, (_, i) => i);
+      return Array.from({ length: cardsCount }, (_, i) => i);
     }
     return [];
   });
@@ -70,9 +79,9 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
   // Keep acknowledged in sync if completion status changes
   useEffect(() => {
     if (isDone) {
-      setAcknowledged(Array.from({ length: outcomesCount }, (_, i) => i));
+      setAcknowledged(Array.from({ length: cardsCount }, (_, i) => i));
     }
-  }, [isDone, outcomesCount]);
+  }, [isDone, cardsCount]);
 
   const toggleAcknowledge = (index) => {
     setAcknowledged((prev) =>
@@ -81,10 +90,19 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
   };
 
   const acknowledgeAll = () => {
-    setAcknowledged(Array.from({ length: outcomesCount }, (_, i) => i));
+    setAcknowledged(Array.from({ length: cardsCount }, (_, i) => i));
   };
 
-  const allRead = acknowledged.length >= outcomesCount;
+  const allRead = acknowledged.length >= cardsCount;
+
+  // State to track copied status for individual card code samples
+  const [copiedCardIndex, setCopiedCardIndex] = useState(null);
+  const handleCopyCardCode = (code, index, e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(code);
+    setCopiedCardIndex(index);
+    setTimeout(() => setCopiedCardIndex(null), 2000);
+  };
 
   // Identify index and adjacent objectives
   const currentIndex = SYLLABUS_OBJECTIVES.findIndex((o) => o.id === currentObj.id);
@@ -105,7 +123,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
   const handleCompleteAndScroll = () => {
     toggleComplete(currentObj.id);
     if (!isDone) {
-      // If marking as done, ensure all are acknowledged
+      // If marking as done, ensure all cards are acknowledged
       acknowledgeAll();
     }
   };
@@ -263,8 +281,8 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
             {isDone 
               ? 'Marked Completed (Click to Undo)' 
               : allRead 
-              ? 'Mark as Completed' 
-              : `Review Key Points Below (${acknowledged.length}/${outcomesCount})`}
+              ? 'Mark Module as Completed' 
+              : `Review & Check Cards Below (${acknowledged.length}/${cardsCount})`}
           </button>
 
           {isDone && nextObj && (
@@ -280,115 +298,155 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
         </div>
       </div>
 
-      {/* Section 1: Interactive Learning Outcomes Checklist ("Interact with cards first") */}
-      <div className={`p-6 rounded-2xl border space-y-4 ${
-        isDark ? 'bg-zinc-900/30 border-zinc-800' : 'bg-white border-zinc-200'
-      }`}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-zinc-400" />
-            <h2 className={`text-base font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-              What Students Need to Know
-            </h2>
+      {/* Interactive Informational Study Cards Section */}
+      <div className="space-y-4">
+        <div className={`p-4 sm:p-5 rounded-2xl border space-y-3 ${
+          isDark ? 'bg-zinc-900/30 border-zinc-800' : 'bg-white border-zinc-200'
+        }`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-zinc-400" />
+                <h2 className={`text-base font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
+                  Interactive Topic Study Cards
+                </h2>
+              </div>
+              <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                Read each concept and click the card to mark it as read and understood.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-mono text-zinc-500">
+                {acknowledged.length} of {cardsCount} verified ({cardsCount > 0 ? Math.round((acknowledged.length / cardsCount) * 100) : 0}%)
+              </span>
+              {!allRead && (
+                <button
+                  onClick={acknowledgeAll}
+                  className={`text-xs px-2.5 py-1 rounded border font-medium transition ${
+                    isDark ? 'border-zinc-700 hover:bg-zinc-800 text-zinc-300' : 'border-zinc-300 hover:bg-zinc-100 text-zinc-700'
+                  }`}
+                >
+                  Mark All Read
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-mono text-zinc-500">
-              {acknowledged.length} of {outcomesCount} acknowledged
-            </span>
-            {!allRead && (
-              <button
-                onClick={acknowledgeAll}
-                className={`text-[11px] underline font-medium ${
-                  isDark ? 'text-zinc-400 hover:text-zinc-200' : 'text-zinc-600 hover:text-zinc-900'
-                }`}
-              >
-                Acknowledge All
-              </button>
-            )}
+          <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-zinc-800' : 'bg-zinc-100'}`}>
+            <div
+              className="h-full transition-all duration-300 bg-emerald-500"
+              style={{ width: `${cardsCount > 0 ? (acknowledged.length / cardsCount) * 100 : 0}%` }}
+            />
           </div>
         </div>
 
-        <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-          Click on each takeaway card to acknowledge and verify your comprehension of this module:
-        </p>
-
-        {/* Interactive outcome cards */}
-        <div className="grid grid-cols-1 gap-2.5">
-          {currentObj.whatYouNeedToKnow?.map((item, idx) => {
+        {/* Study Cards Grid */}
+        <div className="grid grid-cols-1 gap-4">
+          {studyCards.map((card, idx) => {
             const isChecked = acknowledged.includes(idx);
             return (
               <div
-                key={idx}
+                key={card.id || idx}
                 onClick={() => toggleAcknowledge(idx)}
-                className={`p-3.5 rounded-xl border flex items-start gap-3 transition cursor-pointer select-none ${
+                className={`p-5 sm:p-6 rounded-2xl border space-y-4 transition-all cursor-pointer select-none group ${
                   isChecked
                     ? isDark
-                      ? 'bg-zinc-900/60 border-zinc-700/80 text-zinc-200'
-                      : 'bg-zinc-50 border-zinc-300 text-zinc-900'
+                      ? 'bg-zinc-900/50 border-emerald-500/40 ring-1 ring-emerald-500/20'
+                      : 'bg-emerald-50/20 border-emerald-500/40 shadow-xs'
                     : isDark
-                    ? 'bg-zinc-950/40 border-zinc-800/80 text-zinc-400 hover:border-zinc-700'
-                    : 'bg-white border-zinc-200 text-zinc-600 hover:border-zinc-300'
+                    ? 'bg-zinc-900/25 border-zinc-800/80 hover:border-zinc-700'
+                    : 'bg-white border-zinc-200 hover:border-zinc-300'
                 }`}
               >
-                {/* Checkbox indicator */}
-                <div
-                  className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 border mt-0.5 transition ${
-                    isChecked
-                      ? 'bg-emerald-500 border-emerald-500 text-white'
-                      : isDark
-                      ? 'border-zinc-700 bg-zinc-900 text-transparent'
-                      : 'border-zinc-300 bg-white text-transparent'
-                  }`}
-                >
-                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                {/* Card Header & Check Indicator */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-xs font-mono font-bold text-zinc-500">
+                      Card {idx + 1} of {cardsCount}
+                    </span>
+                    <h3 className={`text-base font-bold ${
+                      isChecked
+                        ? isDark ? 'text-emerald-300' : 'text-emerald-950 font-bold'
+                        : isDark ? 'text-zinc-100' : 'text-zinc-900'
+                    }`}>
+                      {card.title}
+                    </h3>
+                  </div>
+
+                  <div className="shrink-0 flex items-center gap-2">
+                    {isChecked ? (
+                      <span className="px-2.5 py-1 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>Read & Understood</span>
+                      </span>
+                    ) : (
+                      <span className={`px-2.5 py-1 rounded text-[11px] font-medium border flex items-center gap-1.5 transition ${
+                        isDark ? 'border-zinc-700 text-zinc-400 group-hover:border-zinc-500 group-hover:text-zinc-200' : 'border-zinc-300 text-zinc-500 group-hover:border-zinc-400 group-hover:text-zinc-900'
+                      }`}>
+                        <span>Click card to check</span>
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="space-y-0.5 flex-1 text-xs leading-relaxed">
-                  <span className={isChecked ? (isDark ? 'text-zinc-200' : 'text-zinc-900 font-medium') : (isDark ? 'text-zinc-400' : 'text-zinc-600')}>
-                    {item}
-                  </span>
-                </div>
+                {/* Informational Explanation */}
+                <p className={`text-xs sm:text-sm leading-relaxed ${
+                  isDark ? 'text-zinc-300' : 'text-zinc-700'
+                }`}>
+                  {card.description}
+                </p>
+
+                {/* Sample Code Block with Copy Action */}
+                {card.codeSample && (
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500">
+                      <span className="font-semibold">SAMPLE CODE</span>
+                      <button
+                        type="button"
+                        onClick={(e) => handleCopyCardCode(card.codeSample, idx, e)}
+                        className={`px-2 py-0.5 rounded border text-[11px] font-mono flex items-center gap-1 transition ${
+                          copiedCardIndex === idx
+                            ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400'
+                            : isDark
+                            ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-400'
+                            : 'border-zinc-200 hover:bg-zinc-100 text-zinc-600'
+                        }`}
+                      >
+                        {copiedCardIndex === idx ? (
+                          <>
+                            <CheckCheck className="w-3 h-3 text-emerald-400" /> Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3" /> Copy Code
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <pre className={`p-4 rounded-xl text-xs font-mono overflow-x-auto border ${
+                      isDark ? 'bg-[#09090b] border-zinc-800/90 text-zinc-300' : 'bg-zinc-50 border-zinc-200 text-zinc-800'
+                    }`}>
+                      <code>{card.codeSample}</code>
+                    </pre>
+                  </div>
+                )}
+
+                {/* Key Takeaway Pill */}
+                {card.keyTakeaway && (
+                  <div className={`p-2.5 rounded-lg border text-xs flex items-center gap-2 ${
+                    isChecked
+                      ? isDark ? 'bg-emerald-500/5 border-emerald-500/20 text-zinc-300' : 'bg-emerald-50/50 border-emerald-500/20 text-zinc-800'
+                      : isDark ? 'bg-zinc-950/40 border-zinc-800/80 text-zinc-400' : 'bg-zinc-50 border-zinc-200 text-zinc-600'
+                  }`}>
+                    <Sparkles className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                    <span><strong>Key takeaway:</strong> {card.keyTakeaway}</span>
+                  </div>
+                )}
               </div>
             );
           })}
-        </div>
-      </div>
-
-      {/* Section 2: Key Concepts & Lecture Notes */}
-      <div className="space-y-4">
-        <h2 className={`text-base font-bold tracking-tight flex items-center gap-2 ${
-          isDark ? 'text-zinc-100' : 'text-zinc-900'
-        }`}>
-          <Code2 className="w-4 h-4 text-zinc-400" />
-          Core Concepts & In-Depth Explanation
-        </h2>
-
-        <div className="grid grid-cols-1 gap-4">
-          {currentObj.keyConcepts?.map((concept, idx) => (
-            <div
-              key={idx}
-              className={`p-5 rounded-xl border space-y-3 ${
-                isDark ? 'bg-zinc-900/30 border-zinc-800' : 'bg-white border-zinc-200'
-              }`}
-            >
-              <h3 className={`text-sm font-bold flex items-center gap-2 ${
-                isDark ? 'text-zinc-100' : 'text-zinc-900'
-              }`}>
-                <span className="text-zinc-500 font-mono text-xs">§ {idx + 1}.</span> {concept.title}
-              </h3>
-              <p className={`text-xs leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                {concept.explanation}
-              </p>
-              {concept.code && (
-                <pre className={`p-4 rounded-lg text-xs font-mono overflow-x-auto border ${
-                  isDark ? 'bg-[#09090b] border-zinc-800 text-zinc-300' : 'bg-zinc-50 border-zinc-200 text-zinc-800'
-                }`}>
-                  <code>{concept.code}</code>
-                </pre>
-              )}
-            </div>
-          ))}
         </div>
       </div>
 

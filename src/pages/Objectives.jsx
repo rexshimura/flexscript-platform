@@ -161,10 +161,10 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
       )}
 
       {/* Vertical Checklist Progress Track & Clean Cards */}
-      <div className="relative pl-8 sm:pl-10 space-y-4">
+      <div className="relative space-y-4">
         {/* Continuous Background Track Line */}
         <div 
-          className={`absolute left-3.5 sm:left-4.5 top-5 bottom-6 w-0.5 ${
+          className={`absolute left-3.5 sm:left-4 top-5 bottom-6 w-0.5 -translate-x-1/2 ${
             isDark ? 'bg-zinc-800' : 'bg-zinc-200'
           }`} 
         />
@@ -175,35 +175,37 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
           const isCurrentActive = isUnlocked && !isDone;
 
           return (
-            <div key={obj.id} className="relative group">
+            <div key={obj.id} className="relative flex items-start gap-3 sm:gap-4 group">
               {/* Vertical Checklist Node on the Track Line */}
-              <div 
-                className={`absolute -left-8 sm:-left-10 top-5 -translate-x-1/2 w-6 h-6 rounded-full flex items-center justify-center text-xs transition z-10 ${
-                  isDone
-                    ? 'bg-emerald-500 text-white shadow-xs'
-                    : isCurrentActive
-                    ? isDark
-                      ? 'bg-zinc-900 text-white border-2 border-zinc-200 font-bold ring-4 ring-zinc-800/80'
-                      : 'bg-white text-zinc-900 border-2 border-zinc-900 font-bold ring-4 ring-zinc-100'
-                    : isDark
-                    ? 'bg-zinc-900 text-zinc-600 border border-zinc-800'
-                    : 'bg-zinc-100 text-zinc-400 border border-zinc-300'
-                }`}
-                title={isDone ? 'Completed' : isCurrentActive ? 'Current Objective' : 'Locked'}
-              >
-                {isDone ? (
-                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                ) : !isUnlocked ? (
-                  <Lock className="w-3 h-3 text-zinc-500" />
-                ) : (
-                  <span className="font-mono text-[10px] font-bold">{idx + 1}</span>
-                )}
+              <div className="shrink-0 pt-4 sm:pt-4.5 z-10">
+                <div 
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs transition ${
+                    isDone
+                      ? 'bg-emerald-500 text-white shadow-xs'
+                      : isCurrentActive
+                      ? isDark
+                        ? 'bg-zinc-900 text-white border-2 border-zinc-200 font-bold ring-4 ring-zinc-800/80'
+                        : 'bg-white text-zinc-900 border-2 border-zinc-900 font-bold ring-4 ring-zinc-100'
+                      : isDark
+                      ? 'bg-zinc-900 text-zinc-600 border border-zinc-800'
+                      : 'bg-zinc-100 text-zinc-400 border border-zinc-300'
+                  }`}
+                  title={isDone ? 'Completed' : isCurrentActive ? 'Current Objective' : 'Locked'}
+                >
+                  {isDone ? (
+                    <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                  ) : !isUnlocked ? (
+                    <Lock className="w-3 h-3 text-zinc-500" />
+                  ) : (
+                    <span className="font-mono text-[10px] font-bold">{idx + 1}</span>
+                  )}
+                </div>
               </div>
 
               {/* Clean Objective Card (No code snippet preview) */}
               <div
                 onClick={(e) => handleCardClick(obj, isUnlocked, e)}
-                className={`p-4 sm:p-5 rounded-xl border transition cursor-pointer select-none ${
+                className={`flex-1 p-4 sm:p-5 rounded-xl border transition cursor-pointer select-none ${
                   !isUnlocked
                     ? isDark
                       ? 'bg-zinc-950/40 border-zinc-800/50 opacity-60 hover:opacity-75'

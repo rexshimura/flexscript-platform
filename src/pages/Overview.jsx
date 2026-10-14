@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, CheckCircle2, Play } from 'lucide-react';
+import { ArrowRight, BookOpen, CheckCircle2, Play, Award } from 'lucide-react';
 import { SYLLABUS_OBJECTIVES } from '../data/datasets';
 
 export default function Overview({ theme, completed }) {
@@ -23,6 +23,27 @@ export default function Overview({ theme, completed }) {
           Welcome to the IT-JS101 interactive academic portal. Master JavaScript programming fundamentals through our structured sequential curriculum, interactive playground runtime, and self-assessment evaluations.
         </p>
       </div>
+
+      {/* 100% Completion Certificate Callout Banner */}
+      {completed.length >= total && (
+        <div className="p-5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-emerald-500/10 border-emerald-500/30 text-emerald-400 animate-fade-in">
+          <div className="flex items-center gap-3">
+            <Award className="w-6 h-6 shrink-0" />
+            <div>
+              <p className="font-bold text-sm text-emerald-300">Curriculum Mastery 100% Achieved!</p>
+              <p className="text-xs text-emerald-400/80">
+                You have finished all 10 modules. Your official Certificate of Completion is ready.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/account"
+            className="shrink-0 px-4 py-2 rounded-lg text-xs font-semibold bg-emerald-500 text-zinc-950 hover:bg-emerald-400 transition flex items-center gap-1.5"
+          >
+            Claim Certificate <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
 
       {/* Progress Bar & Status */}
       <div className={`p-5 rounded-xl border ${isDark ? 'bg-zinc-900/50 border-zinc-800' : 'bg-white border-zinc-200'}`}>
