@@ -92,11 +92,6 @@ export default function Landing({ theme, setTheme, student }) {
             }`}>
               Cebu Technological University • College of Computer Studies
             </div>
-            <span className={`text-[11px] font-mono px-2 py-0.5 rounded border font-semibold ${
-              isDark ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-            }`}>
-              V1.8.1 Alpha
-            </span>
           </div>
 
           {/* Interactive TechText Header */}
