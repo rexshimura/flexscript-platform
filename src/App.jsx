@@ -170,7 +170,7 @@ function App() {
             />
             <Route
               path="/objectives/:category?"
-              element={<Objectives theme={theme} completed={completed} toggleComplete={toggleComplete} resetProgress={resetProgress} />}
+              element={<Objectives theme={theme} completed={completed} toggleComplete={toggleComplete} resetProgress={resetProgress} student={student} />}
             />
 
             <Route path="/playground" element={<Playground theme={theme} />} />

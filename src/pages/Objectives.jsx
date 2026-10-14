@@ -10,10 +10,14 @@ import {
   getCompletedCourseDuration
 } from '../data/datasets';
 
-export default function Objectives({ theme, completed, toggleComplete, resetProgress }) {
+export default function Objectives({ theme, completed, toggleComplete, resetProgress, student }) {
   const { category } = useParams();
   const navigate = useNavigate();
   const isDark = theme === 'dark';
+
+  // Admin access gate: Only root student 0000001 has quick mark and reset overrides
+  const studentId = student?.student_profile?.id || student?.studentId || student?.id;
+  const isAdmin = studentId === '0000001';
 
   // If the category route param is numeric (e.g. /objectives/1), redirect to /objectives/view/1
   if (category && !isNaN(Number(category))) {
@@ -155,10 +159,10 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
           </div>
 
           <div className="flex items-center gap-2">
-            {completed.length > 0 && resetProgress && (
+            {isAdmin && completed.length > 0 && resetProgress && (
               <button
                 onClick={resetProgress}
-                title="Reset progress to test lock sequence"
+                title="Reset progress to test lock sequence (Root Admin Only)"
                 className={`px-2.5 py-2 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition ${
                   isDark ? 'border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800' : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
                 }`}
@@ -355,14 +359,14 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
                       </div>
                     )}
 
-                    {/* Mark as Done button (Color on Completed) */}
-                    {isUnlocked && (
+                    {/* Mark as Done button (Root Admin 0000001 Only) */}
+                    {isAdmin && isUnlocked && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleComplete(obj.id);
                         }}
-                        title={isDone ? 'Mark as incomplete' : 'Mark as complete'}
+                        title={isDone ? 'Mark as incomplete (Admin)' : 'Mark as complete (Admin)'}
                         className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1 transition ${
                           isDone
                             ? isDark
