@@ -109,88 +109,152 @@ export default function AdminDashboard({ theme }) {
 
       {/* 4 Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className={`p-5 rounded-2xl border space-y-2 transition ${
-          isDark ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-zinc-200/90 shadow-2xs'
+        {/* Card 1: Total Enrolled */}
+        <div className={`p-5 rounded-2xl border transition-all duration-200 ${
+          isDark 
+            ? 'bg-zinc-900/40 border-zinc-800 hover:border-zinc-700' 
+            : 'bg-white border-zinc-200/90 shadow-2xs hover:border-zinc-300'
         }`}>
           <div className="flex items-center justify-between">
-            <span className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
+            <span className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
               Total Enrolled Students
             </span>
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-700 border border-blue-200/60'
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center border ${
+              isDark 
+                ? 'bg-zinc-800/60 border-zinc-700/60 text-zinc-300' 
+                : 'bg-zinc-50 border-zinc-200 text-zinc-700'
             }`}>
               <Users className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-3xl font-bold font-mono text-zinc-950 dark:text-zinc-100">
-            {isLoading ? '...' : totalStudents}
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-bold font-mono tracking-tight text-zinc-900 dark:text-zinc-50">
+              {isLoading ? '...' : totalStudents}
+            </span>
+            <span className={`text-[11px] font-mono font-medium px-1.5 py-0.5 rounded ${
+              isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-zinc-100 text-zinc-600'
+            }`}>
+              Learners
+            </span>
           </div>
-          <p className={`text-[11px] ${isDark ? 'text-zinc-500' : 'text-zinc-500'}`}>
+          <p className={`text-xs mt-2 ${isDark ? 'text-zinc-500' : 'text-zinc-600'}`}>
             Active SIS learner accounts
           </p>
         </div>
 
-        <div className={`p-5 rounded-2xl border space-y-2 transition ${
-          isDark ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-zinc-200/90 shadow-2xs'
+        {/* Card 2: Certified Graduates */}
+        <div className={`p-5 rounded-2xl border transition-all duration-200 ${
+          isDark 
+            ? 'bg-zinc-900/40 border-zinc-800 hover:border-zinc-700' 
+            : 'bg-white border-zinc-200/90 shadow-2xs hover:border-zinc-300'
         }`}>
           <div className="flex items-center justify-between">
-            <span className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
+            <span className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
               Certified Graduates
             </span>
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center border ${
+              isDark 
+                ? 'bg-emerald-950/30 border-emerald-800/40 text-emerald-400' 
+                : 'bg-emerald-50/80 border-emerald-200/80 text-emerald-700'
             }`}>
               <Award className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-3xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
-            {isLoading ? '...' : certifiedStudents.length}
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className={`text-3xl font-bold font-mono tracking-tight ${
+              certifiedStudents.length > 0 
+                ? 'text-emerald-600 dark:text-emerald-400' 
+                : 'text-zinc-900 dark:text-zinc-50'
+            }`}>
+              {isLoading ? '...' : certifiedStudents.length}
+            </span>
+            <span className={`text-[11px] font-mono font-medium px-1.5 py-0.5 rounded ${
+              certifiedStudents.length > 0
+                ? isDark ? 'bg-emerald-950/50 text-emerald-400 border border-emerald-800/50' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                : isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-zinc-100 text-zinc-600'
+            }`}>
+              {totalStudents > 0 ? Math.round((certifiedStudents.length / totalStudents) * 100) : 0}% rate
+            </span>
           </div>
-          <p className={`text-[11px] ${isDark ? 'text-zinc-500' : 'text-zinc-500'}`}>
+          <p className={`text-xs mt-2 ${isDark ? 'text-zinc-500' : 'text-zinc-600'}`}>
             Issued SHA-256 credentials
           </p>
         </div>
 
-        <div className={`p-5 rounded-2xl border space-y-2 transition ${
-          isDark ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-zinc-200/90 shadow-2xs'
+        {/* Card 3: Students In Progress */}
+        <div className={`p-5 rounded-2xl border transition-all duration-200 ${
+          isDark 
+            ? 'bg-zinc-900/40 border-zinc-800 hover:border-zinc-700' 
+            : 'bg-white border-zinc-200/90 shadow-2xs hover:border-zinc-300'
         }`}>
           <div className="flex items-center justify-between">
-            <span className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
+            <span className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
               Students In Progress
             </span>
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-700 border border-amber-200/60'
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center border ${
+              isDark 
+                ? 'bg-zinc-800/60 border-zinc-700/60 text-amber-400' 
+                : 'bg-amber-50/80 border-amber-200/80 text-amber-700'
             }`}>
               <Clock className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-3xl font-bold font-mono text-amber-600 dark:text-amber-400">
-            {isLoading ? '...' : inProgressStudents.length}
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-bold font-mono tracking-tight text-zinc-900 dark:text-zinc-50">
+              {isLoading ? '...' : inProgressStudents.length}
+            </span>
+            <span className={`text-[11px] font-mono font-medium px-1.5 py-0.5 rounded ${
+              isDark ? 'bg-amber-950/40 text-amber-400 border border-amber-800/40' : 'bg-amber-50 text-amber-800 border border-amber-200'
+            }`}>
+              Active
+            </span>
           </div>
-          <p className={`text-[11px] ${isDark ? 'text-zinc-500' : 'text-zinc-500'}`}>
+          <p className={`text-xs mt-2 ${isDark ? 'text-zinc-500' : 'text-zinc-600'}`}>
             Actively working on chapters
           </p>
         </div>
 
-        <div className={`p-5 rounded-2xl border space-y-2 transition ${
-          isDark ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-zinc-200/90 shadow-2xs'
+        {/* Card 4: Avg. Completion Rate */}
+        <div className={`p-5 rounded-2xl border transition-all duration-200 ${
+          isDark 
+            ? 'bg-zinc-900/40 border-zinc-800 hover:border-zinc-700' 
+            : 'bg-white border-zinc-200/90 shadow-2xs hover:border-zinc-300'
         }`}>
           <div className="flex items-center justify-between">
-            <span className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
+            <span className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
               Avg. Completion Rate
             </span>
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              isDark ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-700 border border-purple-200/60'
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center border ${
+              isDark 
+                ? 'bg-zinc-800/60 border-zinc-700/60 text-zinc-300' 
+                : 'bg-zinc-50 border-zinc-200 text-zinc-700'
             }`}>
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-3xl font-bold font-mono text-purple-600 dark:text-purple-400">
-            {isLoading ? '...' : `${avgProgress}%`}
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-bold font-mono tracking-tight text-zinc-900 dark:text-zinc-50">
+              {isLoading ? '...' : `${avgProgress}%`}
+            </span>
+            <span className={`text-[11px] font-mono font-medium px-1.5 py-0.5 rounded ${
+              isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-zinc-100 text-zinc-600'
+            }`}>
+              26 Chs
+            </span>
           </div>
-          <p className={`text-[11px] ${isDark ? 'text-zinc-500' : 'text-zinc-500'}`}>
-            Across 26 syllabus chapters
-          </p>
+          <div className="mt-2.5 space-y-1">
+            <div className={`h-1.5 w-full rounded-full overflow-hidden ${
+              isDark ? 'bg-zinc-800' : 'bg-zinc-100'
+            }`}>
+              <div 
+                className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.max(0, avgProgress))}%` }}
+              />
+            </div>
+            <p className={`text-[11px] ${isDark ? 'text-zinc-500' : 'text-zinc-500'}`}>
+              Across 26 syllabus chapters
+            </p>
+          </div>
         </div>
       </div>
 
