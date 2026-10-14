@@ -70,12 +70,9 @@ export default function AdminDashboard({ theme }) {
       {/* Top Welcome & Actions Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight">Admin & Dev Dashboard</h1>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded font-bold uppercase bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-              Live Firestore Sync
-            </span>
-          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-950 dark:text-zinc-100">
+            Admin Dashboard
+          </h1>
           <p className={`text-xs mt-1 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
             Overview of student enrollments, syllabus telemetry, and cryptographically verified certifications.
           </p>
@@ -85,20 +82,24 @@ export default function AdminDashboard({ theme }) {
           <button
             onClick={loadData}
             disabled={isLoading}
-            className={`px-3 py-2 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition cursor-pointer ${
+            className={`px-3 py-2 rounded-lg text-xs font-semibold border flex items-center gap-1.5 transition cursor-pointer ${
               isDark 
                 ? 'border-zinc-800 text-zinc-300 hover:bg-zinc-800' 
-                : 'border-zinc-200 text-zinc-700 hover:bg-zinc-100'
+                : 'border-zinc-300 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 bg-white shadow-2xs'
             }`}
             title="Refresh from Cloud Firestore"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
+            <span className="hidden sm:inline">Refresh Data</span>
           </button>
 
           <Link
             to="/admin/manage"
-            className="px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-600/20 transition cursor-pointer"
+            className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition cursor-pointer shadow-xs ${
+              isDark
+                ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                : 'bg-zinc-900 hover:bg-zinc-800 text-white'
+            }`}
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Add Student</span>
@@ -108,78 +109,86 @@ export default function AdminDashboard({ theme }) {
 
       {/* 4 Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className={`p-5 rounded-2xl border space-y-2 ${
-          isDark ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-zinc-200 shadow-xs'
+        <div className={`p-5 rounded-2xl border space-y-2 transition ${
+          isDark ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-zinc-200/90 shadow-2xs'
         }`}>
           <div className="flex items-center justify-between">
-            <span className={`text-xs font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+            <span className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
               Total Enrolled Students
             </span>
-            <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-700 border border-blue-200/60'
+            }`}>
               <Users className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold font-mono">
+          <div className="text-3xl font-bold font-mono text-zinc-950 dark:text-zinc-100">
             {isLoading ? '...' : totalStudents}
           </div>
-          <p className={`text-[11px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+          <p className={`text-[11px] ${isDark ? 'text-zinc-500' : 'text-zinc-500'}`}>
             Active SIS learner accounts
           </p>
         </div>
 
-        <div className={`p-5 rounded-2xl border space-y-2 ${
-          isDark ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-zinc-200 shadow-xs'
+        <div className={`p-5 rounded-2xl border space-y-2 transition ${
+          isDark ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-zinc-200/90 shadow-2xs'
         }`}>
           <div className="flex items-center justify-between">
-            <span className={`text-xs font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+            <span className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
               Certified Graduates
             </span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
+            }`}>
               <Award className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold font-mono text-emerald-500">
+          <div className="text-3xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
             {isLoading ? '...' : certifiedStudents.length}
           </div>
-          <p className={`text-[11px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+          <p className={`text-[11px] ${isDark ? 'text-zinc-500' : 'text-zinc-500'}`}>
             Issued SHA-256 credentials
           </p>
         </div>
 
-        <div className={`p-5 rounded-2xl border space-y-2 ${
-          isDark ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-zinc-200 shadow-xs'
+        <div className={`p-5 rounded-2xl border space-y-2 transition ${
+          isDark ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-zinc-200/90 shadow-2xs'
         }`}>
           <div className="flex items-center justify-between">
-            <span className={`text-xs font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+            <span className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
               Students In Progress
             </span>
-            <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-700 border border-amber-200/60'
+            }`}>
               <Clock className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold font-mono text-amber-500">
+          <div className="text-3xl font-bold font-mono text-amber-600 dark:text-amber-400">
             {isLoading ? '...' : inProgressStudents.length}
           </div>
-          <p className={`text-[11px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+          <p className={`text-[11px] ${isDark ? 'text-zinc-500' : 'text-zinc-500'}`}>
             Actively working on chapters
           </p>
         </div>
 
-        <div className={`p-5 rounded-2xl border space-y-2 ${
-          isDark ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-zinc-200 shadow-xs'
+        <div className={`p-5 rounded-2xl border space-y-2 transition ${
+          isDark ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-zinc-200/90 shadow-2xs'
         }`}>
           <div className="flex items-center justify-between">
-            <span className={`text-xs font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+            <span className={`text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
               Avg. Completion Rate
             </span>
-            <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              isDark ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-700 border border-purple-200/60'
+            }`}>
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold font-mono text-purple-400">
+          <div className="text-3xl font-bold font-mono text-purple-600 dark:text-purple-400">
             {isLoading ? '...' : `${avgProgress}%`}
           </div>
-          <p className={`text-[11px] ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+          <p className={`text-[11px] ${isDark ? 'text-zinc-500' : 'text-zinc-500'}`}>
             Across 26 syllabus chapters
           </p>
         </div>
@@ -192,7 +201,7 @@ export default function AdminDashboard({ theme }) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-base font-bold">Student Progress & Certifications</h2>
-            <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+            <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
               Live tracking of student curriculum progress and issued SHA-256 hashes
             </p>
           </div>
@@ -201,7 +210,7 @@ export default function AdminDashboard({ theme }) {
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
               <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 ${
-                isDark ? 'text-zinc-500' : 'text-zinc-400'
+                isDark ? 'text-zinc-500' : 'text-zinc-500'
               }`} />
               <input
                 type="text"
@@ -211,7 +220,7 @@ export default function AdminDashboard({ theme }) {
                 className={`pl-8 pr-3 py-1.5 text-xs rounded-lg border outline-none font-mono ${
                   isDark
                     ? 'bg-zinc-950 border-zinc-800 text-zinc-200 focus:border-zinc-700'
-                    : 'bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-zinc-400'
+                    : 'bg-white border-zinc-300 text-zinc-900 focus:border-zinc-500 shadow-2xs'
                 }`}
               />
             </div>
@@ -221,8 +230,8 @@ export default function AdminDashboard({ theme }) {
                 onClick={() => setFilterStatus('all')}
                 className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition cursor-pointer ${
                   filterStatus === 'all'
-                    ? isDark ? 'bg-zinc-800 text-white border-zinc-700' : 'bg-zinc-200 text-zinc-900 border-zinc-300'
-                    : isDark ? 'border-zinc-800 text-zinc-400 hover:text-zinc-200' : 'border-zinc-200 text-zinc-600 hover:text-zinc-900'
+                    ? isDark ? 'bg-zinc-800 text-white border-zinc-700' : 'bg-zinc-900 text-white border-zinc-900 shadow-2xs'
+                    : isDark ? 'border-zinc-800 text-zinc-400 hover:text-zinc-200' : 'border-zinc-300 text-zinc-700 hover:text-zinc-950 bg-white hover:bg-zinc-50 shadow-2xs'
                 }`}
               >
                 All ({students.length})
@@ -231,8 +240,8 @@ export default function AdminDashboard({ theme }) {
                 onClick={() => setFilterStatus('certified')}
                 className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition cursor-pointer ${
                   filterStatus === 'certified'
-                    ? isDark ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60' : 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                    : isDark ? 'border-zinc-800 text-zinc-400 hover:text-zinc-200' : 'border-zinc-200 text-zinc-600 hover:text-zinc-900'
+                    ? isDark ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60' : 'bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold'
+                    : isDark ? 'border-zinc-800 text-zinc-400 hover:text-zinc-200' : 'border-zinc-300 text-zinc-700 hover:text-zinc-950 bg-white hover:bg-zinc-50 shadow-2xs'
                 }`}
               >
                 Certified ({certifiedStudents.length})
@@ -241,8 +250,8 @@ export default function AdminDashboard({ theme }) {
                 onClick={() => setFilterStatus('in_progress')}
                 className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition cursor-pointer ${
                   filterStatus === 'in_progress'
-                    ? isDark ? 'bg-amber-950/40 text-amber-400 border-amber-800/60' : 'bg-amber-100 text-amber-800 border-amber-300'
-                    : isDark ? 'border-zinc-800 text-zinc-400 hover:text-zinc-200' : 'border-zinc-200 text-zinc-600 hover:text-zinc-900'
+                    ? isDark ? 'bg-amber-950/40 text-amber-400 border-amber-800/60' : 'bg-amber-50 text-amber-800 border-amber-300 font-semibold'
+                    : isDark ? 'border-zinc-800 text-zinc-400 hover:text-zinc-200' : 'border-zinc-300 text-zinc-700 hover:text-zinc-950 bg-white hover:bg-zinc-50 shadow-2xs'
                 }`}
               >
                 In Progress ({inProgressStudents.length})
@@ -256,7 +265,7 @@ export default function AdminDashboard({ theme }) {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className={`border-b text-[11px] font-mono uppercase tracking-wider ${
-                isDark ? 'border-zinc-800 text-zinc-400' : 'border-zinc-200 text-zinc-500'
+                isDark ? 'border-zinc-800 text-zinc-400' : 'border-zinc-200 text-zinc-700 font-semibold bg-zinc-50/80'
               }`}>
                 <th className="py-3 px-3">Student ID</th>
                 <th className="py-3 px-3">Student Name</th>
@@ -266,7 +275,7 @@ export default function AdminDashboard({ theme }) {
                 <th className="py-3 px-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/40 text-xs">
+            <tbody className={`divide-y ${isDark ? 'divide-zinc-800/40' : 'divide-zinc-200'} text-xs`}>
               {isLoading ? (
                 <tr>
                   <td colSpan="6" className="py-12 text-center text-zinc-500">
@@ -291,11 +300,13 @@ export default function AdminDashboard({ theme }) {
                     >
                       {/* Student ID */}
                       <td className="py-3.5 px-3">
-                        <span className="font-mono font-bold text-xs">
+                        <span className="font-mono font-bold text-xs text-zinc-900 dark:text-zinc-100">
                           {s.id}
                         </span>
                         {s.id === '0000001' && (
-                          <span className="ml-2 text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+                          <span className={`ml-2 text-[10px] font-mono px-1.5 py-0.5 rounded border ${
+                            isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-zinc-100 text-zinc-800 border-zinc-300 font-semibold'
+                          }`}>
                             Root
                           </span>
                         )}
@@ -303,8 +314,8 @@ export default function AdminDashboard({ theme }) {
 
                       {/* Name & Email */}
                       <td className="py-3.5 px-3">
-                        <div className="font-semibold text-xs">{s.realname || s.realName}</div>
-                        <div className={`text-[11px] font-mono ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                        <div className="font-semibold text-xs text-zinc-900 dark:text-zinc-100">{s.realname || s.realName}</div>
+                        <div className={`text-[11px] font-mono ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
                           {s.email}
                         </div>
                       </td>
@@ -312,7 +323,7 @@ export default function AdminDashboard({ theme }) {
                       {/* Section */}
                       <td className="py-3.5 px-3">
                         <span className={`text-[11px] font-medium px-2 py-0.5 rounded border ${
-                          isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-300' : 'bg-zinc-100 border-zinc-200 text-zinc-700'
+                          isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-300' : 'bg-zinc-100 border-zinc-300 text-zinc-800'
                         }`}>
                           {s.section || 'BSIT 4-B'}
                         </span>
@@ -322,8 +333,8 @@ export default function AdminDashboard({ theme }) {
                       <td className="py-3.5 px-3 min-w-[160px]">
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-[11px]">
-                            <span className="font-mono font-semibold">{s.completedCount || 0} / 26 Chapters</span>
-                            <span className={`font-mono font-bold ${isCert ? 'text-emerald-500' : ''}`}>
+                            <span className="font-mono font-semibold text-zinc-800 dark:text-zinc-200">{s.completedCount || 0} / 26 Chapters</span>
+                            <span className={`font-mono font-bold ${isCert ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-700 dark:text-zinc-300'}`}>
                               {progressPct}%
                             </span>
                           </div>
@@ -345,20 +356,20 @@ export default function AdminDashboard({ theme }) {
                         {isCert ? (
                           <div className="space-y-1">
                             <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded border ${
-                              isDark ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60' : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                              isDark ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60' : 'bg-emerald-50 text-emerald-800 border-emerald-300'
                             }`}>
                               <ShieldCheck className="w-3 h-3" />
                               <span>Certified</span>
                             </span>
                             {s.sha256 ? (
-                              <div className="font-mono text-[10px] text-zinc-500 truncate max-w-[130px]" title={s.sha256}>
+                              <div className={`font-mono text-[10px] ${isDark ? 'text-zinc-400' : 'text-zinc-600'} truncate max-w-[130px]`} title={s.sha256}>
                                 {s.sha256.slice(0, 14)}...
                               </div>
                             ) : null}
                           </div>
                         ) : (
                           <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded border ${
-                            isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-500' : 'bg-zinc-100 border-zinc-200 text-zinc-600'
+                            isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-400' : 'bg-zinc-100 border-zinc-300 text-zinc-700'
                           }`}>
                             <Clock className="w-3 h-3" />
                             <span>In Progress</span>
@@ -375,7 +386,7 @@ export default function AdminDashboard({ theme }) {
                               className={`p-1.5 rounded-lg border text-xs transition ${
                                 isDark 
                                   ? 'border-zinc-800 text-zinc-400 hover:text-emerald-400 hover:bg-zinc-800' 
-                                  : 'border-zinc-200 text-zinc-600 hover:text-emerald-600 hover:bg-zinc-100'
+                                  : 'border-zinc-300 text-zinc-700 hover:text-emerald-700 hover:bg-zinc-100 shadow-2xs'
                               }`}
                               title="Verify Certificate in SIS"
                             >
@@ -388,7 +399,7 @@ export default function AdminDashboard({ theme }) {
                             className={`p-1.5 rounded-lg border text-xs transition ${
                               isDark 
                                 ? 'border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800' 
-                                : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                                : 'border-zinc-300 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 shadow-2xs'
                             }`}
                             title="Manage Student Record"
                           >

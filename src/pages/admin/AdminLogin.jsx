@@ -77,7 +77,7 @@ export default function AdminLogin({ theme }) {
       </div>
 
       <div className={`w-full max-w-md p-6 sm:p-8 rounded-2xl border shadow-lg space-y-6 ${
-        isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200 shadow-zinc-100'
+        isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200 shadow-sm'
       }`}>
         {/* Header with Developer Badge */}
         <div className="space-y-2 text-center">
@@ -87,18 +87,20 @@ export default function AdminLogin({ theme }) {
 
           <div className="flex items-center justify-center gap-2">
             <h1 className="text-xl font-bold tracking-tight">FlexScript Dev & Admin</h1>
-            <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/30">
+            <span className={`text-[10px] font-mono font-semibold uppercase px-2 py-0.5 rounded border ${
+              isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-zinc-100 text-zinc-700 border-zinc-300'
+            }`}>
               Restricted
             </span>
           </div>
 
-          <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+          <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
             Authorized administrative console to register students, monitor real-time syllabus telemetry, and manage course certification.
           </p>
         </div>
 
         {error && (
-          <div className="p-3 text-xs rounded-lg border border-red-500/30 bg-red-500/10 text-red-500 flex items-start gap-2 animate-shake">
+          <div className="p-3 text-xs rounded-lg border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 flex items-start gap-2 animate-shake">
             <span className="font-bold">Error:</span>
             <span>{error}</span>
           </div>
@@ -107,12 +109,12 @@ export default function AdminLogin({ theme }) {
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className={`block text-xs font-semibold ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+            <label className={`block text-xs font-semibold ${isDark ? 'text-zinc-300' : 'text-zinc-800'}`}>
               Admin Username
             </label>
             <div className="relative">
               <User className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
-                isDark ? 'text-zinc-500' : 'text-zinc-400'
+                isDark ? 'text-zinc-500' : 'text-zinc-500'
               }`} />
               <input
                 type="text"
@@ -120,22 +122,22 @@ export default function AdminLogin({ theme }) {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="e.g. rexshimura"
-                className={`w-full pl-9 pr-3 py-2 text-xs rounded-lg border outline-none transition font-mono ${
+                className={`w-full pl-9 pr-3 py-2 text-xs rounded-xl border outline-none transition font-mono ${
                   isDark
                     ? 'bg-zinc-950 border-zinc-800 text-zinc-100 focus:border-emerald-500/80 focus:ring-1 focus:ring-emerald-500/50'
-                    : 'bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600'
+                    : 'bg-white border-zinc-300 text-zinc-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-2xs'
                 }`}
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className={`block text-xs font-semibold ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+            <label className={`block text-xs font-semibold ${isDark ? 'text-zinc-300' : 'text-zinc-800'}`}>
               Admin Password
             </label>
             <div className="relative">
               <KeyRound className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
-                isDark ? 'text-zinc-500' : 'text-zinc-400'
+                isDark ? 'text-zinc-500' : 'text-zinc-500'
               }`} />
               <input
                 type="password"
@@ -143,10 +145,10 @@ export default function AdminLogin({ theme }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className={`w-full pl-9 pr-3 py-2 text-xs rounded-lg border outline-none transition font-mono ${
+                className={`w-full pl-9 pr-3 py-2 text-xs rounded-xl border outline-none transition font-mono ${
                   isDark
                     ? 'bg-zinc-950 border-zinc-800 text-zinc-100 focus:border-emerald-500/80 focus:ring-1 focus:ring-emerald-500/50'
-                    : 'bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600'
+                    : 'bg-white border-zinc-300 text-zinc-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-2xs'
                 }`}
               />
             </div>
@@ -155,7 +157,7 @@ export default function AdminLogin({ theme }) {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer shadow-sm text-white ${
+            className={`w-full py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer shadow-sm text-white ${
               isLoading
                 ? 'opacity-70 cursor-not-allowed bg-emerald-600'
                 : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20'
@@ -175,8 +177,8 @@ export default function AdminLogin({ theme }) {
           </button>
         </form>
 
-        <div className={`pt-4 border-t text-center text-[11px] ${isDark ? 'border-zinc-800/80 text-zinc-500' : 'border-zinc-200 text-zinc-400'}`}>
-          <span>Protected Developer Portal • FlexScript SIS v1.8.1</span>
+        <div className={`pt-4 border-t text-center text-[11px] ${isDark ? 'border-zinc-800/80 text-zinc-500' : 'border-zinc-200 text-zinc-600'}`}>
+          <span>Protected Developer Portal • Authorized Access Only</span>
         </div>
       </div>
     </div>
