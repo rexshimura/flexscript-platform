@@ -1,12 +1,12 @@
 # FlexScript • Modern JavaScript Course Platform & SIS
-### Version: `v1.8.1-alpha`
+### Version: `v1.8.2-alpha`
 
 [![React 19](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Tailwind CSS 4](https://img.shields.io/badge/TailwindCSS-v4.3-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Firebase Firestore](https://img.shields.io/badge/Firebase-Firestore-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![Vercel Deployment](https://img.shields.io/badge/Deployed-Vercel-black?logo=vercel&logoColor=white)](https://vercel.com/)
-[![Version](https://img.shields.io/badge/Release-V1.8.1_Alpha-emerald)](https://github.com/rexshimura/flexscript-platform)
+[![Version](https://img.shields.io/badge/Release-V1.8.2_Alpha-emerald)](https://github.com/rexshimura/flexscript-platform)
 
 An interactive, progress-tracked JavaScript learning platform and Student Information System (SIS) built for computer science and IT students at **Cebu Technological University • College of Computer Studies**.
 

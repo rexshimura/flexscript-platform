@@ -1,7 +1,7 @@
 {
   "name": "js-course-portal",
   "private": true,
-  "version": "1.8.1-alpha",
+  "version": "1.8.2-alpha",
   "type": "module",
   "scripts": {
     "dev": "vite",
