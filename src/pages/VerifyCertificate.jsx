@@ -13,10 +13,12 @@ import {
   Award,
   Calendar,
   Building,
-  Hash
+  Hash,
+  Loader2
 } from 'lucide-react';
 import PageLoading from '../components/ui/PageLoading';
 import { verifyCertificate } from '../utils/certificateRegistry';
+import { queryCertificateOnline, fetchAllCertificatesFromFirestore } from '../utils/firebaseService';
 
 export default function VerifyCertificate({ theme, setTheme, student }) {
   const isDark = theme === 'dark';
@@ -27,8 +29,29 @@ export default function VerifyCertificate({ theme, setTheme, student }) {
   const [shaInput, setShaInput] = useState(() => searchParams.get('sha') || searchParams.get('id') || '');
   const [verificationResult, setVerificationResult] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [copiedSha, setCopiedSha] = useState(false);
   const inputRef = useRef(null);
+
+  // Sync latest certificates from Cloud Firestore on mount
+  useEffect(() => {
+    fetchAllCertificatesFromFirestore().then((cloudCerts) => {
+      if (cloudCerts && cloudCerts.length > 0) {
+        try {
+          const existingStr = localStorage.getItem('js_verified_certificates');
+          const existing = existingStr ? JSON.parse(existingStr) : [];
+          cloudCerts.forEach((c) => {
+            if (!existing.some((e) => e.sha256 === c.sha256 || e.certificateId === c.certificateId)) {
+              existing.push(c);
+            }
+          });
+          localStorage.setItem('js_verified_certificates', JSON.stringify(existing));
+        } catch (e) {
+          console.warn('Certificate local cache sync notice:', e);
+        }
+      }
+    });
+  }, []);
 
   const handleLaunch = (destination) => {
     setIsTransitioning(true);
@@ -37,7 +60,7 @@ export default function VerifyCertificate({ theme, setTheme, student }) {
     }, 500);
   };
 
-  const handleVerify = (queryToTest = null) => {
+  const handleVerify = async (queryToTest = null) => {
     const query = typeof queryToTest === 'string' ? queryToTest : shaInput;
     if (!query || !query.trim()) {
       setVerificationResult({
@@ -47,9 +70,41 @@ export default function VerifyCertificate({ theme, setTheme, student }) {
       setHasSearched(true);
       return;
     }
-    const result = verifyCertificate(query.trim());
-    setVerificationResult(result);
-    setHasSearched(true);
+
+    const trimmed = query.trim();
+
+    // 1. Check local memory / cached certificates first for instantaneous feedback
+    const localResult = verifyCertificate(trimmed);
+    if (localResult.valid) {
+      setVerificationResult(localResult);
+      setHasSearched(true);
+      return;
+    }
+
+    // 2. Query Cloud Firestore live for cross-device/global validation
+    setIsVerifying(true);
+    try {
+      const onlineCert = await queryCertificateOnline(trimmed);
+      if (onlineCert) {
+        setVerificationResult({
+          valid: true,
+          cert: onlineCert
+        });
+      } else {
+        setVerificationResult({
+          valid: false,
+          message: 'No verified academic certificate found matching this SHA code in Firestore or registry.'
+        });
+      }
+    } catch {
+      setVerificationResult({
+        valid: false,
+        message: 'No verified academic certificate found matching this SHA code.'
+      });
+    } finally {
+      setIsVerifying(false);
+      setHasSearched(true);
+    }
   };
 
   const handleSearchSubmit = (e) => {
@@ -203,10 +258,20 @@ export default function VerifyCertificate({ theme, setTheme, student }) {
 
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-sm"
+                disabled={isVerifying}
+                className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-sm disabled:opacity-60"
               >
-                <ShieldCheck className="w-4 h-4" />
-                <span>Verify Credential</span>
+                {isVerifying ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Verifying...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Verify Credential</span>
+                  </>
+                )}
               </button>
             </div>
           </form>

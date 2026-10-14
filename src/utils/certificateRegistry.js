@@ -105,21 +105,21 @@ export const DEFAULT_GRADUATES = [
     institution: 'Cebu Technological University • Main Campus'
   },
   {
-    studentId: '122-0491',
+    studentId: '1220491',
     realName: 'Rex Mahilom',
     email: 'rex.mahilom@ctu.edu.ph',
     section: 'BSIT 4-B',
-    certificateId: 'CTU-JS101-122-0491-2026',
+    certificateId: 'CTU-JS101-1220491-2026',
     dateIssued: 'October 14, 2026',
     courseName: 'Modern JavaScript & Web Systems Architecture',
     institution: 'Cebu Technological University • Main Campus'
   },
   {
-    studentId: '2026-0001',
+    studentId: '2026001',
     realName: 'Juan Dela Cruz',
     email: 'juan.delacruz@ctu.edu.ph',
     section: 'BSIT 4-B',
-    certificateId: 'CTU-JS101-2026-0001-2026',
+    certificateId: 'CTU-JS101-2026001-2026',
     dateIssued: 'October 14, 2026',
     courseName: 'Modern JavaScript & Web Systems Architecture',
     institution: 'Cebu Technological University • Main Campus'
@@ -139,21 +139,49 @@ export function generateCertificateHash(studentId, realName, dateIssued) {
 
 /**
  * Returns certificate record for a student with its unique SHA-256 hash.
+ * If the student ALREADY has an issued SHA-256 certificate, it reuses it permanently (immutable).
  */
 export function getCertificateRecord(student, customDate = null) {
-  const studentId = student?.studentId || '0000001';
-  const realName = student?.realName || student?.name || 'Alexander Vance';
-  const email = student?.email || `${realName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@ctu.edu.ph`;
-  const section = student?.section || 'BSIT 4-B';
-  const certificateId = `CTU-JS101-${studentId}-2026`;
+  const profile = student?.student_profile || {};
+  const studentId = profile.id || student?.studentId || '0000001';
+  const realName = profile.realname || student?.realName || student?.name || 'Alexander Vance';
+  const email = profile.email || student?.email || `${realName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@ctu.edu.ph`;
+  const section = profile.section || student?.section || 'BSIT 4-B';
+  const certificateId = student?.student_certificate?.certificate_id || `CTU-JS101-${studentId}-2026`;
   
-  const dateIssued = customDate || new Date().toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  });
+  // IMMUTABLE CERTIFICATE CHECK:
+  // Check if an issued SHA-256 already exists in student object or local registry
+  const existingHash = student?.student_certificate?.sha256 || student?.sha256;
+  const existingDate = student?.student_certificate?.date_issued || student?.dateIssued;
 
-  const hash = generateCertificateHash(studentId, realName, dateIssued);
+  // Also check if local registry has an existing hash for this studentId
+  let registeredHash = existingHash;
+  let registeredDate = existingDate;
+  try {
+    const existingStr = localStorage.getItem('js_verified_certificates');
+    if (existingStr) {
+      const existing = JSON.parse(existingStr);
+      const match = existing.find((c) => c.studentId === studentId);
+      if (match && match.sha256) {
+        registeredHash = match.sha256;
+        registeredDate = match.dateIssued;
+      }
+    }
+  } catch {}
+
+  const isAlreadyGenerated = registeredHash && registeredHash.trim().length > 0;
+
+  const dateIssued = isAlreadyGenerated && registeredDate && registeredDate !== 'Pending Completion'
+    ? registeredDate
+    : (customDate || new Date().toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      }));
+
+  const hash = isAlreadyGenerated
+    ? registeredHash
+    : generateCertificateHash(studentId, realName, dateIssued);
 
   return {
     studentId,
@@ -163,13 +191,16 @@ export function getCertificateRecord(student, customDate = null) {
     certificateId,
     dateIssued,
     sha256: hash,
+    status: 'COMPLETED',
     courseName: 'Modern JavaScript & Web Systems Architecture',
     institution: 'Cebu Technological University • Main Campus'
   };
 }
 
+import { syncCertificateToFirestore } from './firebaseService';
+
 /**
- * Saves a verified certificate to localStorage so it can be verified across all pages.
+ * Saves a verified certificate to localStorage and Cloud Firestore so it can be verified across all pages & devices.
  */
 export function registerCertificate(cert) {
   try {
@@ -185,6 +216,13 @@ export function registerCertificate(cert) {
     localStorage.setItem('js_verified_certificates', JSON.stringify(filtered));
   } catch (e) {
     console.error('Failed to register certificate:', e);
+  }
+
+  // Also sync to Cloud Firestore
+  try {
+    syncCertificateToFirestore(cert);
+  } catch (err) {
+    console.warn('Firestore certificate sync error:', err);
   }
 }
 

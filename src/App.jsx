@@ -13,6 +13,12 @@ const Account = lazy(() => import('./pages/Account'));
 const VerifyCertificate = lazy(() => import('./pages/VerifyCertificate'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
+import { 
+  seedInitialFirestoreData, 
+  syncCompletedToFirestore, 
+  fetchStudentFromFirestore 
+} from './utils/firebaseService';
+
 // Global Scroll Restoration: scrolls to top on major route changes, not when filtering category tabs
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -78,9 +84,36 @@ function App() {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
+  // Automatic one-time seeding of authoritative records to Firestore if new
+  useEffect(() => {
+    seedInitialFirestoreData();
+  }, []);
+
+  // Sync cloud progress when student logs in or on load
+  useEffect(() => {
+    const studentId = student?.student_profile?.id || student?.studentId;
+    if (!studentId) return;
+    fetchStudentFromFirestore(studentId).then((cloudData) => {
+      if (cloudData) {
+        const cloudCompleted = cloudData.student_progress?.completed_chapters || cloudData.completedObjectives;
+        if (Array.isArray(cloudCompleted) && cloudCompleted.length > 0) {
+          setCompleted((prev) => {
+            const merged = Array.from(new Set([...prev, ...cloudCompleted]));
+            return merged;
+          });
+        }
+      }
+    });
+  }, [student?.studentId, student?.student_profile?.id]);
+
+  // Synchronize completed objectives locally and with Cloud Firestore
   useEffect(() => {
     localStorage.setItem('js_completed', JSON.stringify(completed));
-  }, [completed]);
+    const studentId = student?.student_profile?.id || student?.studentId;
+    if (studentId) {
+      syncCompletedToFirestore(studentId, completed);
+    }
+  }, [completed, student?.studentId, student?.student_profile?.id]);
 
   const toggleComplete = (id) => {
     setCompleted((prev) =>
@@ -129,11 +162,11 @@ function App() {
             {/* Objectives Master & Sequential Routes */}
             <Route
               path="/objectives/view/:id"
-              element={<ObjectiveDetail theme={theme} completed={completed} toggleComplete={toggleComplete} />}
+              element={<ObjectiveDetail theme={theme} completed={completed} toggleComplete={toggleComplete} student={student} />}
             />
             <Route
               path="/objectives/detail/:id"
-              element={<ObjectiveDetail theme={theme} completed={completed} toggleComplete={toggleComplete} />}
+              element={<ObjectiveDetail theme={theme} completed={completed} toggleComplete={toggleComplete} student={student} />}
             />
             <Route
               path="/objectives/:category?"

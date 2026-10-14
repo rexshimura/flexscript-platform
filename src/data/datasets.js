@@ -15,7 +15,19 @@ export const REGISTERED_STUDENTS = [
     username: 'Yi Zaha',
     name: 'Yi Zaha',
     email: 'alexander.vance@ctu.edu.ph',
-    section: 'BSIT 4-B'
+    section: 'BSIT 4-B',
+    school: 'Cebu Technological University • Main Campus',
+    program: 'Bachelor of Science in Information Technology',
+    student_profile: {
+      id: '0000001',
+      realname: 'Alexander Vance',
+      username: 'Yi Zaha',
+      email: 'alexander.vance@ctu.edu.ph',
+      section: 'BSIT 4-B',
+      school: 'Cebu Technological University • Main Campus',
+      program: 'Bachelor of Science in Information Technology',
+      birthdate: '2000-01-01'
+    }
   },
   {
     studentId: '1339523',
@@ -24,25 +36,61 @@ export const REGISTERED_STUDENTS = [
     username: 'Rexshimura',
     name: 'Rexshimura',
     email: 'johnpaul.mahilom@ctu.edu.ph',
-    section: 'BSIT 4-B'
+    section: 'BSIT 4-B',
+    school: 'Cebu Technological University • Main Campus',
+    program: 'Bachelor of Science in Information Technology',
+    student_profile: {
+      id: '1339523',
+      realname: 'John Paul P. Mahilom',
+      username: 'Rexshimura',
+      email: 'johnpaul.mahilom@ctu.edu.ph',
+      section: 'BSIT 4-B',
+      school: 'Cebu Technological University • Main Campus',
+      program: 'Bachelor of Science in Information Technology',
+      birthdate: '2005-05-15'
+    }
   },
   {
-    studentId: '122-0491',
+    studentId: '1220491',
     birthdate: '2005-01-20',
     realName: 'Rex Mahilom',
     username: 'Rex',
     name: 'Rex',
     email: 'rex.mahilom@ctu.edu.ph',
-    section: 'BSIT 4-B'
+    section: 'BSIT 4-B',
+    school: 'Cebu Technological University • Main Campus',
+    program: 'Bachelor of Science in Information Technology',
+    student_profile: {
+      id: '1220491',
+      realname: 'Rex Mahilom',
+      username: 'Rex',
+      email: 'rex.mahilom@ctu.edu.ph',
+      section: 'BSIT 4-B',
+      school: 'Cebu Technological University • Main Campus',
+      program: 'Bachelor of Science in Information Technology',
+      birthdate: '2005-01-20'
+    }
   },
   {
-    studentId: '2026-0001',
+    studentId: '2026001',
     birthdate: '2004-10-12',
     realName: 'Juan Dela Cruz',
     username: 'JuanDC',
     name: 'JuanDC',
     email: 'juan.delacruz@ctu.edu.ph',
-    section: 'BSIT 4-B'
+    section: 'BSIT 4-B',
+    school: 'Cebu Technological University • Main Campus',
+    program: 'Bachelor of Science in Information Technology',
+    student_profile: {
+      id: '2026001',
+      realname: 'Juan Dela Cruz',
+      username: 'JuanDC',
+      email: 'juan.delacruz@ctu.edu.ph',
+      section: 'BSIT 4-B',
+      school: 'Cebu Technological University • Main Campus',
+      program: 'Bachelor of Science in Information Technology',
+      birthdate: '2004-10-12'
+    }
   }
 ];
 

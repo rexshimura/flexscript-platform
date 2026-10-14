@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Loader2, Lock } from 'lucide-react';
 import { REGISTERED_STUDENTS } from '../data/datasets';
+import { syncStudentToFirestore } from '../utils/firebaseService';
 
 const MAX_ATTEMPTS = 4;
 const LOCKOUT_SECONDS = 30;
@@ -122,6 +123,7 @@ export default function Login({ theme, setStudent }) {
 
       localStorage.setItem('js_student_user', JSON.stringify(sessionData));
       setStudent(sessionData);
+      syncStudentToFirestore(sessionData);
       setIsLoading(false);
       navigate('/overview');
     }, 750);

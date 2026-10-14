@@ -19,6 +19,7 @@ import {
 import { SYLLABUS_OBJECTIVES, REGISTERED_STUDENTS } from '../data/datasets';
 import CertificatePaper from '../components/CertificatePaper';
 import { getCertificateRecord, registerCertificate } from '../utils/certificateRegistry';
+import { syncStudentToFirestore } from '../utils/firebaseService';
 
 export default function Account({ theme, student, setStudent, completed = [] }) {
   const isDark = theme === 'dark';
@@ -26,15 +27,18 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
   const isCertified = completed.length >= totalObjectives;
   const progressPercent = Math.round((completed.length / totalObjectives) * 100);
 
+  const studentId = student?.student_profile?.id || student?.studentId || '0000001';
   // Match registered student record for authoritative SIS data
   const registeredRecord = REGISTERED_STUDENTS.find(
-    (s) => s.studentId === student?.studentId
+    (s) => (s.student_profile?.id || s.studentId) === studentId
   );
 
   // Authoritative real name and email (students can only edit username)
-  const realName = student?.realName || registeredRecord?.realName || 'Alexander Vance';
-  const email = student?.email || registeredRecord?.email || `${realName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@ctu.edu.ph`;
-  const initialUsername = student?.username || student?.name || registeredRecord?.username || 'Yi Zaha';
+  const realName = student?.student_profile?.realname || student?.realName || registeredRecord?.student_profile?.realname || registeredRecord?.realName || 'Alexander Vance';
+  const email = student?.student_profile?.email || student?.email || registeredRecord?.student_profile?.email || registeredRecord?.email || `${realName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@ctu.edu.ph`;
+  const initialUsername = student?.student_profile?.username || student?.username || student?.name || registeredRecord?.student_profile?.username || registeredRecord?.username || 'Yi Zaha';
+  const section = student?.student_profile?.section || student?.section || registeredRecord?.student_profile?.section || 'BSIT 4-B';
+  const birthdate = student?.student_profile?.birthdate || student?.birthdate || registeredRecord?.student_profile?.birthdate || '2000-01-01';
 
   // Username Editing State (only username is editable)
   const [isEditingUsername, setIsEditingUsername] = useState(false);
@@ -71,15 +75,27 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
     const updatedStudent = {
       ...student,
       username: trimmed,
-      name: trimmed, // keep name consistent for backwards compatibility across top bar
+      name: trimmed,
       realName,
-      email
+      email,
+      student_profile: {
+        ...(student?.student_profile || {}),
+        id: studentId,
+        realname: realName,
+        username: trimmed,
+        email,
+        section,
+        birthdate,
+        school: student?.student_profile?.school || 'Cebu Technological University • Main Campus',
+        program: student?.student_profile?.program || 'Bachelor of Science in Information Technology'
+      }
     };
 
     localStorage.setItem('js_student_user', JSON.stringify(updatedStudent));
     if (setStudent) {
       setStudent(updatedStudent);
     }
+    syncStudentToFirestore(updatedStudent, completed);
     setIsEditingUsername(false);
     setUsernameSavedFeedback(true);
     setTimeout(() => setUsernameSavedFeedback(false), 2500);

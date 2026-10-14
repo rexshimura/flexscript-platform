@@ -24,8 +24,9 @@ import { SYLLABUS_OBJECTIVES, OLD_TECH_OBJECTIVES, ALL_OBJECTIVES, isObjectiveUn
 import CodeHighlight from '../components/ui/CodeHighlight';
 import FlipCard from '../components/ui/FlipCard';
 import FormattedCardDescription from '../components/ui/FormattedCardDescription';
+import { syncChapterTelemetryToFirestore } from '../utils/firebaseService';
 
-export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
+export default function ObjectiveDetail({ theme, completed, toggleComplete, student }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const isDark = theme === 'dark';
@@ -179,6 +180,39 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
 
   const completedStepsCount = (isStep1Done ? 1 : 0) + (isStep2Done ? 1 : 0) + (isStep3Done ? 1 : 0);
   const stepsProgressPercent = Math.round((completedStepsCount / 3) * 100);
+
+  // Synchronize chapter learning telemetry (definitions, flashcards, exercise) to Cloud Firestore
+  useEffect(() => {
+    const studentId = student?.studentId || student?.id || student?.student_profile?.id;
+    if (!studentId || !currentObj?.id || isOldTech) return;
+
+    const defMap = {};
+    studyCards.forEach((_, i) => {
+      defMap[`card_${i + 1}`] = acknowledged.includes(i);
+    });
+
+    const flashMap = {};
+    flashcards.forEach((_, i) => {
+      flashMap[`card_${i + 1}`] = masteredCards.includes(i);
+    });
+
+    const telemetry = {
+      completed: isDone,
+      definitions: defMap,
+      flashcards: flashMap,
+      excercise: {
+        score: correctCount,
+        total: chapterExercises.length,
+        perfect_score: exercisePassed
+      }
+    };
+
+    const timer = setTimeout(() => {
+      syncChapterTelemetryToFirestore(studentId, currentObj.id, telemetry);
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [student, currentObj?.id, acknowledged, masteredCards, exerciseAnswers, isDone, correctCount, exercisePassed, isOldTech]);
 
   // Navigation helpers
   const currentIndex = SYLLABUS_OBJECTIVES.findIndex((o) => o.id === currentObj.id);
