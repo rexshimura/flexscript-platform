@@ -20,9 +20,10 @@ import {
   ChevronRight,
   Layers
 } from 'lucide-react';
-import { SYLLABUS_OBJECTIVES, isObjectiveUnlocked } from '../data/datasets';
+import { SYLLABUS_OBJECTIVES, OLD_TECH_OBJECTIVES, ALL_OBJECTIVES, isObjectiveUnlocked } from '../data/datasets';
 import CodeHighlight from '../components/ui/CodeHighlight';
 import FlipCard from '../components/ui/FlipCard';
+import FormattedCardDescription from '../components/ui/FormattedCardDescription';
 
 export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
   const { id } = useParams();
@@ -31,7 +32,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
   const [copied, setCopied] = useState(false);
 
   const numericId = Number(id);
-  const currentObj = SYLLABUS_OBJECTIVES.find((o) => o.id === numericId);
+  const currentObj = ALL_OBJECTIVES.find((o) => o.id === numericId || o.slug === id || String(o.id) === String(id));
 
   // Active step in the sticky steps progress bar: 'definitions' | 'flashcards' | 'exercise'
   const [activeSection, setActiveSection] = useState('definitions');
@@ -119,7 +120,8 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
   }
 
   // Sequential progression check
-  const unlocked = isObjectiveUnlocked(currentObj.id, completed, SYLLABUS_OBJECTIVES);
+  const isOldTech = Boolean(currentObj.isInformational);
+  const unlocked = isOldTech || isObjectiveUnlocked(currentObj.id, completed, SYLLABUS_OBJECTIVES);
   const isDone = completed.includes(currentObj.id);
 
   // Study cards
@@ -180,9 +182,14 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
 
   // Navigation helpers
   const currentIndex = SYLLABUS_OBJECTIVES.findIndex((o) => o.id === currentObj.id);
-  const prevObj = currentIndex > 0 ? SYLLABUS_OBJECTIVES[currentIndex - 1] : null;
-  const nextObj = currentIndex < SYLLABUS_OBJECTIVES.length - 1 ? SYLLABUS_OBJECTIVES[currentIndex + 1] : null;
-  const isNextUnlocked = isDone && nextObj ? isObjectiveUnlocked(nextObj.id, completed, SYLLABUS_OBJECTIVES) : false;
+  const oldTechIndex = isOldTech ? OLD_TECH_OBJECTIVES.findIndex((o) => o.id === currentObj.id) : -1;
+  const prevObj = isOldTech
+    ? (oldTechIndex > 0 ? OLD_TECH_OBJECTIVES[oldTechIndex - 1] : null)
+    : (currentIndex > 0 ? SYLLABUS_OBJECTIVES[currentIndex - 1] : null);
+  const nextObj = isOldTech
+    ? (oldTechIndex < OLD_TECH_OBJECTIVES.length - 1 ? OLD_TECH_OBJECTIVES[oldTechIndex + 1] : null)
+    : (currentIndex < SYLLABUS_OBJECTIVES.length - 1 ? SYLLABUS_OBJECTIVES[currentIndex + 1] : null);
+  const isNextUnlocked = isOldTech ? true : (isDone && nextObj ? isObjectiveUnlocked(nextObj.id, completed, SYLLABUS_OBJECTIVES) : false);
 
   // Copy code handlers
   const [copiedCardIndex, setCopiedCardIndex] = useState(null);
@@ -291,25 +298,37 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
 
         {/* Chapter count & Completion status pill */}
         <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="text-zinc-500">Chapter {currentIndex + 1} of {SYLLABUS_OBJECTIVES.length}</span>
-          <span className={`px-2.5 py-0.5 rounded text-[11px] font-medium border flex items-center gap-1.5 ${
-            isDone
-              ? isDark
-                ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60'
-                : 'bg-emerald-100/90 text-zinc-950 border-emerald-300 shadow-2xs'
-              : isDark
-              ? 'bg-zinc-900 border-zinc-800 text-zinc-400'
-              : 'bg-zinc-100 border-zinc-200 text-zinc-700'
-          }`}>
-            {isDone ? (
-              <>
-                <Check className={`w-3.5 h-3.5 stroke-[2.5] ${isDark ? 'text-emerald-400' : 'text-zinc-950'}`} />
-                <span>Completed</span>
-              </>
-            ) : (
-              'In Progress'
-            )}
-          </span>
+          {isOldTech ? (
+            <span className="text-zinc-500">Information {oldTechIndex + 1} of {OLD_TECH_OBJECTIVES.length}</span>
+          ) : (
+            <span className="text-zinc-500">Chapter {currentIndex + 1} of {SYLLABUS_OBJECTIVES.length}</span>
+          )}
+          {isOldTech ? (
+            <span className={`px-2.5 py-0.5 rounded text-[11px] font-medium border flex items-center gap-1.5 ${
+              isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-300' : 'bg-zinc-100 border-zinc-200 text-zinc-700'
+            }`}>
+              <span>Legacy Reference</span>
+            </span>
+          ) : (
+            <span className={`px-2.5 py-0.5 rounded text-[11px] font-medium border flex items-center gap-1.5 ${
+              isDone
+                ? isDark
+                  ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60'
+                  : 'bg-emerald-100/90 text-zinc-950 border-emerald-300 shadow-2xs'
+                : isDark
+                ? 'bg-zinc-900 border-zinc-800 text-zinc-400'
+                : 'bg-zinc-100 border-zinc-200 text-zinc-700'
+            }`}>
+              {isDone ? (
+                <>
+                  <Check className={`w-3.5 h-3.5 stroke-[2.5] ${isDark ? 'text-emerald-400' : 'text-zinc-950'}`} />
+                  <span>Completed</span>
+                </>
+              ) : (
+                'In Progress'
+              )}
+            </span>
+          )}
         </div>
       </div>
 
@@ -318,15 +337,13 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
         isDark ? 'bg-zinc-900/40 border-zinc-800' : 'bg-white border-zinc-200'
       }`}>
         <div className="flex flex-wrap items-center gap-2.5">
-          <span className={`text-xs font-mono px-2.5 py-1 rounded font-bold border ${
-            isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-zinc-100 text-zinc-800 border-zinc-200'
-          }`}>
+          <span className="text-xs font-mono font-bold text-zinc-400">
             {currentObj.code}
           </span>
-          <span className={`text-xs px-2.5 py-1 rounded font-semibold border ${
-            isDark ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          <span className={`text-[11px] px-2.5 py-1 rounded font-medium border ${
+            isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-300' : 'bg-zinc-100 border-zinc-200 text-zinc-700'
           }`}>
-            {(currentObj.phase || currentObj.category || 'Basic').replace(/^Phase \d+:\s*/i, '')}
+            {isOldTech ? 'Legacy Reference' : (currentObj.phase || currentObj.category || 'Basic').replace(/^Phase \d+:\s*/i, '')}
           </span>
           <span className={`text-xs px-2.5 py-1 rounded flex items-center gap-1 border ${
             isDark ? 'text-zinc-400 bg-zinc-900/60 border-zinc-800' : 'text-zinc-600 bg-zinc-100 border-zinc-200'
@@ -351,155 +368,163 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
 
         {/* Quick action bar */}
         <div className="pt-2 flex flex-wrap items-center gap-3">
-          <button
-            onClick={handleCompleteAndScroll}
-            className={`px-4 py-2 rounded-lg text-xs font-medium flex items-center gap-2 border transition ${
-              isDone
-                ? isDark
-                  ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/30'
-                  : 'bg-emerald-100/90 text-zinc-950 border-emerald-400 hover:bg-emerald-200/80 shadow-xs'
-                : !allRead
-                ? 'opacity-60 cursor-not-allowed border-zinc-700 bg-zinc-800 text-zinc-400'
-                : isDark
-                ? 'bg-zinc-100 text-zinc-950 border-zinc-100 hover:bg-zinc-300 font-semibold'
-                : 'bg-zinc-900 text-white border-zinc-900 hover:bg-zinc-800 font-semibold'
-            }`}
-          >
-            <Check className={`w-4 h-4 stroke-[2.5] ${isDone ? (isDark ? 'text-emerald-400' : 'text-zinc-950') : ''}`} />
-            {isDone 
-              ? 'Marked Completed (Click to Undo)' 
-              : allRead 
-              ? 'Mark Chapter as Completed' 
-              : `Review & Check Cards Below (${acknowledged.length}/${cardsCount})`}
-          </button>
-
-          {isDone && nextObj && (
+          {!isOldTech && (
             <button
-              onClick={handleProceedToNext}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 border transition ${
-                isDark ? 'bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-700' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-300'
+              onClick={handleCompleteAndScroll}
+              className={`px-4 py-2 rounded-lg text-xs font-medium flex items-center gap-2 border transition ${
+                isDone
+                  ? isDark
+                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/30'
+                    : 'bg-emerald-100/90 text-zinc-950 border-emerald-400 hover:bg-emerald-200/80 shadow-xs'
+                  : !allRead
+                  ? 'opacity-60 cursor-not-allowed border-zinc-700 bg-zinc-800 text-zinc-400'
+                  : isDark
+                  ? 'bg-zinc-100 text-zinc-950 border-zinc-100 hover:bg-zinc-300 font-semibold'
+                  : 'bg-zinc-900 text-white border-zinc-900 hover:bg-zinc-800 font-semibold'
               }`}
             >
-              Next: {nextObj.code} <ArrowRight className="w-3.5 h-3.5" />
+              <Check className={`w-4 h-4 stroke-[2.5] ${isDone ? (isDark ? 'text-emerald-400' : 'text-zinc-950') : ''}`} />
+              {isDone 
+                ? 'Marked Completed (Click to Undo)' 
+                : allRead 
+                ? 'Mark Chapter as Completed' 
+                : `Review & Check Cards Below (${acknowledged.length}/${cardsCount})`}
+            </button>
+          )}
+
+          {(isOldTech ? nextObj : (isDone && nextObj)) && (
+            <button
+              onClick={handleProceedToNext}
+              disabled={!isNextUnlocked}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 border transition ${
+                isDark
+                  ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700'
+                  : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border-zinc-300'
+              }`}
+            >
+              <span>Next: {nextObj.code}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
       </div>
 
       {/* Sticky Steps Progress Bar with floating space below navbar */}
-      <div className={`sticky top-[4.25rem] z-20 p-3 sm:p-4 rounded-xl border backdrop-blur-md transition-all shadow-md ${
-        isDark ? 'bg-[#09090b]/90 border-zinc-800 shadow-black/30' : 'bg-white/90 border-zinc-200 shadow-zinc-200/50'
-      }`}>
-        <div className="flex flex-col gap-2">
-          {/* Top track & label */}
-          <div className="flex items-center justify-between text-[11px] font-mono">
-            <span className="font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Chapter Progress Steps</span>
-            </span>
-            <span className="text-zinc-500 font-medium">
-              {completedStepsCount} of 3 Steps Completed ({stepsProgressPercent}%)
-            </span>
-          </div>
-
-          {/* Visual Step Progress Line - Moves strictly when milestones are completed */}
-          <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-zinc-800' : 'bg-zinc-100'}`}>
-            <div
-              className="h-full bg-emerald-500 transition-all duration-500"
-              style={{
-                width: `${(completedStepsCount / 3) * 100}%`
-              }}
-            />
-          </div>
-
-          {/* 3 Interactive Step Pills */}
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-1">
-            {/* Step 1: Definitions (checked all cards +1) */}
-            <button
-              type="button"
-              onClick={() => scrollToSection('section-definitions')}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium text-left border transition cursor-pointer flex items-center justify-between ${
-                activeSection === 'definitions'
-                  ? isDark
-                    ? 'bg-zinc-800 border-zinc-600 text-white shadow-xs font-semibold'
-                    : 'bg-zinc-100 border-zinc-400 text-zinc-900 shadow-xs font-semibold'
-                  : isDark
-                  ? 'border-zinc-800/80 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
-                  : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
-              }`}
-            >
-              <span className="truncate flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden sm:inline">1. Definitions</span>
-                <span className="sm:hidden">1. Concepts</span>
+      {!isOldTech && (
+        <div className={`sticky top-[4.25rem] z-20 p-3 sm:p-4 rounded-xl border backdrop-blur-md transition-all shadow-md ${
+          isDark ? 'bg-[#09090b]/90 border-zinc-800 shadow-black/30' : 'bg-white/90 border-zinc-200 shadow-zinc-200/50'
+        }`}>
+          <div className="flex flex-col gap-2">
+            {/* Top track & label */}
+            <div className="flex items-center justify-between text-[11px] font-mono">
+              <span className="font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Chapter Progress Steps</span>
               </span>
-              {isStep1Done ? (
-                <Check className="w-3.5 h-3.5 text-emerald-500 stroke-[2.5] shrink-0" />
-              ) : (
-                <span className="font-mono text-[10px] opacity-70 shrink-0">
-                  {acknowledged.length}/{cardsCount}
-                </span>
-              )}
-            </button>
-
-            {/* Step 2: Flashcards (Mastered all +1) */}
-            <button
-              type="button"
-              onClick={() => scrollToSection('section-flashcards')}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium text-left border transition cursor-pointer flex items-center justify-between ${
-                activeSection === 'flashcards'
-                  ? isDark
-                    ? 'bg-zinc-800 border-zinc-600 text-white shadow-xs font-semibold'
-                    : 'bg-zinc-100 border-zinc-400 text-zinc-900 shadow-xs font-semibold'
-                  : isDark
-                  ? 'border-zinc-800/80 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
-                  : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
-              }`}
-            >
-              <span className="truncate flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden sm:inline">2. Flashcards</span>
-                <span className="sm:hidden">2. Cards</span>
+              <span className="text-zinc-500 font-medium">
+                {completedStepsCount} of 3 Steps Completed ({stepsProgressPercent}%)
               </span>
-              {isStep2Done ? (
-                <Check className="w-3.5 h-3.5 text-emerald-500 stroke-[2.5] shrink-0" />
-              ) : (
-                <span className="font-mono text-[10px] opacity-70 shrink-0">
-                  {masteredCards.length}/{totalFlashcards}
-                </span>
-              )}
-            </button>
+            </div>
 
-            {/* Step 3: Chapter Exercise (Perfect score +1) */}
-            <button
-              type="button"
-              onClick={() => scrollToSection('section-exercise')}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium text-left border transition cursor-pointer flex items-center justify-between ${
-                activeSection === 'exercise'
-                  ? isDark
-                    ? 'bg-zinc-800 border-zinc-600 text-white shadow-xs font-semibold'
-                    : 'bg-zinc-100 border-zinc-400 text-zinc-900 shadow-xs font-semibold'
-                  : isDark
-                  ? 'border-zinc-800/80 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
-                  : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
-              }`}
-            >
-              <span className="truncate flex items-center gap-1.5">
-                <HelpCircle className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden sm:inline">3. Exercise</span>
-                <span className="sm:hidden">3. Quiz</span>
-              </span>
-              {isStep3Done ? (
-                <Check className="w-3.5 h-3.5 text-emerald-500 stroke-[2.5] shrink-0" />
-              ) : (
-                <span className="font-mono text-[10px] opacity-70 shrink-0">
-                  {correctCount}/{chapterExercises.length}
+            {/* Visual Step Progress Line - Moves strictly when milestones are completed */}
+            <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-zinc-800' : 'bg-zinc-100'}`}>
+              <div
+                className="h-full bg-emerald-500 transition-all duration-500"
+                style={{
+                  width: `${(completedStepsCount / 3) * 100}%`
+                }}
+              />
+            </div>
+
+            {/* 3 Interactive Step Pills */}
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-1">
+              {/* Step 1: Definitions (checked all cards +1) */}
+              <button
+                type="button"
+                onClick={() => scrollToSection('section-definitions')}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium text-left border transition cursor-pointer flex items-center justify-between ${
+                  activeSection === 'definitions'
+                    ? isDark
+                      ? 'bg-zinc-800 border-zinc-600 text-white shadow-xs font-semibold'
+                      : 'bg-zinc-100 border-zinc-400 text-zinc-900 shadow-xs font-semibold'
+                    : isDark
+                    ? 'border-zinc-800/80 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
+                    : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+                }`}
+              >
+                <span className="truncate flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                  <span className="hidden sm:inline">1. Definitions</span>
+                  <span className="sm:hidden">1. Concepts</span>
                 </span>
-              )}
-            </button>
+                {isStep1Done ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-500 stroke-[2.5] shrink-0" />
+                ) : (
+                  <span className="font-mono text-[10px] opacity-70 shrink-0">
+                    {acknowledged.length}/{cardsCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Step 2: Flashcards (Mastered all +1) */}
+              <button
+                type="button"
+                onClick={() => scrollToSection('section-flashcards')}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium text-left border transition cursor-pointer flex items-center justify-between ${
+                  activeSection === 'flashcards'
+                    ? isDark
+                      ? 'bg-zinc-800 border-zinc-600 text-white shadow-xs font-semibold'
+                      : 'bg-zinc-100 border-zinc-400 text-zinc-900 shadow-xs font-semibold'
+                    : isDark
+                    ? 'border-zinc-800/80 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
+                    : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+                }`}
+              >
+                <span className="truncate flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 shrink-0" />
+                  <span className="hidden sm:inline">2. Flashcards</span>
+                  <span className="sm:hidden">2. Cards</span>
+                </span>
+                {isStep2Done ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-500 stroke-[2.5] shrink-0" />
+                ) : (
+                  <span className="font-mono text-[10px] opacity-70 shrink-0">
+                    {masteredCards.length}/{totalFlashcards}
+                  </span>
+                )}
+              </button>
+
+              {/* Step 3: Chapter Exercise (Perfect score +1) */}
+              <button
+                type="button"
+                onClick={() => scrollToSection('section-exercise')}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium text-left border transition cursor-pointer flex items-center justify-between ${
+                  activeSection === 'exercise'
+                    ? isDark
+                      ? 'bg-zinc-800 border-zinc-600 text-white shadow-xs font-semibold'
+                      : 'bg-zinc-100 border-zinc-400 text-zinc-900 shadow-xs font-semibold'
+                    : isDark
+                    ? 'border-zinc-800/80 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
+                    : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+                }`}
+              >
+                <span className="truncate flex items-center gap-1.5">
+                  <HelpCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span className="hidden sm:inline">3. Exercise</span>
+                  <span className="sm:hidden">3. Quiz</span>
+                </span>
+                {isStep3Done ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-500 stroke-[2.5] shrink-0" />
+                ) : (
+                  <span className="font-mono text-[10px] opacity-70 shrink-0">
+                    {correctCount}/{chapterExercises.length}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* LAYER 1: Objective / Expected to Learn */}
       {currentObj.expectedToLearn && currentObj.expectedToLearn.length > 0 && (
@@ -509,11 +534,13 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-emerald-500 shrink-0" />
             <h2 className={`text-base font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-              Expected to Learn: Learning Objectives
+              {isOldTech ? 'Informational Concepts & Core Insights' : 'Expected to Learn: Learning Objectives'}
             </h2>
           </div>
           <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            By the end of this chapter, you will master the following core proficiencies:
+            {isOldTech 
+              ? 'Key architectural principles and historical mechanics explored in this reference module:' 
+              : 'By the end of this chapter, you will master the following core proficiencies:'}
           </p>
 
           <div className="space-y-2.5 pt-1">
@@ -559,56 +586,64 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-zinc-400" />
                 <h2 className={`text-base font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                  Detailed Definitions & Concept Modules
+                  {isOldTech ? 'Informational Modules & Core Concepts' : 'Detailed Definitions & Concept Modules'}
                 </h2>
               </div>
               <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                Read each concept and click the card to mark it as read and understood.
+                {isOldTech
+                  ? 'Historical reference architecture, concepts, and testable code snippets.'
+                  : 'Read each concept and click the card to mark it as read and understood.'}
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-mono text-zinc-500">
-                {acknowledged.length} of {cardsCount} verified ({cardsCount > 0 ? Math.round((acknowledged.length / cardsCount) * 100) : 0}%)
-              </span>
-              {!allRead && (
-                <button
-                  onClick={acknowledgeAll}
-                  className={`text-xs px-2.5 py-1 rounded border font-medium transition cursor-pointer ${
-                    isDark ? 'border-zinc-700 hover:bg-zinc-800 text-zinc-300' : 'border-zinc-300 hover:bg-zinc-100 text-zinc-700'
-                  }`}
-                >
-                  Mark All Read
-                </button>
-              )}
-            </div>
+            {!isOldTech && (
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-mono text-zinc-500">
+                  {acknowledged.length} of {cardsCount} verified ({cardsCount > 0 ? Math.round((acknowledged.length / cardsCount) * 100) : 0}%)
+                </span>
+                {!allRead && (
+                  <button
+                    onClick={acknowledgeAll}
+                    className={`text-xs px-2.5 py-1 rounded border font-medium transition cursor-pointer ${
+                      isDark ? 'border-zinc-700 hover:bg-zinc-800 text-zinc-300' : 'border-zinc-300 hover:bg-zinc-100 text-zinc-700'
+                    }`}
+                  >
+                    Mark All Read
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
-          <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-zinc-800' : 'bg-zinc-100'}`}>
-            <div
-              className="h-full transition-all duration-300 bg-emerald-500"
-              style={{ width: `${cardsCount > 0 ? (acknowledged.length / cardsCount) * 100 : 0}%` }}
-            />
-          </div>
+          {!isOldTech && (
+            <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-zinc-800' : 'bg-zinc-100'}`}>
+              <div
+                className="h-full transition-all duration-300 bg-emerald-500"
+                style={{ width: `${cardsCount > 0 ? (acknowledged.length / cardsCount) * 100 : 0}%` }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Study Cards Grid */}
         <div className="grid grid-cols-1 gap-4">
           {studyCards.map((card, idx) => {
-            const isChecked = acknowledged.includes(idx);
+            const isChecked = !isOldTech && acknowledged.includes(idx);
 
             return (
               <div
                 key={card.id || idx}
-                onClick={() => toggleAcknowledge(idx)}
-                className={`p-5 sm:p-6 rounded-2xl border space-y-4 transition-all cursor-pointer select-none group ${
-                  isChecked
+                onClick={!isOldTech ? () => toggleAcknowledge(idx) : undefined}
+                className={`p-5 sm:p-6 rounded-2xl border space-y-4 transition-all ${
+                  isOldTech
+                    ? isDark ? 'bg-zinc-900/30 border-zinc-800/80' : 'bg-white border-zinc-200'
+                    : isChecked
                     ? isDark
-                      ? 'bg-zinc-900/50 border-emerald-500/40 ring-1 ring-emerald-500/20'
-                      : 'bg-emerald-50/20 border-emerald-500/40 shadow-xs'
+                      ? 'bg-zinc-900/50 border-emerald-500/40 ring-1 ring-emerald-500/20 cursor-pointer select-none group'
+                      : 'bg-emerald-50/20 border-emerald-500/40 shadow-xs cursor-pointer select-none group'
                     : isDark
-                    ? 'bg-zinc-900/25 border-zinc-800/80 hover:border-zinc-700'
-                    : 'bg-white border-zinc-200 hover:border-zinc-300'
+                    ? 'bg-zinc-900/25 border-zinc-800/80 hover:border-zinc-700 cursor-pointer select-none group'
+                    : 'bg-white border-zinc-200 hover:border-zinc-300 cursor-pointer select-none group'
                 }`}
               >
                 {/* Card Header & Check Indicator */}
@@ -626,34 +661,32 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
                     </h3>
                   </div>
 
-                  <div className="shrink-0 flex items-center gap-2">
-                    {isChecked ? (
-                      <span className={`px-2.5 py-1 rounded text-[11px] font-medium border flex items-center gap-1.5 ${
-                        isDark
-                          ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60'
-                          : 'bg-emerald-100/90 text-zinc-950 border-emerald-300 shadow-2xs'
-                      }`}>
-                        <Check className={`w-3.5 h-3.5 stroke-[2.5] ${isDark ? 'text-emerald-400' : 'text-zinc-950'}`} />
-                        <span>Read & Understood</span>
-                      </span>
-                    ) : (
-                      <span className={`px-2.5 py-1 rounded text-[11px] font-medium border flex items-center gap-1.5 transition ${
-                        isDark 
-                          ? 'border-zinc-700 text-zinc-400 group-hover:border-zinc-500 group-hover:text-zinc-200' 
-                          : 'border-zinc-300 text-zinc-700 bg-zinc-50/80 group-hover:border-zinc-400 group-hover:text-zinc-950'
-                      }`}>
-                        <span>Click card to check</span>
-                      </span>
-                    )}
-                  </div>
+                  {!isOldTech && (
+                    <div className="shrink-0 flex items-center gap-2">
+                      {isChecked ? (
+                        <span className={`px-2.5 py-1 rounded text-[11px] font-medium border flex items-center gap-1.5 ${
+                          isDark
+                            ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60'
+                            : 'bg-emerald-100/90 text-zinc-950 border-emerald-300 shadow-2xs'
+                        }`}>
+                          <Check className={`w-3.5 h-3.5 stroke-[2.5] ${isDark ? 'text-emerald-400' : 'text-zinc-950'}`} />
+                          <span>Read & Understood</span>
+                        </span>
+                      ) : (
+                        <span className={`px-2.5 py-1 rounded text-[11px] font-medium border flex items-center gap-1.5 transition ${
+                          isDark 
+                            ? 'border-zinc-700 text-zinc-400 group-hover:border-zinc-500 group-hover:text-zinc-200' 
+                            : 'border-zinc-300 text-zinc-700 bg-zinc-50/80 group-hover:border-zinc-400 group-hover:text-zinc-950'
+                        }`}>
+                          <span>Click card to check</span>
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                {/* Explanation */}
-                <p className={`text-xs sm:text-sm leading-relaxed text-justify whitespace-pre-line ${
-                  isDark ? 'text-zinc-300' : 'text-zinc-700'
-                }`}>
-                  {card.description}
-                </p>
+                {/* Explanation with Emphasized Code */}
+                <FormattedCardDescription text={card.description} isDark={isDark} />
 
                 {/* Specific Card Analogy */}
                 {card.analogy && (
@@ -665,57 +698,88 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
                   </div>
                 )}
 
-                {/* Sample Code Block with Copy & Try in Playground */}
-                {card.codeSample && (
-                  <div className="space-y-1.5 pt-1">
-                    <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500">
-                      <span className="font-semibold">CODE EXAMPLE</span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={(e) => handleTryInPlayground(card.codeSample, e)}
-                          className={`px-2 py-0.5 rounded border text-[11px] font-mono flex items-center gap-1 transition cursor-pointer ${
-                            isDark
-                              ? 'border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10'
-                              : 'border-emerald-300 text-emerald-800 hover:bg-emerald-50'
-                          }`}
-                        >
-                          <span>Open To Playground</span>
-                          <ArrowRight className="w-2.5 h-2.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => handleCopyCardCode(card.codeSample, idx, e)}
-                          className={`px-2 py-0.5 rounded border text-[11px] font-mono flex items-center gap-1 transition cursor-pointer ${
-                            copiedCardIndex === idx
-                              ? isDark
-                                ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400'
-                                : 'border-emerald-300 bg-emerald-100/80 text-zinc-950'
-                              : isDark
-                              ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-400'
-                              : 'border-zinc-200 hover:bg-zinc-100 text-zinc-600'
-                          }`}
-                        >
-                          {copiedCardIndex === idx ? (
-                            <>
-                              <CheckCheck className={`w-3 h-3 ${isDark ? 'text-emerald-400' : 'text-zinc-950'}`} /> Copied!
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3 h-3" /> Copy
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
+                {/* Multi Code Examples (1-3 broken down examples, each testable in Playground) */}
+                {(() => {
+                  const examples = Array.isArray(card.codeSamples) && card.codeSamples.length > 0
+                    ? card.codeSamples.map((ex, i) => typeof ex === 'string' ? { title: `Example ${i + 1}`, code: ex } : {
+                        title: ex.title || `Example ${i + 1}`,
+                        description: ex.description,
+                        code: ex.code || ex.codeSample || ''
+                      })
+                    : (card.codeSample ? [{ title: 'Code Example', code: card.codeSample }] : []);
 
-                    <pre className={`p-4 rounded-xl text-xs font-mono overflow-x-auto border ${
-                      isDark ? 'bg-[#09090b] border-zinc-800/90 text-zinc-300' : 'bg-zinc-50 border-zinc-200 text-zinc-800'
-                    }`}>
-                      <CodeHighlight code={card.codeSample} isDark={isDark} />
-                    </pre>
-                  </div>
-                )}
+                  if (examples.length === 0) return null;
+
+                  return (
+                    <div className="space-y-3.5 pt-1">
+                      {examples.map((example, exIdx) => {
+                        const copyKey = `${idx}-${exIdx}`;
+                        const isCopied = copiedCardIndex === copyKey;
+
+                        return (
+                          <div key={exIdx} className="space-y-1.5">
+                            <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500">
+                              <span className="font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <Code2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                <span>{examples.length > 1 ? example.title : 'CODE EXAMPLE'}</span>
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleTryInPlayground(example.code, e)}
+                                  title="Open and test this specific code in the playground"
+                                  className={`px-2 py-0.5 rounded border text-[11px] font-mono flex items-center gap-1 transition cursor-pointer ${
+                                    isDark
+                                      ? 'border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10'
+                                      : 'border-emerald-300 text-emerald-800 hover:bg-emerald-50'
+                                  }`}
+                                >
+                                  <span>Open To Playground</span>
+                                  <ArrowRight className="w-2.5 h-2.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleCopyCardCode(example.code, copyKey, e)}
+                                  className={`px-2 py-0.5 rounded border text-[11px] font-mono flex items-center gap-1 transition cursor-pointer ${
+                                    isCopied
+                                      ? isDark
+                                        ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400'
+                                        : 'border-emerald-300 bg-emerald-100/80 text-zinc-950'
+                                      : isDark
+                                      ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-400'
+                                      : 'border-zinc-200 hover:bg-zinc-100 text-zinc-600'
+                                  }`}
+                                >
+                                  {isCopied ? (
+                                    <>
+                                      <CheckCheck className={`w-3 h-3 ${isDark ? 'text-emerald-400' : 'text-zinc-950'}`} /> Copied!
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy className="w-3 h-3" /> Copy
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+
+                            {example.description && (
+                              <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                                {example.description}
+                              </p>
+                            )}
+
+                            <pre className={`p-4 rounded-xl text-xs font-mono overflow-x-auto border ${
+                              isDark ? 'bg-[#09090b] border-zinc-800/90 text-zinc-300' : 'bg-zinc-50 border-zinc-200 text-zinc-800'
+                            }`}>
+                              <CodeHighlight code={example.code} isDark={isDark} />
+                            </pre>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
 
                 {/* Key Takeaway Pill */}
                 {card.keyTakeaway && (
@@ -810,7 +874,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
       )}
 
       {/* LAYER 5: Interactive Flashcards (Spaced Repetition Review) */}
-      {flashcards.length > 0 && (
+      {!isOldTech && flashcards.length > 0 && (
         <div id="section-flashcards" className={`p-6 rounded-2xl border space-y-4 ${
           isDark ? 'bg-zinc-900/30 border-zinc-800' : 'bg-white border-zinc-200'
         }`}>
@@ -1030,7 +1094,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
       )}
 
       {/* LAYER 6: Chapter Exercise / Quiz */}
-      {chapterExercises.length > 0 && (
+      {!isOldTech && chapterExercises.length > 0 && (
         <div id="section-exercise" className={`p-6 rounded-2xl border space-y-4 ${
           isDark ? 'bg-zinc-900/30 border-zinc-800' : 'bg-white border-zinc-200'
         }`}>
@@ -1132,13 +1196,13 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
         </div>
       )}
 
-      {/* All 13 Completed Celebration Banner */}
-      {completed.length === SYLLABUS_OBJECTIVES.length && (
+      {/* All 26 Completed Celebration Banner */}
+      {!isOldTech && completed.length === SYLLABUS_OBJECTIVES.length && (
         <div className={`p-6 rounded-2xl border text-center space-y-3 ${
           isDark ? 'bg-zinc-900 border-zinc-700' : 'bg-zinc-50 border-zinc-300'
         }`}>
           <h3 className={`text-base font-bold ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-            All 13 Chapters Completed! Curriculum Mastered!
+            All 26 Chapters Completed! Curriculum Mastered!
           </h3>
           <p className={`text-xs max-w-md mx-auto ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
             Outstanding work! You have satisfied all course learning objectives across Basic, Intermediate, Advanced, and Expert tiers. Verify your mastery with the Self-Assessment Quiz or view your Certificate in Account.
@@ -1183,23 +1247,25 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete }) {
         )}
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={handleCompleteAndScroll}
-            className={`px-4 py-2 rounded-lg text-xs font-medium flex items-center gap-2 border transition ${
-              isDone
-                ? isDark
-                  ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
-                  : 'bg-emerald-100/90 border-emerald-400 text-zinc-950 shadow-xs'
-                : !allRead
-                ? 'opacity-60 cursor-not-allowed border-zinc-700 bg-zinc-800 text-zinc-400'
-                : isDark
-                ? 'bg-zinc-100 text-zinc-950 hover:bg-zinc-300 font-semibold'
-                : 'bg-zinc-900 text-white hover:bg-zinc-800 font-semibold'
-            }`}
-          >
-            <Check className={`w-3.5 h-3.5 stroke-[2.5] ${isDone ? (isDark ? 'text-emerald-400' : 'text-zinc-950') : ''}`} />
-            {isDone ? 'Marked Done' : 'Complete Chapter'}
-          </button>
+          {!isOldTech && (
+            <button
+              onClick={handleCompleteAndScroll}
+              className={`px-4 py-2 rounded-lg text-xs font-medium flex items-center gap-2 border transition ${
+                isDone
+                  ? isDark
+                    ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
+                    : 'bg-emerald-100/90 border-emerald-400 text-zinc-950 shadow-xs'
+                  : !allRead
+                  ? 'opacity-60 cursor-not-allowed border-zinc-700 bg-zinc-800 text-zinc-400'
+                  : isDark
+                  ? 'bg-zinc-100 text-zinc-950 hover:bg-zinc-300 font-semibold'
+                  : 'bg-zinc-900 text-white hover:bg-zinc-800 font-semibold'
+              }`}
+            >
+              <Check className={`w-3.5 h-3.5 stroke-[2.5] ${isDone ? (isDark ? 'text-emerald-400' : 'text-zinc-950') : ''}`} />
+              {isDone ? 'Marked Done' : 'Complete Chapter'}
+            </button>
+          )}
 
           {nextObj && (
             <button

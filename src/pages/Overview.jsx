@@ -1,13 +1,19 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, CheckCircle2, Play, Award } from 'lucide-react';
-import { SYLLABUS_OBJECTIVES } from '../data/datasets';
+import { ArrowRight, BookOpen, CheckCircle2, Play, Award, Clock } from 'lucide-react';
+import { 
+  SYLLABUS_OBJECTIVES,
+  TOTAL_COURSE_DURATION,
+  TOTAL_COURSE_HOURS_DECIMAL,
+  getCompletedCourseDuration
+} from '../data/datasets';
 import TextType from '../components/ui/TextType';
 
 export default function Overview({ theme, completed, student }) {
   const isDark = theme === 'dark';
   const total = SYLLABUS_OBJECTIVES.length;
   const percent = Math.round((completed.length / total) * 100);
+  const completedDuration = getCompletedCourseDuration(completed);
   const username = student?.username || student?.name || 'Student';
 
   // 10 personalized welcome messages: first is always "Welcome, {username}!", rest are shuffled randomly
@@ -29,8 +35,11 @@ export default function Overview({ theme, completed, student }) {
     return [firstMessage, ...shuffled];
   }, [username]);
 
-  // Find the first uncompleted objective, or the first one if none completed
-  const currentObjective = SYLLABUS_OBJECTIVES.find((o) => !completed.includes(o.id)) || SYLLABUS_OBJECTIVES[SYLLABUS_OBJECTIVES.length - 1];
+  // Check if all core syllabus chapters are completed
+  const isAllCompleted = total > 0 && completed.length >= total;
+
+  // Find the first uncompleted objective (if all completed, currentObjective is null)
+  const currentObjective = isAllCompleted ? null : (SYLLABUS_OBJECTIVES.find((o) => !completed.includes(o.id)) || null);
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -92,14 +101,19 @@ export default function Overview({ theme, completed, student }) {
 
       {/* Progress Bar & Status */}
       <div className={`p-5 rounded-xl border ${isDark ? 'bg-zinc-900/50 border-zinc-800' : 'bg-white border-zinc-200'}`}>
-        <div className="flex justify-between items-center text-xs font-medium mb-2.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs font-medium gap-1 mb-2.5">
           <span className="flex items-center gap-1.5 font-semibold">
             <CheckCircle2 className={`w-4 h-4 ${isDark ? 'text-emerald-500' : 'text-zinc-950'}`} />
             Curriculum Mastery Progress
           </span>
-          <span className="font-mono text-zinc-500">
-            {percent}% ({completed.length} of {total} completed)
-          </span>
+          <div className="flex items-center gap-2 font-mono text-zinc-500 text-[11px]">
+            <span className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
+              <span>{completedDuration} / {TOTAL_COURSE_DURATION}</span>
+            </span>
+            <span className="text-zinc-300 dark:text-zinc-700">•</span>
+            <span>{percent}% ({completed.length} of {total} completed)</span>
+          </div>
         </div>
         <div className={`w-full h-2.5 rounded-full overflow-hidden ${isDark ? 'bg-zinc-800' : 'bg-zinc-100'}`}>
           <div
@@ -110,7 +124,58 @@ export default function Overview({ theme, completed, student }) {
       </div>
 
       {/* Next Up / Continue Learning Card */}
-      {currentObjective && (
+      {isAllCompleted ? (
+        <div className={`p-5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition animate-fade-in ${
+          isDark 
+            ? 'bg-emerald-950/20 border-emerald-800/40' 
+            : 'bg-emerald-50/70 border-emerald-300/80 shadow-xs'
+        }`}>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded border flex items-center gap-1.5 ${
+                isDark 
+                  ? 'bg-emerald-950/60 text-emerald-400 border-emerald-800/70' 
+                  : 'bg-emerald-100 text-emerald-900 border-emerald-300'
+              }`}>
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                ALL CHAPTERS COMPLETED
+              </span>
+              <span className="text-xs font-mono text-zinc-500">{total} of {total} Finished</span>
+            </div>
+            <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+              Curriculum Completed • All 26 Chapters Mastered!
+            </h2>
+            <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              You have completed all 26 core course objectives. You can review any chapter, practice in the playground, or explore the Old Technologies section.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2.5 shrink-0">
+            <Link
+              to="/objectives"
+              className={`px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 border transition ${
+                isDark 
+                  ? 'border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white' 
+                  : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Review Chapters</span>
+            </Link>
+            <Link
+              to="/objectives/old-tech"
+              className={`px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 border transition ${
+                isDark 
+                  ? 'border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white' 
+                  : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100'
+              }`}
+            >
+              <span>Explore Old Tech</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      ) : currentObjective ? (
         <div className={`p-5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
           isDark ? 'bg-zinc-900/40 border-zinc-700/80' : 'bg-white border-zinc-300 shadow-xs'
         }`}>
@@ -139,13 +204,13 @@ export default function Overview({ theme, completed, student }) {
             <span>Open {currentObjective.code}</span>
           </Link>
         </div>
-      )}
+      ) : null}
 
       {/* Course Metadata */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: 'Course Program', value: 'JavaScript Programming' },
-          { label: 'Curriculum Scope', value: `${total} Sequential Chapters` },
+          { label: 'Curriculum Scope', value: `${total} Sequential Chapters (13+ Hours)` },
           { label: 'Evaluation Structure', value: 'Live Code & Quiz' }
         ].map((item, idx) => (
           <div key={idx} className={`p-4 rounded-xl border ${isDark ? 'bg-zinc-900/30 border-zinc-800/80' : 'bg-white border-zinc-200'}`}>

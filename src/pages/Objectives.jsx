@@ -1,7 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, Navigate } from 'react-router-dom';
-import { Check, Lock, ArrowRight, BookOpen, Clock, AlertCircle, RotateCcw } from 'lucide-react';
-import { SYLLABUS_OBJECTIVES as SYLLABUS, isObjectiveUnlocked } from '../data/datasets';
+import { Check, Lock, ArrowRight, BookOpen, Clock, AlertCircle, RotateCcw, Sparkles } from 'lucide-react';
+import { 
+  SYLLABUS_OBJECTIVES as SYLLABUS, 
+  OLD_TECH_OBJECTIVES, 
+  isObjectiveUnlocked,
+  TOTAL_COURSE_DURATION,
+  TOTAL_COURSE_HOURS_DECIMAL,
+  getCompletedCourseDuration
+} from '../data/datasets';
 
 export default function Objectives({ theme, completed, toggleComplete, resetProgress }) {
   const { category } = useParams();
@@ -19,17 +26,45 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
   const [lockedNotice, setLockedNotice] = useState(null);
 
   const tabs = [
-    { id: 'all', label: 'All Chapters (13)' },
-    { id: 'basics', label: 'Basic (5)' },
-    { id: 'intermediate', label: 'Intermediate (4)' },
-    { id: 'advanced', label: 'Advanced (3)' },
-    { id: 'expert', label: 'Expert (1)' }
+    { id: 'all', label: `All Chapters (${SYLLABUS.length})` },
+    { id: 'basics', label: `Basic (${SYLLABUS.filter((i) => i.category === 'basics').length})` },
+    { id: 'intermediate', label: `Intermediate (${SYLLABUS.filter((i) => i.category === 'intermediate').length})` },
+    { id: 'advanced', label: `Advanced (${SYLLABUS.filter((i) => i.category === 'advanced').length})` },
+    { id: 'expert', label: `Expert (${SYLLABUS.filter((i) => i.category === 'expert').length})` },
+    { id: 'old-tech', label: `Old Tech (${OLD_TECH_OBJECTIVES.length})` }
   ];
-  const list = activeTab === 'all' ? SYLLABUS : SYLLABUS.filter((i) => i.category === activeTab);
+  const isOldTechTab = activeTab === 'old-tech';
+  const list = isOldTechTab ? [] : (activeTab === 'all' ? SYLLABUS : SYLLABUS.filter((i) => i.category === activeTab));
 
+  const isAllCompleted = SYLLABUS.length > 0 && completed.length >= SYLLABUS.length;
   // Determine current active objective (the first uncompleted one)
-  const currentActiveObj = SYLLABUS.find((obj) => !completed.includes(obj.id)) || SYLLABUS[SYLLABUS.length - 1];
+  const currentActiveObj = isAllCompleted ? null : (SYLLABUS.find((obj) => !completed.includes(obj.id)) || null);
   const progressPercent = Math.round((completed.length / SYLLABUS.length) * 100);
+  const completedDuration = getCompletedCourseDuration(completed);
+
+  // Detect when user scrolls into the Old Technologies section on 'all' tab
+  const [isScrolledIntoOldTech, setIsScrolledIntoOldTech] = useState(false);
+
+  useEffect(() => {
+    if (activeTab !== 'all') {
+      setIsScrolledIntoOldTech(false);
+      return;
+    }
+
+    const handleScroll = () => {
+      const oldTechEl = document.getElementById('section-old-tech');
+      if (oldTechEl) {
+        const rect = oldTechEl.getBoundingClientRect();
+        setIsScrolledIntoOldTech(rect.top <= 140);
+      } else {
+        setIsScrolledIntoOldTech(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [activeTab]);
 
   const handleCardClick = (obj, isUnlocked, e) => {
     // If user clicked directly on an interactive button, don't trigger card navigation
@@ -56,9 +91,13 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
       {/* Page Header */}
       <div className="space-y-3.5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Course Objectives</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {isOldTechTab ? 'Legacy Reference Modules' : 'Course Objectives'}
+          </h1>
           <p className={`text-xs mt-1 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            Sequential JavaScript curriculum. Finish each chapter to unlock the next.
+            {isOldTechTab
+              ? 'Informational legacy technologies (AJAX, jQuery, JSONP) preserved for historical reference and technical depth.'
+              : 'Sequential JavaScript curriculum (26 Progress Chapters). Finish each chapter to unlock the next.'}
           </p>
         </div>
 
@@ -85,53 +124,71 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
         </div>
       </div>
 
-      {/* Progress & Current Objective Banner - Sticky on scroll with floating space */}
-      <div className={`sticky top-[4.25rem] z-20 p-4 sm:p-5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 backdrop-blur-md transition-all shadow-md ${
-        isDark ? 'bg-[#09090b]/90 border-zinc-800 shadow-black/30' : 'bg-white/90 border-zinc-200 shadow-zinc-200/50'
-      }`}>
-        <div className="space-y-1.5 flex-1 max-w-lg">
-          <div className="flex items-center justify-between text-xs font-medium">
-            <span className="flex items-center gap-1.5 font-semibold">
-              <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
-              Syllabus Completion
-            </span>
-            <span className="font-mono text-zinc-500">{completed.length} of {SYLLABUS.length} ({progressPercent}%)</span>
+      {/* Progress & Current Objective Banner - Sticky on scroll with floating space (Hidden on Old Tech tab & when scrolled into Old Tech section) */}
+      {!isOldTechTab && (
+        <div className={`sticky top-[4.25rem] z-20 p-4 sm:p-5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 backdrop-blur-md transition-all duration-300 shadow-md ${
+          isScrolledIntoOldTech ? 'opacity-0 pointer-events-none -translate-y-3' : 'opacity-100 translate-y-0'
+        } ${
+          isDark ? 'bg-[#09090b]/90 border-zinc-800 shadow-black/30' : 'bg-white/90 border-zinc-200 shadow-zinc-200/50'
+        }`}>
+          <div className="space-y-1.5 flex-1 max-w-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs font-medium gap-1">
+              <span className="flex items-center gap-1.5 font-semibold">
+                <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
+                Syllabus Completion
+              </span>
+              <div className="flex items-center gap-2 font-mono text-[11px] text-zinc-500 dark:text-zinc-400">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
+                  <span>{completedDuration} / {TOTAL_COURSE_DURATION}</span>
+                </span>
+                <span className="text-zinc-300 dark:text-zinc-700">•</span>
+                <span>{completed.length} of {SYLLABUS.length} ({progressPercent}%)</span>
+              </div>
+            </div>
+            <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-zinc-800' : 'bg-zinc-100'}`}>
+              <div
+                className="h-full transition-all duration-300 bg-emerald-500"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
           </div>
-          <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-zinc-800' : 'bg-zinc-100'}`}>
-            <div
-              className="h-full transition-all duration-300 bg-emerald-500"
-              style={{ width: `${progressPercent}%` }}
-            />
+
+          <div className="flex items-center gap-2">
+            {completed.length > 0 && resetProgress && (
+              <button
+                onClick={resetProgress}
+                title="Reset progress to test lock sequence"
+                className={`px-2.5 py-2 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition ${
+                  isDark ? 'border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800' : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                }`}
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span className="hidden sm:inline">Reset</span>
+              </button>
+            )}
+
+            {isAllCompleted ? (
+              <div className={`shrink-0 px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 border ${
+                isDark ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60' : 'bg-emerald-100/90 text-zinc-950 border-emerald-300 shadow-2xs'
+              }`}>
+                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>All Chapters Completed</span>
+              </div>
+            ) : currentActiveObj ? (
+              <Link
+                to={`/objectives/view/${currentActiveObj.id}`}
+                className={`shrink-0 px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 border transition ${
+                  isDark ? 'bg-zinc-100 text-zinc-950 border-zinc-100 hover:bg-zinc-300' : 'bg-zinc-900 text-white border-zinc-900 hover:bg-zinc-800'
+                }`}
+              >
+                <span>Current: {currentActiveObj.code}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            ) : null}
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          {completed.length > 0 && resetProgress && (
-            <button
-              onClick={resetProgress}
-              title="Reset progress to test lock sequence"
-              className={`px-2.5 py-2 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition ${
-                isDark ? 'border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800' : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
-              }`}
-            >
-              <RotateCcw className="w-3 h-3" />
-              <span className="hidden sm:inline">Reset</span>
-            </button>
-          )}
-
-          {currentActiveObj && (
-            <Link
-              to={`/objectives/view/${currentActiveObj.id}`}
-              className={`shrink-0 px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 border transition ${
-                isDark ? 'bg-zinc-100 text-zinc-950 border-zinc-100 hover:bg-zinc-300' : 'bg-zinc-900 text-white border-zinc-900 hover:bg-zinc-800'
-              }`}
-            >
-              <span>Current: {currentActiveObj.code}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          )}
-        </div>
-      </div>
+      )}
 
       {/* Locked Notice Alert Modal/Bar */}
       {lockedNotice && (
@@ -327,6 +384,87 @@ export default function Objectives({ theme, completed, toggleComplete, resetProg
           );
         })}
       </div>
+
+      {/* Old Technologies Reference Section */}
+      {(activeTab === 'all' || activeTab === 'old-tech') && (
+        <div id="section-old-tech" className="pt-8 space-y-4 border-t border-zinc-800/60 mt-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className={`text-[11px] font-mono px-2 py-0.5 rounded font-semibold uppercase tracking-wider ${
+                  isDark ? 'bg-zinc-800 text-zinc-300 border border-zinc-700' : 'bg-zinc-100 text-zinc-700 border border-zinc-200'
+                }`}>
+                  Old Technologies Section
+                </span>
+                <span className={`text-xs ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                  • Informational & Non-Progress Related
+                </span>
+              </div>
+              <h2 className="text-xl font-bold tracking-tight mt-1">
+                Legacy JavaScript Reference (AJAX, jQuery & JSONP)
+              </h2>
+              <p className={`text-xs mt-1 max-w-2xl leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                Preserved historical technologies essential for maintaining legacy enterprise codebases, understanding web evolution, and technical interviews. These modules are always unlocked and do not affect your 26-chapter course progression.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-3.5 pt-2">
+            {OLD_TECH_OBJECTIVES.map((obj) => (
+              <div
+                key={obj.id}
+                onClick={() => navigate(`/objectives/view/${obj.id}`)}
+                className={`p-4 sm:p-5 rounded-xl border transition-all cursor-pointer relative overflow-hidden group ${
+                  isDark
+                    ? 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-900/70'
+                    : 'border-zinc-200 bg-white hover:border-zinc-400/80 hover:shadow-xs'
+                }`}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1.5 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-mono font-bold text-zinc-400">
+                        {obj.code}
+                      </span>
+                      <span className={`text-[11px] px-2 py-0.5 rounded font-medium border ${
+                        isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-300' : 'bg-zinc-100 border-zinc-200 text-zinc-700'
+                      }`}>
+                        Legacy Reference
+                      </span>
+                      {obj.estimatedTime && (
+                        <span className="text-[11px] text-zinc-500 flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> {obj.estimatedTime}
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="text-base font-bold transition text-zinc-900 dark:text-zinc-100 group-hover:text-zinc-600 dark:group-hover:text-white">
+                      {obj.title}
+                    </h3>
+                    <p className={`text-xs leading-relaxed max-w-2xl ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                      {obj.desc}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0">
+                    <Link
+                      to={`/objectives/view/${obj.id}`}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition ${
+                        isDark 
+                          ? 'border-zinc-800 bg-zinc-800/80 text-zinc-200 hover:bg-zinc-700 hover:border-zinc-600 hover:text-white' 
+                          : 'border-zinc-200 bg-zinc-100 text-zinc-800 hover:bg-zinc-200 hover:border-zinc-300 hover:text-zinc-900'
+                      }`}
+                    >
+                      <span>Explore Reference</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

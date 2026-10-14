@@ -31,7 +31,7 @@ export const topic03 = {
     {
       id: 'card-3-1',
       title: 'JavaScript Comments',
-      description: 'JavaScript comments can be used to explain JavaScript code, and to make it more readable.\n\nJavaScript comments can also be used to prevent execution, when testing alternative code.\n\nSingle Line Comments:\nSingle line comments start with //.\n\nAny text between // and the end of the line will be ignored by JavaScript (will not be executed).\n\nMulti-line Comments:\nMulti-line comments start with /* and end with */.\n\nAny text between /* and */ will be ignored by JavaScript.\n\nIt is most common to use single line comments. Block comments are often used for formal documentation.',
+      description: 'JavaScript comments can be used to explain JavaScript code, and to make it more readable.\n\nJavaScript comments can also be used to prevent execution, when testing alternative code.\n\nSingle Line Comments:\nSingle line comments start with `//`.\n\nAny text between `//` and the end of the line will be ignored by JavaScript (will not be executed).\n\nMulti-line Comments:\nMulti-line comments start with `/*` and end with `*/`.\n\nAny text between `/*` and `*/` will be ignored by JavaScript.\n\nIt is most common to use single line comments. Block comments are often used for formal documentation.',
       analogy: 'Comments are like sticky notes in a book: they provide explanations for human readers without altering the story.',
       codeSample: `// Change heading:
 // document.getElementById("myH").innerHTML = "My First Page";
@@ -47,12 +47,39 @@ in the browser console:
 */
 console.log("x =", x);
 console.log("y =", y);`,
+      codeSamples: [
+        {
+          title: 'Example 1: Single-Line Comments (//)',
+          description: 'Single-line comments can stand alone or be placed at the end of code statements.',
+          code: `// Declare variable for student age:
+let studentAge = 20; // Assigned initial age
+
+// Increment age by one year:
+studentAge++; // studentAge is now 21
+
+console.log("Current age:", studentAge);`
+        },
+        {
+          title: 'Example 2: Multi-Line Comment Blocks (/* ... */)',
+          description: 'Multi-line comments are ideal for complex explanations and header documentation.',
+          code: `/*
+  Module: Tuition Fee Computation
+  Version: 2026.1
+  Description: Computes total tuition based on enrolled units
+*/
+const COST_PER_UNIT = 850;
+let enrolledUnits = 18;
+let totalTuition = COST_PER_UNIT * enrolledUnits;
+
+console.log("Total computed tuition: Php " + totalTuition);`
+        }
+      ],
       keyTakeaway: 'Use // for single-line comments and /* ... */ for multi-line comment blocks to document code and clarify intent.'
     },
     {
       id: 'card-3-2',
       title: 'Using Comments to Prevent Execution',
-      description: 'Using comments to prevent execution of code is suitable for code testing and debugging.\n\nAdding // in front of a code line changes the code line from an executable line to a comment.\n\nYou can also use a comment block (/* ... */) to prevent execution of multiple lines at once without having to delete them.',
+      description: 'Using comments to prevent execution of code is suitable for code testing and debugging.\n\nAdding `//` in front of a code line changes the code line from an executable line to a comment.\n\nYou can also use a comment block (`/* ... */`) to prevent execution of multiple lines at once without having to delete them.',
       analogy: 'Commenting out code is like flipping a circuit breaker to safely inspect a machine without removing the wiring.',
       codeSample: `// Temporarily disabled line for testing:
 // document.getElementById("myH").innerHTML = "My First Page";
@@ -66,12 +93,38 @@ let backup = 100 * 2;
 */
 
 console.log("Active script continues execution.");`,
+      codeSamples: [
+        {
+          title: 'Example 1: Disabling a Single Line for Testing',
+          description: 'Placing // before a statement keeps it in the file but prevents the engine from running it.',
+          code: `console.log("1. Starting system diagnostics...");
+
+// console.log("2. Verbose network debug trace (Disabled during test)");
+
+console.log("3. Diagnostics complete without verbose logs.");`
+        },
+        {
+          title: 'Example 2: Commenting Out Multi-Line Code Blocks',
+          description: 'Wrapping experimental or alternative code inside /* */ during debugging.',
+          code: `let discountRate = 0.10;
+
+/*
+// Experimental algorithm:
+if (isHoliday) {
+  discountRate = 0.25;
+}
+*/
+
+let finalPrice = 1000 * (1 - discountRate);
+console.log("Final Price using standard rate:", finalPrice);`
+        }
+      ],
       keyTakeaway: 'Prefix lines with // or wrap blocks with /* */ to temporarily disable code during testing and debugging.'
     },
     {
       id: 'card-3-3',
       title: 'JavaScript Variables: Data Containers',
-      description: 'Variables = Data Containers:\nJavaScript variables are containers for data.\n\nJavaScript variables can be declared in 4 ways:\n\nModern JavaScript:\n• Using let\n• Using const\n\nOlder JavaScript:\n• Using var (Not Recommended)\n• Automatically (Not Recommended)\n\nVariables are labels for data values. Variables are containers for storing data.',
+      description: 'Variables = Data Containers:\nJavaScript variables are containers for data.\n\nJavaScript variables can be declared in 4 ways:\n\nModern JavaScript:\n• Using `let`\n• Using `const`\n\nOlder JavaScript:\n• Using `var` (Not Recommended)\n• Automatically (Not Recommended)\n\nVariables are labels for data values. Variables are containers for storing data.',
       analogy: 'A variable is like a labeled jar in a pantry: the label tells you what it is, and the jar holds the actual ingredient.',
       codeSample: `// Example using let:
 let x = 5;
@@ -85,12 +138,32 @@ const total = price1 + price2;
 
 console.log("z contains:", z);
 console.log("total contains:", total);`,
+      codeSamples: [
+        {
+          title: 'Example 1: Containers with let',
+          description: 'Variables declared with let can have their stored values reassigned.',
+          code: `let currentStep = 1;
+console.log("Step:", currentStep);
+
+currentStep = 2; // Value changed inside container
+console.log("Step updated to:", currentStep);`
+        },
+        {
+          title: 'Example 2: Fixed Containers with const',
+          description: 'Constants cannot be reassigned; their stored reference remains locked.',
+          code: `const maximumSeats = 50;
+let bookedSeats = 42;
+
+console.log("Available seats:", maximumSeats - bookedSeats);
+// maximumSeats = 60; // TypeError: Assignment to constant variable`
+        }
+      ],
       keyTakeaway: 'Variables are labeled containers for storing data values, declared modernly with let and const.'
     },
     {
       id: 'card-3-4',
       title: 'JavaScript Identifiers & Underscore (_)',
-      description: 'Variables are identified with names called identifiers.\n\nNames can be short like x, y, z, or descriptive like age, sum, carName.\n\nThe rules for constructing names (identifiers) are:\n• Names can contain letters, digits, underscores, and dollar signs.\n• Names must begin with a letter, a $ sign, or an underscore (_).\n• Names are case sensitive (X is different from x).\n• Reserved words (JavaScript keywords) cannot be used as names.\n• Numbers are not allowed as the first character in names.\n\nJavaScript Underscore (_):\nJavaScript treats underscore as a letter. Identifiers containing _ are valid variable names.\n\nA convention among professional programmers is to start a name with an underscore for "private" or internal variables.',
+      description: 'Variables are identified with names called identifiers.\n\nNames can be short like `x`, `y`, `z`, or descriptive like `age`, `sum`, `carName`.\n\nThe rules for constructing names (identifiers) are:\n• Names can contain letters, digits, underscores, and dollar signs.\n• Names must begin with a letter, a `$` sign, or an underscore (`_`).\n• Names are case sensitive (`X` is different from `x`).\n• Reserved words (JavaScript keywords) cannot be used as names.\n• Numbers are not allowed as the first character in names.\n\nJavaScript Underscore (`_`):\nJavaScript treats underscore as a letter. Identifiers containing `_` are valid variable names.\n\nA convention among professional programmers is to start a name with an underscore for "private" or internal variables.',
       analogy: 'Identifiers are like formal passport names: they have strict legal formatting rules and cannot begin with numbers.',
       codeSample: `// Valid variable names:
 let age = 21;
@@ -99,17 +172,38 @@ let _lastName = "Johnson";
 let _x = 2;
 let _100 = 5;
 
-console.log(age, carName, _lastName, _x, _100);
+console.log(age, carName, _lastName, _x, _100);`,
+      codeSamples: [
+        {
+          title: 'Example 1: Valid Identifiers in Action',
+          description: 'Letters, numbers, and underscores combined legally.',
+          code: `let studentName = "Alice";
+let section_2026 = "BSIT 4-B";
+let _internalScore = 98;
 
-// Invalid variable names (will cause SyntaxErrors):
-// let 2cool = 10;   // Error: Numbers cannot be the first character!
-// let let = "test"; // Error: Cannot use reserved keyword!`,
+console.log(studentName, "in section", section_2026, "Score:", _internalScore);`
+        },
+        {
+          title: 'Example 2: Convention of Leading Underscore (_)',
+          description: 'Professional programmers often prefix internal state with an underscore.',
+          code: `const userAccount = {
+  name: "Alexander",
+  _authHash: "x7f9a2b0e", // internal metadata convention
+  getCleanProfile: function() {
+    return "User: " + this.name;
+  }
+};
+
+console.log(userAccount.getCleanProfile());
+console.log("Internal private hash:", userAccount._authHash);`
+        }
+      ],
       keyTakeaway: 'Identifiers must begin with a letter, _, or $, cannot start with a digit, and treat underscores as valid letters.'
     },
     {
       id: 'card-3-5',
       title: 'JavaScript Dollar Sign ($)',
-      description: 'JavaScript also treats a dollar sign as a letter.\n\nIdentifiers containing $ are valid variable names:\n• let $ = "Hello World";\n• let $$$ = 2;\n• let $myMoney = 5;\n\nUsing the $ is not very common in everyday application code, but professional programmers often use it as an alias for the main selection function in JavaScript libraries (such as jQuery).',
+      description: 'JavaScript also treats a dollar sign as a letter.\n\nIdentifiers containing `$` are valid variable names:\n• `let $ = "Hello World";`\n• `let $$$ = 2;`\n• `let $myMoney = 5;`\n\nUsing the `$` is not very common in everyday application code, but professional programmers often use it as an alias for the main selection function in JavaScript libraries (such as jQuery).',
       analogy: 'The dollar sign identifier in JavaScript is like a special VIP symbol: fully legal as a letter, but often reserved by frameworks.',
       codeSample: `// Valid identifiers using dollar signs:
 let $ = "Hello World";
@@ -124,12 +218,32 @@ function $(selector) {
   return "Selected element: " + selector;
 }
 console.log($("myHeading"));`,
+      codeSamples: [
+        {
+          title: 'Example 1: Dollar Signs as Identifiers',
+          description: 'The $ character is treated as a valid letter everywhere in variable names.',
+          code: `let $price = 99.95;
+let $discount = 15.00;
+let $finalTotal = $price - $discount;
+
+console.log("Final computed price: Php " + $finalTotal);`
+        },
+        {
+          title: 'Example 2: Dollar Sign as Function Selector Alias',
+          description: 'How modern and classic libraries use $ as a shortcut for document queries.',
+          code: `// Mimicking library selector alias:
+const $ = (id) => "Element #" + id + " queried successfully";
+
+console.log($("dashboard-widget"));
+console.log($("user-avatar"));`
+        }
+      ],
       keyTakeaway: 'JavaScript treats the dollar sign ($) as a valid letter in identifiers, widely recognized as a library alias.'
     },
     {
       id: 'card-3-6',
       title: 'Declaring JavaScript Variables',
-      description: 'Creating a variable in JavaScript is called declaring a variable.\n\nYou declare a JavaScript variable with the let keyword or the const keyword.\n\nDeclaring a Variable Using let:\nlet carName;\nAfter the declaration, the variable has no value (technically it is undefined). To assign a value, use the equal sign:\ncarName = "Volvo";\nMost often you will assign a value to the variable when you declare it:\nlet carName = "Volvo";\n\nDeclaring a Variable Using const:\nAlways use const if the value should not be changed:\nconst carName = "Volvo";\n\nA Mixed Example:\nconst price1 = 5;\nconst price2 = 6;\nlet total = price1 + price2;\nThe values of price1 and price2 cannot be changed. The value of total can be changed.',
+      description: 'Creating a variable in JavaScript is called declaring a variable.\n\nYou declare a JavaScript variable with the `let` keyword or the `const` keyword.\n\nDeclaring a Variable Using `let`:\n`let carName;`\nAfter the declaration, the variable has no value (technically it is `undefined`). To assign a value, use the equal sign:\n`carName = "Volvo";`\nMost often you will assign a value to the variable when you declare it:\n`let carName = "Volvo";`\n\nDeclaring a Variable Using `const`:\nAlways use `const` if the value should not be changed:\n`const carName = "Volvo";`\n\nA Mixed Example:\n`const price1 = 5;`\n`const price2 = 6;`\n`let total = price1 + price2;`\nThe values of `price1` and `price2` cannot be changed. The value of `total` can be changed.',
       analogy: 'Declaring let is like reserving an empty parking spot that a car can park in later; const is cementing a permanent monument.',
       codeSample: `// Declaring with let without assignment:
 let carName;
@@ -145,12 +259,36 @@ const price2 = 6;
 let total = price1 + price2; // total can change later
 
 console.log("Total:", total);`,
+      codeSamples: [
+        {
+          title: 'Example 1: Declaring Variable First, Assigning Later',
+          description: 'Variables declared without values hold undefined until assigned.',
+          code: `let pendingShipment;
+console.log("Shipment state on initialization:", pendingShipment);
+
+pendingShipment = "Parcel #PH-8921 In Transit";
+console.log("Shipment state after update:", pendingShipment);`
+        },
+        {
+          title: 'Example 2: Combining const Fixed Inputs with let Accumulator',
+          description: 'Standard practice: inputs are const, running totals use let.',
+          code: `const itemPrice = 120;
+const taxRate = 0.12;
+
+let runningTotal = itemPrice + (itemPrice * taxRate);
+console.log("Initial total with tax:", runningTotal);
+
+// Add shipping fee:
+runningTotal += 50;
+console.log("Total including shipping:", runningTotal);`
+        }
+      ],
       keyTakeaway: 'Variables declared without an initial value are undefined. Use const for immutable references and let for variables that will change.'
     },
     {
       id: 'card-3-7',
       title: 'Automatic Declarations & Legacy var',
-      description: 'Declaring a Variable Automatically:\nUndeclared variables are automatically declared in non-strict mode when first used:\nx = 5;\ny = 6;\nz = x + y;\nThis is considered bad practice. It is good programming practice to always declare all variables before use.\n\nDeclaring a Variable Using var:\nThe var keyword was used in all JavaScript code before 2015. The let and const keywords were introduced in 2015 (ES6).\n\nWhen to Use var, let, or const?\n1. Always declare variables\n2. Always use const if the value should not be changed\n3. Always use const if the type should not be changed (Arrays and Objects)\n4. Only use let if you cannot use const\n5. Avoid using var',
+      description: 'Declaring a Variable Automatically:\nUndeclared variables are automatically declared in non-strict mode when first used:\n`x = 5;`\n`y = 6;`\n`z = x + y;`\nThis is considered bad practice. It is good programming practice to always declare all variables before use.\n\nDeclaring a Variable Using `var`:\nThe `var` keyword was used in all JavaScript code before 2015. The `let` and `const` keywords were introduced in 2015 (ES6).\n\nWhen to Use `var`, `let`, or `const`?\n1. Always declare variables\n2. Always use `const` if the value should not be changed\n3. Always use `const` if the type should not be changed (Arrays and Objects)\n4. Only use `let` if you cannot use `const`\n5. Avoid using `var`',
       analogy: 'Using var and automatic variables is like driving an antique car with no seatbelts; modern let and const provide airbags and lane assist.',
       codeSample: `// Older JavaScript using var (Not Recommended):
 var legacyX = 5;
@@ -163,6 +301,29 @@ let currentEnrollment = 35;
 
 currentEnrollment += 2; // Perfectly safe and clear
 console.log("Enrollment:", currentEnrollment, "/", maxEnrollment);`,
+      codeSamples: [
+        {
+          title: 'Example 1: Modern const and let Reassignment',
+          description: 'Favor const by default, use let when a value must increment or change.',
+          code: `const maxEnrollment = 40;
+let currentEnrollment = 35;
+
+currentEnrollment += 2; // Incremented to 37
+console.log("Enrollment:", currentEnrollment, "/", maxEnrollment);`
+        },
+        {
+          title: 'Example 2: Why var Leaks Beyond Block Scope',
+          description: 'var does not respect block scoping, while let stays confined inside { } blocks.',
+          code: `if (true) {
+  var leakedVar = "I escaped the block!";
+  let safeLet = "I am trapped inside";
+  console.log("Inside:", safeLet);
+}
+
+console.log("Outside:", leakedVar); // Works, but pollutes outer scope!
+// console.log(safeLet); // ReferenceError: safeLet is not defined`
+        }
+      ],
       keyTakeaway: 'Always declare variables explicitly. Favor const by default, use let when values must change, and avoid legacy var.'
     },
     {
@@ -180,12 +341,34 @@ let zipCode = "90210";    // String, NOT a number
 console.log("pi is:", typeof pi);
 console.log("person is:", typeof person);
 console.log("zipCode is:", typeof zipCode);`,
+      codeSamples: [
+        {
+          title: 'Example 1: Numbers vs String Literals',
+          description: 'Inspecting types with typeof to distinguish numeric calculations from textual data.',
+          code: `const pi = 3.14;
+let studentName = "John Doe";
+let isEnrolled = true;
+
+console.log("pi:", typeof pi);
+console.log("studentName:", typeof studentName);
+console.log("isEnrolled:", typeof isEnrolled);`
+        },
+        {
+          title: 'Example 2: Numbers Wrapped in Quotes Become Strings',
+          description: 'Putting quotes around digits prevents arithmetic and triggers text concatenation.',
+          code: `let numericZip = 90210;
+let stringZip = "90210";
+
+console.log("Numeric addition (numericZip + 1):", numericZip + 1); // 90211
+console.log("String concatenation (stringZip + 1):", stringZip + 1); // "902101"`
+        }
+      ],
       keyTakeaway: 'Numbers are written without quotes for mathematical computation; text wrapped in quotes is always a string.'
     },
     {
       id: 'card-3-9',
       title: 'One Statement, Many Variables',
-      description: 'You can declare many variables in one statement.\n\nStart the statement with let or const and separate the variables with a comma:\nlet person = "John Doe", carName = "Volvo", price = 200;\n\nA declaration can span multiple lines for cleaner readability:\nlet person = "John Doe",\ncarName = "Volvo",\nprice = 200;',
+      description: 'You can declare many variables in one statement.\n\nStart the statement with `let` or `const` and separate the variables with a comma:\n`let person = "John Doe", carName = "Volvo", price = 200;`\n\nA declaration can span multiple lines for cleaner readability:\n`let person = "John Doe",`\n`carName = "Volvo",`\n`price = 200;`',
       analogy: 'Declaring multiple variables in one statement is like making a grocery list on a single notepad page separated by commas.',
       codeSample: `// Multiple variables declared in one statement:
 let person = "John Doe", carName = "Volvo", price = 200;
@@ -197,12 +380,30 @@ const brand = "Toyota",
 
 console.log(person, carName, price);
 console.log(brand, model, year);`,
+      codeSamples: [
+        {
+          title: 'Example 1: Single-Line Comma Separated Declarations',
+          description: 'Declaring multiple let variables on one compact line.',
+          code: `let person = "John Doe", carName = "Volvo", price = 200;
+console.log(person, "purchased a", carName, "for Php", price);`
+        },
+        {
+          title: 'Example 2: Multi-Line Comma Separated Constants',
+          description: 'Formatting multiple related constants cleanly across multiple lines.',
+          code: `const brand = "Toyota",
+  model = "Camry",
+  year = 2024,
+  isElectric = false;
+
+console.log("Vehicle Spec:", brand, model, "(" + year + ")", "Electric:", isElectric);`
+        }
+      ],
       keyTakeaway: 'Declare multiple variables in a single statement by separating identifiers with commas across one or multiple lines.'
     },
     {
       id: 'card-3-10',
       title: 'The Assignment Operator & Arithmetic',
-      description: 'In JavaScript, the equal sign (=) is an assignment operator, not an algebraic equal-to operator.\n\nThe following does not make sense in algebra:\nx = x + 5\nIn JavaScript, however, it makes perfect sense: it calculates the value of x + 5 and assigns the result into x.\n\nThe equal-to comparison operator is written as == (or strictly ===) in JavaScript.\n\nJavaScript Arithmetic & String Concatenation:\nYou can do arithmetic with operators like + and *.\nYou can also add strings, but strings will be concatenated.\n\nIf you put a number in quotes, the rest of the numbers will be treated as strings and concatenated:\n• "5" + 2 + 3 evaluates to "523"\n• 2 + 3 + "5" evaluates to "55" (2 + 3 calculates to 5 first, then concatenates with "5")',
+      description: 'In JavaScript, the equal sign (`=`) is an assignment operator, not an algebraic equal-to operator.\n\nThe following does not make sense in algebra:\n`x = x + 5`\nIn JavaScript, however, it makes perfect sense: it calculates the value of `x + 5` and assigns the result into `x`.\n\nThe equal-to comparison operator is written as `==` (or strictly `===`) in JavaScript.\n\nJavaScript Arithmetic & String Concatenation:\nYou can do arithmetic with operators like `+` and `*`.\nYou can also add strings, but strings will be concatenated.\n\nIf you put a number in quotes, the rest of the numbers will be treated as strings and concatenated:\n• `"5" + 2 + 3` evaluates to `"523"`\n• `2 + 3 + "5"` evaluates to `"55"` (2 + 3 calculates to 5 first, then concatenates with "5")',
       analogy: 'The assignment operator "=" is an arrow that moves computed values into a box: box <- computation.',
       codeSample: `let x = 10;
 x = x + 5; // x is now 15
@@ -218,12 +419,35 @@ let result2 = 2 + 3 + "5"; // "55"
 
 console.log('"5" + 2 + 3 =', result1);
 console.log('2 + 3 + "5" =', result2);`,
+      codeSamples: [
+        {
+          title: 'Example 1: Variable Self-Increment Assignment',
+          description: 'Evaluating right side expression then storing into target variable.',
+          code: `let x = 10;
+x = x + 5; // x becomes 15
+x += 10;   // compound assignment: x becomes 25
+
+console.log("Final computed x:", x);`
+        },
+        {
+          title: 'Example 2: Left-to-Right Evaluation Order with Strings',
+          description: 'How placement of strings changes numbers into text concatenation.',
+          code: `// Number first: 2 + 3 evaluates to 5, then + "5" becomes "55"
+let numFirst = 2 + 3 + "5";
+
+// String first: "5" + 2 becomes "52", then + 3 becomes "523"
+let strFirst = "5" + 2 + 3;
+
+console.log('2 + 3 + "5" =', numFirst);
+console.log('"5" + 2 + 3 =', strFirst);`
+        }
+      ],
       keyTakeaway: 'The "=" operator assigns values. The "+" operator performs addition for numbers, but concatenates if any operand is a string.'
     },
     {
       id: 'card-3-11',
       title: 'JavaScript let & Block Scope',
-      description: 'The let keyword was introduced in ES6 (2015).\n\nKey rules for let:\n• Variables declared with let have Block Scope.\n• Variables declared with let must be declared before use.\n• Variables declared with let cannot be redeclared in the same scope.\n\nBlock Scope:\nBefore ES6 (2015), JavaScript only had Global Scope and Function Scope. ES6 introduced Block Scope.\n\nVariables declared inside a { } block cannot be accessed from outside the block:\n{ let x = 2; } // x can NOT be used here',
+      description: 'The `let` keyword was introduced in ES6 (2015).\n\nKey rules for `let`:\n• Variables declared with `let` have Block Scope.\n• Variables declared with `let` must be declared before use.\n• Variables declared with `let` cannot be redeclared in the same scope.\n\nBlock Scope:\nBefore ES6 (2015), JavaScript only had Global Scope and Function Scope. ES6 introduced Block Scope.\n\nVariables declared inside a `{ }` block cannot be accessed from outside the block:\n`{ let x = 2; }` // x can NOT be used here',
       analogy: 'Block scope is like a conference room with frosted glass: items placed inside the room are invisible to people in the outside hallway.',
       codeSample: `// 1. Block Scope demonstration:
 {
@@ -239,12 +463,36 @@ let studentScore = 85;
 // Reassignment is completely allowed:
 studentScore = 90;
 console.log("Updated score:", studentScore);`,
+      codeSamples: [
+        {
+          title: 'Example 1: Block Scope Isolation',
+          description: 'Variables declared with let inside curly brackets { } cannot leak outside.',
+          code: `let globalMsg = "Global Message";
+
+{
+  let innerMsg = "Confined to this block";
+  console.log("Inside block:", globalMsg, "|", innerMsg);
+}
+
+console.log("Outside block:", globalMsg);
+// innerMsg cannot be accessed out here!`
+        },
+        {
+          title: 'Example 2: Reassignment vs Illegal Redeclaration',
+          description: 'let allows updating values, but prohibits duplicate declaration names.',
+          code: `let points = 100;
+points = 150; // Allowed: reassignment
+console.log("Points updated:", points);
+
+// let points = 200; // SyntaxError: Identifier 'points' has already been declared!`
+        }
+      ],
       keyTakeaway: 'Variables declared with let are confined to their { } block, cannot be redeclared in the same scope, and allow reassignment.'
     },
     {
       id: 'card-3-12',
       title: 'JavaScript const',
-      description: 'The const keyword was introduced in ES6 (2015).\n\nKey rules for const:\n• Variables defined with const cannot be Redeclared.\n• Variables defined with const cannot be Reassigned.\n• Variables defined with const have Block Scope.\n\nMust be Assigned at Declaration:\nJavaScript const variables must be assigned a value when they are declared:\nCorrect: const PI = 3.14159;\nIncorrect: const PI; PI = 3.14159; (SyntaxError!)\n\nWhen to Use JavaScript const?\nAlways declare a variable with const when you know that the value should not be changed.\nUse const when you declare:\n• A new Array\n• A new Object\n• A new Function\n• A new RegExp',
+      description: 'The `const` keyword was introduced in ES6 (2015).\n\nKey rules for `const`:\n• Variables defined with `const` cannot be Redeclared.\n• Variables defined with `const` cannot be Reassigned.\n• Variables defined with `const` have Block Scope.\n\nMust be Assigned at Declaration:\nJavaScript `const` variables must be assigned a value when they are declared:\nCorrect: `const PI = 3.14159;`\nIncorrect: `const PI; PI = 3.14159;` (SyntaxError!)\n\nWhen to Use JavaScript const?\nAlways declare a variable with `const` when you know that the value should not be changed.\nUse `const` when you declare:\n• A new Array\n• A new Object\n• A new Function\n• A new RegExp',
       analogy: 'A const declaration is engraving letters into stone: the plaque cannot be swapped for a different one, though you can polish what is engraved.',
       codeSample: `const PI = 3.141592653589793;
 // PI = 3.14; // TypeError: Assignment to constant variable!
@@ -258,12 +506,35 @@ cars[0] = "Toyota";     // Allowed!
 
 console.log("PI:", PI);
 console.log("Cars:", cars);`,
+      codeSamples: [
+        {
+          title: 'Example 1: Primitive Value Immutability with const',
+          description: 'Numbers, strings, and booleans locked with const cannot be overwritten.',
+          code: `const API_ENDPOINT = "https://api.example.com/v1";
+console.log("API URL:", API_ENDPOINT);
+
+// API_ENDPOINT = "https://other.com"; // TypeError: Assignment to constant variable!`
+        },
+        {
+          title: 'Example 2: Modifying Contents of const Arrays and Objects',
+          description: 'const locks the memory reference, but allows mutating internal properties or items.',
+          code: `const student = { name: "Maria", score: 88 };
+student.score = 95; // Completely valid! Mutating internal property
+student.honorRoll = true;
+
+const subjects = ["Math", "Science"];
+subjects.push("English"); // Completely valid! Appending to array
+
+console.log("Updated Student:", student);
+console.log("Updated Subjects:", subjects);`
+        }
+      ],
       keyTakeaway: 'const creates an immutable reference binding that must be initialized immediately and cannot be reassigned.'
     },
     {
       id: 'card-3-13',
       title: 'The 8 JavaScript Datatypes',
-      description: 'A JavaScript variable can hold 8 types of data:\n\n1. String — Text characters enclosed in quotes\n2. Number — Mathematical numbers (integers & floats)\n3. BigInt — Large integers beyond safe Number limits\n4. Boolean — Logical values: true or false\n5. Object — Collections of key-value pairs, arrays, and dates\n6. Undefined — Primitive variable with no assigned value\n7. Null — Primitive value representing intentional object absence\n8. Symbol — Unique, immutable primitive identifier',
+      description: 'A JavaScript variable can hold 8 types of data:\n\n1. `String` — Text characters enclosed in quotes\n2. `Number` — Mathematical numbers (integers & floats)\n3. `BigInt` — Large integers beyond safe Number limits\n4. `Boolean` — Logical values: `true` or `false`\n5. `Object` — Collections of key-value pairs, arrays, and dates\n6. `Undefined` — Primitive variable with no assigned value\n7. `Null` — Primitive value representing intentional object absence\n8. `Symbol` — Unique, immutable primitive identifier',
       analogy: 'The 8 data types are like different storage bins: text envelopes, numeric counters, boolean on/off switches, and multifaceted toolboxes.',
       codeSample: `// 1. String
 let color = "Yellow";
@@ -285,12 +556,44 @@ let emptyRef = null;
 const secretKey = Symbol("id");
 
 console.log(color, length, isActive, person.firstName, cars[1]);`,
+      codeSamples: [
+        {
+          title: 'Example 1: The 7 Primitive Types in Action',
+          description: 'Exploring all 7 primitive data values in JavaScript.',
+          code: `let str = "FlexScript";
+let num = 42;
+let bigIntVal = 9007199254740995n;
+let isReady = true;
+let empty = null;
+let notSet;
+let uniqueId = Symbol("account");
+
+console.log("String:", str);
+console.log("Number:", num);
+console.log("BigInt:", bigIntVal);
+console.log("Boolean:", isReady);
+console.log("Null:", empty);
+console.log("Undefined:", notSet);
+console.log("Symbol:", uniqueId.toString());`
+        },
+        {
+          title: 'Example 2: Complex Objects (Literals, Arrays, Dates)',
+          description: 'Reference types storing structured collections of data.',
+          code: `const user = { name: "Zaha", role: "Admin" };
+const roles = ["Student", "Instructor", "Admin"];
+const createdDate = new Date();
+
+console.log("Object:", user);
+console.log("Array:", roles);
+console.log("Date:", createdDate.toDateString());`
+        }
+      ],
       keyTakeaway: 'JavaScript features 7 primitive data types plus the Object reference type for collections and complex data structures.'
     },
     {
       id: 'card-3-14',
       title: 'The typeof Operator',
-      description: 'You can use the JavaScript typeof operator to find the type of a JavaScript variable or expression.\n\nThe typeof operator returns the type as a string:\n• typeof "" returns "string"\n• typeof "John" returns "string"\n• typeof 0 returns "number"\n• typeof 314 returns "number"\n• typeof 3.14 returns "number"\n• typeof (3 + 4) returns "number"',
+      description: 'You can use the JavaScript `typeof` operator to find the type of a JavaScript variable or expression.\n\nThe `typeof` operator returns the type as a string:\n• `typeof ""` returns `"string"`\n• `typeof "John"` returns `"string"`\n• `typeof 0` returns `"number"`\n• `typeof 314` returns `"number"`\n• `typeof 3.14` returns `"number"`\n• `typeof (3 + 4)` returns `"number"`',
       analogy: 'typeof is an inspection scanner that reads a barcode on an item and announces what kind of material it is made of.',
       codeSample: `console.log(typeof "");             // "string"
 console.log(typeof "John");         // "string"
@@ -302,12 +605,30 @@ console.log(typeof true);           // "boolean"
 console.log(typeof undefined);      // "undefined"
 console.log(typeof { name: "Bob" }); // "object"
 console.log(typeof [1, 2, 3]);      // "object" (Arrays are objects)`,
+      codeSamples: [
+        {
+          title: 'Example 1: Inspecting Primitives with typeof',
+          description: 'Evaluating primitive data types with the typeof operator.',
+          code: `console.log('typeof "John":', typeof "John");
+console.log('typeof 3.14159:', typeof 3.14159);
+console.log('typeof true:', typeof true);
+console.log('typeof undefined:', typeof undefined);`
+        },
+        {
+          title: 'Example 2: Objects, Arrays, and Null with typeof',
+          description: 'Historical quirk: typeof null returns "object", and arrays are also objects.',
+          code: `console.log("typeof {}:", typeof {});
+console.log("typeof []:", typeof []); // Arrays return "object"
+console.log("typeof null:", typeof null); // Returns "object" (legacy quirk!)
+console.log("Array.isArray([]):", Array.isArray([])); // Correct way to test array!`
+        }
+      ],
       keyTakeaway: 'The typeof operator inspects variables and expressions, returning a lowercase string indicating their data type.'
     },
     {
       id: 'card-3-15',
       title: 'JavaScript Strings',
-      description: 'A string (a text string) is a series of characters like "John Doe".\n\nStrings are written with quotes. You can use single or double quotes:\n• let carName1 = "Volvo XC60";\n• let carName2 = \'Volvo XC60\';\n\nYou can use quotes inside a string, as long as they don\'t match the quotes surrounding the string:\n• Single quote inside double quotes: let answer1 = "It\'s alright";\n• Single quotes inside double quotes: let answer2 = "He is called \'Johnny\'";\n• Double quotes inside single quotes: let answer3 = \'He is called "Johnny"\';',
+      description: 'A string (a text string) is a series of characters like `"John Doe"`.\n\nStrings are written with quotes. You can use single or double quotes:\n• `let carName1 = "Volvo XC60";`\n• `let carName2 = \'Volvo XC60\';`\n\nYou can use quotes inside a string, as long as they don\'t match the quotes surrounding the string:\n• Single quote inside double quotes: `let answer1 = "It\'s alright";`\n• Single quotes inside double quotes: `let answer2 = "He is called \'Johnny\'";`\n• Double quotes inside single quotes: `let answer3 = \'He is called "Johnny"\';`',
       analogy: 'Quotes inside strings are like dialogue inside quotation marks: alternate single and double quotes so the reader knows where speech begins and ends.',
       codeSample: `// Using double quotes:
 let carName1 = "Volvo XC60";
@@ -324,12 +645,33 @@ console.log(carName1);
 console.log(answer1);
 console.log(answer2);
 console.log(answer3);`,
+      codeSamples: [
+        {
+          title: 'Example 1: Single vs Double Quoted Strings',
+          description: 'Both quote types create identical string primitives in JavaScript.',
+          code: `let brand = "Toyota";
+let model = 'Corolla';
+
+console.log("Brand:", brand);
+console.log("Model:", model);
+console.log("Are string types identical?", typeof brand === typeof model);`
+        },
+        {
+          title: 'Example 2: Nesting Quotes Inside Strings',
+          description: 'Alternating quotes to cleanly embed quotes within text without escaping.',
+          code: `let sentence1 = "It's a wonderful day for coding!";
+let sentence2 = 'The instructor said: "Always use const by default."';
+
+console.log(sentence1);
+console.log(sentence2);`
+        }
+      ],
       keyTakeaway: 'Strings represent text and can be wrapped in single or double quotes. Alternate quote types to embed quotes inside text.'
     },
     {
       id: 'card-3-16',
       title: 'JavaScript Numbers & Scientific Notation',
-      description: 'All JavaScript numbers are stored as decimal numbers (floating point).\n\nNumbers can be written with or without decimals:\n• With decimals: let x1 = 34.00;\n• Without decimals: let x2 = 34;\n\nExponential Notation:\nExtra large or extra small numbers can be written with scientific (exponential) notation:\n• let y = 123e5;  // 12300000\n• let z = 123e-5; // 0.00123',
+      description: 'All JavaScript numbers are stored as decimal numbers (floating point).\n\nNumbers can be written with or without decimals:\n• With decimals: `let x1 = 34.00;`\n• Without decimals: `let x2 = 34;`\n\nExponential Notation:\nExtra large or extra small numbers can be written with scientific (exponential) notation:\n• `let y = 123e5;`  // 12300000\n• `let z = 123e-5;` // 0.00123',
       analogy: 'Scientific notation is like writing distances in kilometers instead of millimeters: it uses a compact exponent instead of writing rows of zeros.',
       codeSample: `// Decimal numbers:
 let x1 = 34.00;
@@ -342,12 +684,33 @@ let z = 123e-5;  // 123 * 10^-5 = 0.00123
 console.log(x1, x2);
 console.log("123e5 =", y);
 console.log("123e-5 =", z);`,
+      codeSamples: [
+        {
+          title: 'Example 1: Floating Point Decimals and Integers',
+          description: 'JavaScript stores all numbers as 64-bit IEEE-754 floating point.',
+          code: `let wholeNumber = 42;
+let preciseDecimal = 99.985;
+
+console.log("Whole Number:", wholeNumber);
+console.log("Decimal:", preciseDecimal);
+console.log("Calculated Product:", (wholeNumber * preciseDecimal).toFixed(2));`
+        },
+        {
+          title: 'Example 2: Scientific (Exponential) Notation (e5, e-5)',
+          description: 'Representing millions and decimals compactly with exponential notation.',
+          code: `let speedOfLight = 3e8; // 3 * 10^8 = 300,000,000 m/s
+let smallMicrogram = 5e-4; // 0.0005
+
+console.log("Speed of light (3e8):", speedOfLight, "m/s");
+console.log("Small quantity (5e-4):", smallMicrogram);`
+        }
+      ],
       keyTakeaway: 'JavaScript numbers are all 64-bit floating point, supporting decimals and exponential notation (e) for large and small values.'
     },
     {
       id: 'card-3-17',
       title: 'JavaScript Booleans & Comparisons',
-      description: 'JavaScript booleans can only have one of two values: true or false.\n\nThe boolean value of an expression is the basis for JavaScript comparisons and decision making.\n\nComparison operators always return true or false:\n• Equal to: (x == 8)\n• Not equal to: (x != 8)\n• Greater than: (x > 8)\n• Less than: (x < 8)',
+      description: 'JavaScript booleans can only have one of two values: `true` or `false`.\n\nThe boolean value of an expression is the basis for JavaScript comparisons and decision making.\n\nComparison operators always return `true` or `false`:\n• Equal to: `(x == 8)`\n• Not equal to: `(x != 8)`\n• Greater than: `(x > 8)`\n• Less than: `(x < 8)`',
       analogy: 'Booleans are like a light switch: it can strictly only be in one of two states—ON (true) or OFF (false).',
       codeSample: `let x = 5;
 
@@ -359,12 +722,32 @@ console.log("x < 8:", x < 8);   // true
 // Comparison assignment:
 let hasPassed = x >= 5;
 console.log("Has passed:", hasPassed); // true`,
+      codeSamples: [
+        {
+          title: 'Example 1: Comparison Operators (==, !=, >, <)',
+          description: 'Comparing numeric values to evaluate boolean expressions.',
+          code: `let userScore = 85;
+
+console.log("Score >= 75 (Passing):", userScore >= 75);
+console.log("Score === 100 (Perfect):", userScore === 100);
+console.log("Score < 50 (Failing):", userScore < 50);`
+        },
+        {
+          title: 'Example 2: Strict Equality (===) vs Loose Equality (==)',
+          description: 'Strict equality (===) compares both value AND type without type coercion.',
+          code: `let num = 5;
+let str = "5";
+
+console.log("Loose equality (5 == '5'):", num == str);   // true (coerced)
+console.log("Strict equality (5 === '5'):", num === str); // false (different types!)`
+        }
+      ],
       keyTakeaway: 'Booleans represent binary true or false truth values, produced by logical evaluations and comparison operators.'
     },
     {
       id: 'card-3-18',
       title: 'Datatype undefined & Empty Values',
-      description: 'In computer programs, variables are often declared without a value. The value can be something that has to be calculated, or something that will be provided later, like user input.\n\n• A variable without a value has the datatype undefined.\n• A variable without a value also has the value undefined.\nlet carName; // value is undefined, typeof is "undefined"\n\nEmpty Values:\nAn empty value has nothing to do with undefined.\nAn empty string has both a legal value and a type:\nlet car = ""; // value is "", typeof is "string"',
+      description: 'In computer programs, variables are often declared without a value. The value can be something that has to be calculated, or something that will be provided later, like user input.\n\n• A variable without a value has the datatype `undefined`.\n• A variable without a value also has the value `undefined`.\n`let carName;` // value is undefined, typeof is "undefined"\n\nEmpty Values:\nAn empty value has nothing to do with `undefined`.\nAn empty string has both a legal value and a type:\n`let car = "";` // value is "", typeof is "string"',
       analogy: 'An undefined variable is an empty box with no contents; an empty string is an envelope containing a blank sheet of paper.',
       codeSample: `// Undefined variable (declared with no value):
 let carName;
@@ -378,6 +761,27 @@ console.log("car typeof:", typeof car);          // "string"
 console.log("car length:", car.length);          // 0
 
 console.log("Is carName equal to car?", carName == car); // false`,
+      codeSamples: [
+        {
+          title: 'Example 1: Undefined Variable State',
+          description: 'A declared variable without initialization has value and type undefined.',
+          code: `let pendingProfile;
+
+console.log("Value:", pendingProfile);
+console.log("Type:", typeof pendingProfile);
+console.log("Is it equal to undefined?", pendingProfile === undefined);`
+        },
+        {
+          title: 'Example 2: Empty String vs Undefined',
+          description: 'An empty string is an initialized, valid string of length 0.',
+          code: `let emptyInput = "";
+
+console.log("emptyInput value:", JSON.stringify(emptyInput));
+console.log("emptyInput type:", typeof emptyInput);
+console.log("emptyInput length:", emptyInput.length);
+console.log("emptyInput === undefined:", emptyInput === undefined); // false`
+        }
+      ],
       keyTakeaway: 'An unassigned variable has both value and type undefined, whereas an empty string ("") is a valid string with length 0.'
     }
   ],

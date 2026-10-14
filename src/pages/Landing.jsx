@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Sun, Moon, BookOpen, Code2, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Sun, Moon, BookOpen, Code2, CheckCircle2, Clock } from 'lucide-react';
 import TechText from '../components/ui/TechText';
 import PageLoading from '../components/ui/PageLoading';
-import { SYLLABUS_OBJECTIVES } from '../data/datasets';
+import { 
+  SYLLABUS_OBJECTIVES,
+  TOTAL_COURSE_DURATION,
+  TOTAL_COURSE_HOURS_DECIMAL
+} from '../data/datasets';
 
 export default function Landing({ theme, setTheme, student }) {
   const isDark = theme === 'dark';
@@ -112,13 +116,18 @@ export default function Landing({ theme, setTheme, student }) {
           </div>
         </div>
 
-        {/* 3 Minimal Pillar Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* 4 Minimal Pillar Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
               icon: BookOpen,
               title: `${SYLLABUS_OBJECTIVES.length} Core Chapters`,
               desc: 'Structured sequential syllabus covering syntax, control flow, functions, arrays, DOM, and async JavaScript.'
+            },
+            {
+              icon: Clock,
+              title: '13+ Hour Course',
+              desc: 'Comprehensive progress-tracked curriculum spanning over 13 hours across all 26 core syllabus chapters.'
             },
             {
               icon: Code2,

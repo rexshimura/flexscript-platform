@@ -13,14 +13,39 @@ import {
   Layout as LayoutIcon,
   Columns2,
   Rows2,
+  PanelTop,
+  PanelBottom,
   Zap,
   BookOpen,
   Globe,
   ZoomIn,
   ZoomOut,
   LayoutList,
-  List
+  List,
+  Brackets,
+  Repeat,
+  GitFork,
+  FunctionSquare,
+  Braces,
+  CircleDot,
+  Map as MapIcon,
+  BarChart3
 } from 'lucide-react';
+import { TEMPLATE_CATEGORIES, TEMPLATES_BY_CATEGORY } from '../data/playgroundTemplates';
+
+// Category icon and description mapping for space-saving template navigation
+const CATEGORY_ICONS = {
+  simple: Zap,
+  arrays: Brackets,
+  loops: Repeat,
+  conditions: GitFork,
+  functions: FunctionSquare,
+  objects: Braces,
+  sets: CircleDot,
+  maps: MapIcon,
+  charts: BarChart3,
+  html: Globe
+};
 
 // Lightweight, safe syntax highlighter for JavaScript and HTML snippets
 const escapeHtml = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -58,357 +83,7 @@ const highlightSyntax = (rawCode, isDark) => {
   );
 };
 
-// --- CODE TEMPLATES LIBRARY ---
-const MICRO_PRESETS = [
-  {
-    id: 'first-html-js',
-    name: 'My First JS (HTML + JS)',
-    code: `<!DOCTYPE html>
-<html>
-<body>
-
-<h1>My First JavaScript</h1>
-
-<button type="button"
-onclick="document.getElementById('demo').innerHTML = Date()">
-Click me to display Date and Time.</button>
-
-<p id="demo"></p>
-
-</body>
-</html>`
-  },
-  {
-    id: 'hello',
-    name: 'Hello World',
-    code: `// 1. Hello World
-console.log('Hello, World!');
-console.log('Welcome to FlexScript!');`
-  },
-  {
-    id: 'add',
-    name: 'Simple Addition',
-    code: `// 2. Simple Addition
-const x = 15;
-const y = 25;
-console.log(\`\${x} + \${y} =\`, x + y);`
-  },
-  {
-    id: 'string',
-    name: 'Template Literal',
-    code: `// 3. Template Literals & Strings
-const student = 'Yi Zaha';
-const course = 'BSIT 4-B';
-console.log(\`Student \${student} is enrolled in \${course}.\`);`
-  },
-  {
-    id: 'evenodd',
-    name: 'Even or Odd',
-    code: `// 4. Check Even or Odd
-const num = 14;
-const isEven = num % 2 === 0;
-console.log(\`\${num} is \${isEven ? 'EVEN' : 'ODD'}\`);`
-  },
-  {
-    id: 'ifelse',
-    name: 'Simple If-Else',
-    code: `// 5. Basic Decision Logic
-const score = 84;
-if (score >= 75) {
-  console.log('Score:', score, '-> PASSED');
-} else {
-  console.log('Score:', score, '-> FAILED');
-}`
-  },
-  {
-    id: 'arrow',
-    name: 'Arrow Function',
-    code: `// 6. Arrow Function Expression
-const double = (n) => n * 2;
-console.log('Double of 10 is:', double(10));
-console.log('Double of 25 is:', double(25));`
-  },
-  {
-    id: 'array',
-    name: 'Simple Array',
-    code: `// 7. Array List & Length
-const colors = ['Emerald', 'Sapphire', 'Ruby'];
-colors.push('Amber');
-console.log('Color List:', colors);
-console.log('Total Colors:', colors.length);`
-  },
-  {
-    id: 'object',
-    name: 'Simple Object',
-    code: `// 8. Key-Value Object
-const user = { username: 'YiZaha', role: 'Student', level: 1 };
-console.log('Username:', user.username);
-console.log('Role:', user.role);`
-  },
-  {
-    id: 'loop',
-    name: 'Simple Loop',
-    code: `// 9. Simple For Loop Counter
-for (let i = 1; i <= 5; i++) {
-  console.log('Step', i);
-}`
-  },
-  {
-    id: 'typeof',
-    name: 'Type Checking',
-    code: `// 10. Type Inspection (typeof)
-console.log('typeof 100 ->', typeof 100);
-console.log('typeof "code" ->', typeof "code");
-console.log('typeof true ->', typeof true);`
-  }
-];
-
-const CURRICULUM_PRESETS = [
-  {
-    id: 'math',
-    name: 'Basic Math & Calc',
-    code: `// --- BASIC JAVASCRIPT MATH & ARITHMETIC ---
-console.log('--- 1. Basic Arithmetic Operations ---');
-
-const a = 24;
-const b = 7;
-
-console.log(\`\${a} + \${b} (Addition) =\`, a + b);
-console.log(\`\${a} - \${b} (Subtraction) =\`, a - b);
-console.log(\`\${a} * \${b} (Multiplication) =\`, a * b);
-console.log(\`\${a} / \${b} (Division) =\`, Number((a / b).toFixed(2)));
-console.log(\`\${a} % \${b} (Modulus / Remainder) =\`, a % b);
-console.log(\`2 ** 5 (Exponentiation 2^5) =\`, 2 ** 5);
-
-console.log('\\n--- 2. Built-in Math Object Methods ---');
-console.log('Math.round(4.7) ->', Math.round(4.7)); // 5
-console.log('Math.floor(4.9) ->', Math.floor(4.9)); // 4
-console.log('Math.ceil(4.1) ->', Math.ceil(4.1));   // 5
-console.log('Math.sqrt(144) ->', Math.sqrt(144));   // 12
-console.log('Math.max(15, 88, 42, 99) ->', Math.max(15, 88, 42, 99)); // 99
-
-// Generate a random integer between 1 and 100
-const diceRoll = Math.floor(Math.random() * 100) + 1;
-console.info('Random Value Generated (1-100):', diceRoll);
-
-return { sum: a + b, product: a * b, diceRoll };`
-  },
-  {
-    id: 'variables',
-    name: 'Variables & Scope',
-    code: `// Chapter 2: Variables, Scoping & Immutability
-console.log('--- Variable Scoping Demonstration ---');
-
-const MAX_STUDENTS = 40;
-let currentEnrollment = 38;
-currentEnrollment += 2; // Incremented to 40
-
-if (true) {
-  let blockScoped = 'Only accessible inside this block';
-  var functionScoped = 'Leaked outside block scope (legacy var)';
-  console.log('Inside Block:', blockScoped);
-}
-
-console.log('Outside Block:', functionScoped);
-
-// Object Destructuring & Rest Syntax:
-const studentRecord = {
-  id: '0000001',
-  name: 'Alexander Vance',
-  section: 'BSIT 4-B',
-  grades: [95, 92, 98]
-};
-
-const { name, section, ...rest } = studentRecord;
-console.log(\`Student: \${name} | Section: \${section}\`);
-console.log('Remaining Metadata:', rest);`
-  },
-  {
-    id: 'conditionals',
-    name: 'Student Grading System',
-    code: `// --- CONDITIONALS & DECISION LOGIC ---
-console.log('--- Academic Grade Evaluation System ---');
-
-const studentName = 'Yi Zaha';
-const prelimGrade = 88;
-const midtermGrade = 92;
-const finalGrade = 86;
-
-const weightedAverage = Math.round((prelimGrade + midtermGrade + finalGrade) / 3);
-console.log(\`Computed Final Grade for \${studentName}: \${weightedAverage}%\`);
-
-let letterGrade = '';
-let standing = '';
-
-if (weightedAverage >= 95) {
-  letterGrade = '1.0 (A+)';
-  standing = "President's Lister";
-} else if (weightedAverage >= 90) {
-  letterGrade = '1.25 (A)';
-  standing = "Dean's Lister";
-} else if (weightedAverage >= 85) {
-  letterGrade = '1.5 (B+)';
-  standing = 'Academic Honor Roll';
-} else if (weightedAverage >= 75) {
-  letterGrade = '2.0 (C)';
-  standing = 'Passed';
-} else {
-  letterGrade = '5.0 (F)';
-  standing = 'Remedial Required';
-}
-
-console.info(\`Academic Standing: Grade \${letterGrade} - \${standing}\`);
-
-const certificateEligible = weightedAverage >= 75 ? 'ELIGIBLE' : 'NOT ELIGIBLE';
-console.log(\`Certificate Status: \${certificateEligible}\`);
-
-return { student: studentName, average: \`\${weightedAverage}%\`, grade: letterGrade };`
-  },
-  {
-    id: 'arrays',
-    name: 'Array Pipeline (.map/.filter)',
-    code: `// Chapter 6: Higher-Order Array Operations (.map, .filter, .reduce)
-const studentRoster = [
-  { id: '0000001', name: 'Alexander Vance', score: 94 },
-  { id: '1339523', name: 'John Paul Mahilom', score: 98 },
-  { id: '122-049', name: 'Rex Mahilom', score: 91 },
-  { id: '2026-01', name: 'Third Student', score: 68 }
-];
-
-console.log('Initial Roster:', studentRoster);
-
-// 1. Filter: Passing students (score >= 75)
-const passers = studentRoster.filter(s => s.score >= 75);
-console.log('Passing Students:', passers);
-
-// 2. Reduce: Calculate total and average class score
-const totalPoints = passers.reduce((sum, s) => sum + s.score, 0);
-const classAverage = (totalPoints / passers.length).toFixed(2);
-
-console.log(\`Total Points: \${totalPoints} | Class Average: \${classAverage}%\`);
-
-return { totalPassers: passers.length, classAverage: \`\${classAverage}%\` };`
-  },
-  {
-    id: 'async',
-    name: 'Async & Fetch Simulation',
-    code: `// Chapter 10: Asynchronous JavaScript (Promises & async/await)
-console.log('1. Initiating asynchronous simulated SIS authentication...');
-
-const fakeAuthRequest = (studentId) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        status: 'SUCCESS',
-        studentId,
-        role: 'Verified Student',
-        enrolled: 'JavaScript Programming',
-        timestamp: new Date().toLocaleTimeString()
-      });
-    }, 500);
-  });
-};
-
-// Top-level await is fully supported:
-console.log('2. Awaiting network response...');
-const authData = await fakeAuthRequest('0000001');
-
-console.info('3. Network Handshake Completed:', authData);
-console.log('4. Done! Script execution finished.');
-
-return \`Authenticated student \${authData.studentId} successfully.\`;`
-  },
-  {
-    id: 'dom',
-    name: 'Live DOM Sandbox',
-    code: `// Chapter 8: Live DOM Manipulation
-// The 'sandbox' variable points directly to the Sandbox Preview container!
-
-if (sandbox) {
-  sandbox.innerHTML = \`
-    <div style="padding: 16px; border: 2px dashed #10b981; border-radius: 12px; text-align: center;">
-      <h3 style="margin: 0 0 6px 0; color: #10b981; font-size: 15px;">Live DOM Sandbox Active</h3>
-      <p style="margin: 0 0 10px 0; font-size: 12px; opacity: 0.8;">
-        Elements created and mounted dynamically via JavaScript compiler.
-      </p>
-      <button id="counter-btn" style="padding: 6px 14px; background: #10b981; color: #000; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">
-        Click Me: 0 Clicks
-      </button>
-    </div>
-  \`;
-
-  let clicks = 0;
-  const btn = sandbox.querySelector('#counter-btn');
-  btn.addEventListener('click', () => {
-    clicks++;
-    btn.textContent = \`Click Me: \${clicks} Clicks\`;
-    console.log(\`DOM Button clicked! Total clicks: \${clicks}\`);
-  });
-
-  console.log('DOM Sandbox rendered! Switch to the DOM Sandbox tab to interact.');
-}`
-  },
-  {
-    id: 'html-css',
-    name: 'Raw HTML + CSS + JS',
-    code: `<!-- Full HTML, CSS & JavaScript Sandbox Component -->
-<style>
-  .preview-card {
-    padding: 20px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #059669, #10b981);
-    color: #ffffff;
-    font-family: system-ui, sans-serif;
-    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
-  }
-  .preview-card h2 {
-    margin: 0 0 8px 0;
-    font-size: 18px;
-    font-weight: 700;
-  }
-  .preview-card p {
-    margin: 0 0 14px 0;
-    font-size: 13px;
-    opacity: 0.95;
-    line-height: 1.5;
-  }
-  .action-btn {
-    background: #ffffff;
-    color: #065f46;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 13px;
-    cursor: pointer;
-    transition: transform 0.15s ease, background 0.15s ease;
-  }
-  .action-btn:hover {
-    background: #f0fdf4;
-    transform: translateY(-1px);
-  }
-</style>
-
-<div class="preview-card">
-  <h2>FlexScript Live Web Component</h2>
-  <p id="status-text">HTML defines the skeleton, CSS provides the style, and JS adds interactivity!</p>
-  <button class="action-btn" id="interactive-btn">Click Me (Run JS)</button>
-</div>
-
-<script>
-  console.log('HTML and CSS component mounted successfully!');
-  const btn = sandbox.querySelector('#interactive-btn');
-  const status = sandbox.querySelector('#status-text');
-  let clickCount = 0;
-
-  btn.addEventListener('click', () => {
-    clickCount++;
-    status.textContent = \`Interactive update! Total button clicks: \${clickCount}\`;
-    console.log('Interactive button clicked, count =', clickCount);
-  });
-</script>`
-  }
-];
+// Note: Template presets library is modularized in src/data/playgroundTemplates.js (10 categories, 120 samples)
 
 // Helper to determine if code is HTML or CSS vs pure JavaScript
 const checkIsHtmlOrCss = (c) => {
@@ -417,7 +92,8 @@ const checkIsHtmlOrCss = (c) => {
   return (
     /^\s*<(!DOCTYPE|!--|[a-zA-Z][a-zA-Z0-9:-]*)\b/i.test(trimmed) ||
     /(<(!DOCTYPE|!--|html|head|body|style|script|div|p|h[1-6]|span|button|form|input|section|article|nav|header|footer|ul|ol|li|table|canvas|svg|a|img|link)\b)/i.test(c) ||
-    /^\s*(?:[.#]?[a-zA-Z0-9_-]+|\*|body|html)\s*\{[\s\S]*?\}/.test(trimmed)
+    /^\s*(?:[.#]?[a-zA-Z0-9_-]+|\*|body|html)\s*\{[\s\S]*?\}/.test(trimmed) ||
+    /\b(?:Plotly\.newPlot|new\s+Chart|google\.charts|d3\.select|getContext\s*\(\s*['"]2d['"]|requestAnimationFrame)\b/.test(c)
   );
 };
 
@@ -453,12 +129,75 @@ const buildPreviewDoc = (rawCode) => {
   } else if (/<!DOCTYPE/i.test(fullHtml)) {
     fullHtml = fullHtml.replace(/(<!DOCTYPE[^>]*>)/i, '$1\n<head>' + consoleScript + '</head>');
   } else {
-    // Fragment or CSS
-    let bodyContent = rawCode;
-    if (!/<(!DOCTYPE|!--|[a-zA-Z][a-zA-Z0-9:-]*)\b/i.test(trimmedCode) && /\{[\s\S]*?\}/.test(trimmedCode)) {
-      bodyContent = `<style>${rawCode}</style>\n<div style="padding: 16px; border: 1px dashed #10b981; border-radius: 8px;"><h3>Live CSS Component Preview</h3><p>Your styles have been applied to this preview canvas.</p></div>`;
+    // Check if snippet contains HTML tags
+    const hasHtmlTags = /<(!DOCTYPE|!--|[a-zA-Z][a-zA-Z0-9:-]*)\b/i.test(trimmedCode);
+    const isCssOnly = !hasHtmlTags && /\{[\s\S]*?\}/.test(trimmedCode) && /^\s*(?:[.#]?[a-zA-Z0-9_-]+|\*|body|html)\s*\{/.test(trimmedCode);
+
+    if (isCssOnly) {
+      const bodyContent = `<style>${rawCode}</style>\n<div style="padding: 16px; border: 1px dashed #10b981; border-radius: 8px;"><h3>Live CSS Component Preview</h3><p>Your styles have been applied to this preview canvas.</p></div>`;
+      fullHtml = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n${consoleScript}\n<style>body { font-family: system-ui, -apple-system, sans-serif; margin: 16px; }</style>\n</head>\n<body>\n${bodyContent}\n</body>\n</html>`;
+    } else if (hasHtmlTags) {
+      fullHtml = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n${consoleScript}\n<style>body { font-family: system-ui, -apple-system, sans-serif; margin: 16px; }</style>\n</head>\n<body>\n${rawCode}\n</body>\n</html>`;
+    } else {
+      // Pure JavaScript: auto-inject CDN libraries if detected and provide a canvas/chart mount root
+      const needsChartJs = /\b(?:Chart|new\s+Chart)\b/.test(rawCode);
+      const needsPlotly = /\bPlotly\b/.test(rawCode);
+      const needsD3 = /\bd3\b/.test(rawCode);
+      const needsGoogleCharts = /\bgoogle\.charts\b/.test(rawCode);
+
+      let cdnScripts = '';
+      if (needsChartJs) cdnScripts += '<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>\n';
+      if (needsPlotly) cdnScripts += '<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>\n';
+      if (needsD3) cdnScripts += '<script src="https://d3js.org/d3.v7.min.js"></script>\n';
+      if (needsGoogleCharts) cdnScripts += '<script src="https://www.gstatic.com/charts/loader.js"></script>\n';
+
+      const bodyContent = `
+        ${cdnScripts}
+        <div id="sandbox-root" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; width: 100%; min-height: 200px;">
+          <canvas id="myCanvas" width="400" height="250" style="max-width: 100%; border-radius: 8px;"></canvas>
+          <div id="chart-div" style="width: 100%; max-width: 600px; height: 350px;"></div>
+        </div>
+        <script>
+          (function() {
+            var origCreate = document.createElement.bind(document);
+            document.createElement = function(tag) {
+              var el = origCreate(tag);
+              if (tag && tag.toLowerCase() === 'canvas') {
+                setTimeout(function() {
+                  if (!el.parentNode) {
+                    var root = document.getElementById('sandbox-root') || document.body;
+                    root.appendChild(el);
+                  }
+                }, 0);
+              }
+              return el;
+            };
+
+            var origCreateNS = document.createElementNS.bind(document);
+            document.createElementNS = function(ns, tag) {
+              var el = origCreateNS(ns, tag);
+              if (tag && tag.toLowerCase() === 'svg') {
+                setTimeout(function() {
+                  if (!el.parentNode) {
+                    var root = document.getElementById('sandbox-root') || document.body;
+                    root.appendChild(el);
+                  }
+                }, 0);
+              }
+              return el;
+            };
+
+            try {
+              ${rawCode}
+            } catch(err) {
+              console.error(err);
+            }
+          })();
+        <\/script>
+      `;
+
+      fullHtml = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n${consoleScript}\n<style>body { font-family: system-ui, -apple-system, sans-serif; margin: 16px; }</style>\n</head>\n<body>\n${bodyContent}\n</body>\n</html>`;
     }
-    fullHtml = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n${consoleScript}\n<style>body { font-family: system-ui, -apple-system, sans-serif; margin: 16px; }</style>\n</head>\n<body>\n${bodyContent}\n</body>\n</html>`;
   }
   return fullHtml;
 };
@@ -467,20 +206,26 @@ export default function Playground({ theme }) {
   const isDark = theme === 'dark';
   const location = useLocation();
 
-  const [code, setCode] = useState(() => {
-    const customCode = localStorage.getItem('playground_custom_code');
-    if (customCode) {
-      localStorage.removeItem('playground_custom_code');
-      return customCode;
+  const initialCustomCode = useMemo(() => {
+    try {
+      const saved = localStorage.getItem('playground_custom_code');
+      if (saved) {
+        localStorage.removeItem('playground_custom_code');
+        return saved;
+      }
+    } catch (e) {
+      console.warn('Could not read playground_custom_code', e);
     }
-    return location.state?.code || MICRO_PRESETS[0].code;
-  });
+    return null;
+  }, []);
+
+  const initialCode = initialCustomCode || location.state?.code || TEMPLATES_BY_CATEGORY.simple[0].code;
+
+  const [code, setCode] = useState(initialCode);
 
   // Default to console for pure JS, or Live Preview for HTML/CSS
   const [activeTab, setActiveTab] = useState(() => {
-    const customCode = localStorage.getItem('playground_custom_code');
-    const initial = customCode || location.state?.code || MICRO_PRESETS[0].code;
-    return checkIsHtmlOrCss(initial) ? 'dom' : 'console';
+    return checkIsHtmlOrCss(initialCode) ? 'dom' : 'console';
   });
 
   const [fontSize, setFontSize] = useState(() => {
@@ -504,14 +249,12 @@ export default function Playground({ theme }) {
   };
 
   useEffect(() => {
-    const customCode = localStorage.getItem('playground_custom_code');
-    const codeToSet = customCode || location.state?.code;
-    if (codeToSet) {
-      if (customCode) localStorage.removeItem('playground_custom_code');
-      setCode(codeToSet);
-      const isHtml = checkIsHtmlOrCss(codeToSet);
+    if (location.state?.code) {
+      const newCode = location.state.code;
+      setCode(newCode);
+      const isHtml = checkIsHtmlOrCss(newCode);
       if (isHtml) {
-        setPreviewDoc(buildPreviewDoc(codeToSet));
+        setPreviewDoc(buildPreviewDoc(newCode));
         setActiveTab('dom');
       } else {
         setPreviewDoc('');
@@ -524,13 +267,11 @@ export default function Playground({ theme }) {
   const [isRunning, setIsRunning] = useState(false);
   const [execTime, setExecTime] = useState(null);
   const [previewDoc, setPreviewDoc] = useState(() => {
-    const customCode = localStorage.getItem('playground_custom_code');
-    const initial = customCode || location.state?.code || MICRO_PRESETS[0].code;
-    return checkIsHtmlOrCss(initial) ? buildPreviewDoc(initial) : '';
+    return checkIsHtmlOrCss(initialCode) ? buildPreviewDoc(initialCode) : '';
   });
   const [previewZoom, setPreviewZoom] = useState(100); // 50% to 200%
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'log' | 'warn' | 'error'
-  const [presetCategory, setPresetCategory] = useState('micro'); // 'micro' | 'curriculum'
+  const [presetCategory, setPresetCategory] = useState('simple'); // 'micro' | 'curriculum'
   const [copiedOutput, setCopiedOutput] = useState(false);
 
   // Console display preferences: container boxes and timestamp visibility
@@ -568,7 +309,7 @@ export default function Playground({ theme }) {
     });
   };
 
-  // Layout mode: 'split' (side-by-side) or 'below' (console below script)
+  // Layout mode: 'top' (Output Top), 'split' (Side by Side), or 'below' (Output Below)
   const [layoutMode, setLayoutMode] = useState(() => {
     return localStorage.getItem('playground_layout_mode') || 'split';
   });
@@ -600,14 +341,21 @@ export default function Playground({ theme }) {
 
   const [isTransitioningLayout, setIsTransitioningLayout] = useState(false);
 
-  const toggleLayoutMode = () => {
-    const nextMode = layoutMode === 'split' ? 'below' : 'split';
+  const handleSetLayoutMode = (mode) => {
+    if (mode === layoutMode) return;
     setIsTransitioningLayout(true);
-    setLayoutMode(nextMode);
-    localStorage.setItem('playground_layout_mode', nextMode);
+    setLayoutMode(mode);
+    try { localStorage.setItem('playground_layout_mode', mode); } catch {}
     setTimeout(() => {
       setIsTransitioningLayout(false);
     }, 450);
+  };
+
+  const toggleLayoutMode = () => {
+    const modes = ['top', 'split', 'below'];
+    const currentIndex = modes.indexOf(layoutMode);
+    const nextMode = modes[(currentIndex + 1) % modes.length];
+    handleSetLayoutMode(nextMode);
   };
 
   // Synchronize scroll between line numbers, syntax mirror, and code textarea
@@ -750,6 +498,17 @@ export default function Playground({ theme }) {
     }
   };
 
+  // Auto-run if opened from a topic card snippet (pure JS)
+  const autoRunDoneRef = useRef(false);
+  useEffect(() => {
+    if (initialCustomCode && !autoRunDoneRef.current) {
+      autoRunDoneRef.current = true;
+      if (!checkIsHtmlOrCss(initialCustomCode)) {
+        runCode();
+      }
+    }
+  }, [initialCustomCode]);
+
   const handleClearOutput = () => {
     setOutput([]);
     setExecTime(null);
@@ -810,52 +569,79 @@ export default function Playground({ theme }) {
       </div>
 
       {/* Preset Library Buttons Categorized */}
-      <div className={`p-4 rounded-xl border space-y-3 ${
+      <div className={`p-4 rounded-xl border space-y-3.5 ${
         isDark ? 'bg-zinc-900/30 border-zinc-800' : 'bg-white border-zinc-200'
       }`}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
-            <span className="text-xs font-semibold">Code Templates & Short Starters</span>
+            <Sparkles className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+            <span className="text-xs font-semibold">Code Templates & Starters</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+              isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-zinc-100 text-zinc-600'
+            }`}>
+              120 Samples
+            </span>
           </div>
 
-          {/* Category Switcher Tabs */}
-          <div className={`inline-flex p-0.5 rounded-lg border text-xs ${
-            isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-100 border-zinc-200'
-          }`}>
-            <button
-              onClick={() => setPresetCategory('micro')}
-              className={`px-2.5 py-0.5 rounded-md text-[11px] font-medium transition cursor-pointer ${
-                presetCategory === 'micro'
-                  ? isDark ? 'bg-zinc-800 text-white font-bold' : 'bg-white text-zinc-900 font-bold shadow-xs'
-                  : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
-              }`}
-            >
-              Micro Basics (Short)
-            </button>
-            <button
-              onClick={() => setPresetCategory('curriculum')}
-              className={`px-2.5 py-0.5 rounded-md text-[11px] font-medium transition cursor-pointer ${
-                presetCategory === 'curriculum'
-                  ? isDark ? 'bg-zinc-800 text-white font-bold' : 'bg-white text-zinc-900 font-bold shadow-xs'
-                  : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
-              }`}
-            >
-              Curriculum Demos
-            </button>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-zinc-500 text-[11px]">Selected:</span>
+            <span className="font-semibold px-2 py-0.5 rounded-md text-[11px] font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              {TEMPLATE_CATEGORIES.find((c) => c.id === presetCategory)?.label || 'Simple'} (12)
+            </span>
+            <span className="text-[11px] text-zinc-400 hidden sm:inline">
+              • Hover icons for topic
+            </span>
           </div>
         </div>
 
-        {/* Selected Category Pill List */}
+        {/* 10 Category Icon Bar: Inactive icons expand on hover to show label, Active category always shows text */}
+        <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+          {TEMPLATE_CATEGORIES.map((cat) => {
+            const isActive = presetCategory === cat.id;
+            const IconComponent = CATEGORY_ICONS[cat.id] || Sparkles;
+
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setPresetCategory(cat.id)}
+                aria-label={`${cat.label} (12 templates)`}
+                className={`group h-9 rounded-lg text-xs font-medium transition-all duration-200 ease-out cursor-pointer flex items-center justify-center ${
+                  isActive
+                    ? isDark
+                      ? 'px-3 bg-zinc-100 text-zinc-950 font-bold shadow-xs ring-1 ring-zinc-300'
+                      : 'px-3 bg-zinc-900 text-white font-bold shadow-xs'
+                    : isDark
+                    ? 'px-2.5 hover:px-3 bg-zinc-850/80 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 border border-zinc-800'
+                    : 'px-2.5 hover:px-3 bg-zinc-100/90 text-zinc-600 hover:text-zinc-950 hover:bg-zinc-200 border border-zinc-200'
+                }`}
+              >
+                <IconComponent className="w-4 h-4 shrink-0" />
+                {isActive ? (
+                  <span className="ml-1.5 whitespace-nowrap font-bold text-xs">
+                    {cat.label}
+                  </span>
+                ) : (
+                  <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-28 group-hover:opacity-100 group-hover:ml-1.5 transition-all duration-200 ease-out text-xs font-medium">
+                    {cat.label}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Selected Category Pill List (12 samples) */}
         <div className="flex flex-wrap items-center gap-1.5 pt-1">
-          {(presetCategory === 'micro' ? MICRO_PRESETS : CURRICULUM_PRESETS).map((preset) => (
+          {(TEMPLATES_BY_CATEGORY[presetCategory] || []).map((preset) => (
             <button
               key={preset.id}
               onClick={() => handleLoadPreset(preset)}
+              title={preset.description || preset.name}
               className={`px-2.5 py-1 rounded-md text-xs font-medium border transition cursor-pointer ${
                 code === preset.code
                   ? isDark
-                    ? 'bg-zinc-800 text-white border-zinc-700 font-semibold shadow-xs'
+                    ? 'bg-zinc-850 text-white border-zinc-700 font-semibold shadow-xs'
                     : 'bg-zinc-900 text-white border-zinc-900 font-semibold shadow-xs'
                   : isDark
                   ? 'border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850'
@@ -909,28 +695,64 @@ export default function Playground({ theme }) {
             <span>Clear / Blank</span>
           </button>
 
-          {/* Layout Orientation Toggle */}
-          <button
-            onClick={toggleLayoutMode}
-            title={layoutMode === 'split' ? 'Switch to Console Below layout' : 'Switch to Side-by-Side layout'}
-            className={`h-9 px-3.5 rounded-lg text-xs font-medium border flex items-center gap-2 whitespace-nowrap transition cursor-pointer select-none ${
-              isDark 
-                ? 'bg-zinc-900 border-zinc-700/80 hover:bg-zinc-800 text-zinc-300 hover:text-white' 
-                : 'bg-white border-zinc-300 hover:bg-zinc-50 text-zinc-700 hover:text-zinc-950 shadow-xs'
-            }`}
-          >
-            {layoutMode === 'split' ? (
-              <>
-                <Rows2 className="w-4 h-4 text-zinc-400 shrink-0" />
-                <span>Console Below</span>
-              </>
-            ) : (
-              <>
-                <Columns2 className="w-4 h-4 text-zinc-400 shrink-0" />
-                <span>Side-by-Side</span>
-              </>
-            )}
-          </button>
+          {/* 3 Layout Toggles: Output Top | Side by Side | Output Below */}
+          <div className={`inline-flex items-center p-0.5 rounded-lg border text-xs select-none ${
+            isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-100 border-zinc-200'
+          }`}>
+            <button
+              type="button"
+              onClick={() => handleSetLayoutMode('top')}
+              title="Output Top layout (Output on top, code editor below)"
+              className={`h-8 px-2.5 rounded-md flex items-center gap-1.5 font-medium transition cursor-pointer text-xs ${
+                layoutMode === 'top'
+                  ? isDark
+                    ? 'bg-zinc-800 text-white font-bold shadow-xs'
+                    : 'bg-white text-zinc-950 font-bold shadow-xs'
+                  : isDark
+                  ? 'text-zinc-400 hover:text-zinc-200'
+                  : 'text-zinc-600 hover:text-zinc-900'
+              }`}
+            >
+              <PanelTop className="w-3.5 h-3.5 shrink-0" />
+              <span>Output Top</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSetLayoutMode('split')}
+              title="Side by Side layout (Code editor on left, output on right)"
+              className={`h-8 px-2.5 rounded-md flex items-center gap-1.5 font-medium transition cursor-pointer text-xs ${
+                layoutMode === 'split'
+                  ? isDark
+                    ? 'bg-zinc-800 text-white font-bold shadow-xs'
+                    : 'bg-white text-zinc-950 font-bold shadow-xs'
+                  : isDark
+                  ? 'text-zinc-400 hover:text-zinc-200'
+                  : 'text-zinc-600 hover:text-zinc-900'
+              }`}
+            >
+              <Columns2 className="w-3.5 h-3.5 shrink-0" />
+              <span>Side by Side</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSetLayoutMode('below')}
+              title="Output Below layout (Code editor on top, output below)"
+              className={`h-8 px-2.5 rounded-md flex items-center gap-1.5 font-medium transition cursor-pointer text-xs ${
+                layoutMode === 'below'
+                  ? isDark
+                    ? 'bg-zinc-800 text-white font-bold shadow-xs'
+                    : 'bg-white text-zinc-950 font-bold shadow-xs'
+                  : isDark
+                  ? 'text-zinc-400 hover:text-zinc-200'
+                  : 'text-zinc-600 hover:text-zinc-950'
+              }`}
+            >
+              <PanelBottom className="w-3.5 h-3.5 shrink-0" />
+              <span>Output Below</span>
+            </button>
+          </div>
         </div>
 
         {/* Text Size Modifier */}
@@ -962,15 +784,17 @@ export default function Playground({ theme }) {
         </div>
       </div>
 
-      {/* Main Compiler Workspace (Side-by-Side OR Stacked Console Below) */}
+      {/* Main Compiler Workspace (Output Top, Side-by-Side, or Output Below) */}
       <div className="flex flex-wrap gap-4 items-start w-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
         {/* Code Editor Pane */}
         <div className={`rounded-2xl border flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-white border-zinc-200 shadow-xs'
         } ${
           layoutMode === 'split' 
-            ? 'w-full lg:w-[calc(50%-0.5rem)]' 
-            : 'w-full'
+            ? 'w-full lg:w-[calc(50%-0.5rem)] order-1' 
+            : layoutMode === 'top'
+            ? 'w-full order-2'
+            : 'w-full order-1'
         } ${isTransitioningLayout ? 'animate-layout-shift' : ''}`}>
           {/* Editor Header */}
           <div className={`px-4 py-2.5 border-b flex items-center justify-between text-xs ${
@@ -985,7 +809,7 @@ export default function Playground({ theme }) {
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-mono text-zinc-500 hidden sm:inline">Syntax Highlighting Active</span>
               <button
-                onClick={() => handleLoadPreset(MICRO_PRESETS[0])}
+                onClick={() => handleLoadPreset(TEMPLATES_BY_CATEGORY.simple[0])}
                 title="Reset to starter script"
                 className="p-1 rounded hover:opacity-100 opacity-60 text-xs transition cursor-pointer"
               >
@@ -1076,8 +900,14 @@ export default function Playground({ theme }) {
           isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-white border-zinc-200 shadow-xs'
         } ${
           layoutMode === 'split' 
-            ? 'w-full lg:w-[calc(50%-0.5rem)] h-[546px]' 
-            : 'w-full h-[360px]'
+            ? 'w-full lg:w-[calc(50%-0.5rem)] h-[560px] order-2' 
+            : layoutMode === 'top'
+            ? activeTab === 'dom'
+              ? 'w-full h-[580px] order-1'
+              : 'w-full h-[480px] order-1'
+            : activeTab === 'dom'
+            ? 'w-full h-[580px] order-2'
+            : 'w-full h-[480px] order-2'
         } ${isTransitioningLayout ? 'animate-layout-shift' : ''}`}>
           {/* Output Header Tabs */}
           <div className={`px-4 py-2 border-b flex items-center justify-between text-xs ${
