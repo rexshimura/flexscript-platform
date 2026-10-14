@@ -56,7 +56,7 @@ export default function Landing({ theme, setTheme, student }) {
             <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border font-semibold ${
               isDark ? 'bg-zinc-900 border-zinc-800 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-700'
             }`}>
-              V1.8 Alpha
+              V1.8.1 Alpha
             </span>
           </div>
 
@@ -95,7 +95,7 @@ export default function Landing({ theme, setTheme, student }) {
             <span className={`text-[11px] font-mono px-2 py-0.5 rounded border font-semibold ${
               isDark ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
             }`}>
-              V1.8 Alpha
+              V1.8.1 Alpha
             </span>
           </div>
 
@@ -197,7 +197,7 @@ export default function Landing({ theme, setTheme, student }) {
       {/* Minimal Footer */}
       <footer className={`border-t py-6 text-xs ${isDark ? 'border-zinc-900 text-zinc-500' : 'border-zinc-200 text-zinc-500'}`}>
         <div className="max-w-4xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>FlexScript • V1.8 Alpha • Rexshimura | 2026</span>
+          <span>FlexScript • V1.8.1 Alpha • Rexshimura | 2026</span>
           <span>Press Alt + P to toggle theme</span>
         </div>
       </footer>

@@ -62,7 +62,7 @@ export default function AdminLayout({ theme, setTheme }) {
                   Dev Panel
                 </span>
                 <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  v1.8 Alpha
+                  v1.8.1 Alpha
                 </span>
               </div>
             </Link>

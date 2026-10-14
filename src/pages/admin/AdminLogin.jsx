@@ -176,7 +176,7 @@ export default function AdminLogin({ theme }) {
         </form>
 
         <div className={`pt-4 border-t text-center text-[11px] ${isDark ? 'border-zinc-800/80 text-zinc-500' : 'border-zinc-200 text-zinc-400'}`}>
-          <span>Protected Developer Portal • FlexScript SIS v1.8</span>
+          <span>Protected Developer Portal • FlexScript SIS v1.8.1</span>
         </div>
       </div>
     </div>
