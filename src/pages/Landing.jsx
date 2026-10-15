@@ -128,7 +128,7 @@ export default function Landing({ theme, setTheme, student }) {
                   : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20'
               }`}
             >
-              <span>{student ? 'Continue as ' + (student.username || student.name) : 'Access Student Portal'}</span>
+              <span>{student ? `Continue as ${student?.student_profile?.username || student?.username || student?.name || 'Yi Zaha'}` : 'Access Student Portal'}</span>
               <ArrowRight className="w-4 h-4 text-white" />
             </button>
 

@@ -111,12 +111,12 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
     year: 'numeric'
   });
 
-  const certificateId = `CTU-JS101-${student?.studentId || '0000001'}-2026`;
-  const currentUsername = student?.username || student?.name || initialUsername;
+  const certificateId = student?.student_certificate?.certificate_id || `CTU-JS101-${student?.student_profile?.id || student?.studentId || '0000001'}-2026`;
+  const currentUsername = student?.student_profile?.username || student?.username || student?.name || initialUsername;
 
   // Authoritative certificate record with deterministic SHA-256
   const certRecord = getCertificateRecord(
-    { studentId: student?.studentId || '0000001', realName, email, section: student?.section },
+    { studentId: student?.student_profile?.id || student?.studentId || '0000001', realName, email, section: student?.student_profile?.section || student?.section },
     currentDateFormatted
   );
   const [copiedSha, setCopiedSha] = useState(false);
@@ -252,12 +252,12 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
                 <span className={`px-2 py-0.5 rounded font-mono font-bold border ${
                   isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-300' : 'bg-zinc-100 border-zinc-200 text-zinc-700'
                 }`}>
-                  ID: {student?.studentId || '0000001'}
+                  ID: {student?.student_profile?.id || student?.studentId || '0000001'}
                 </span>
                 <span className={`px-2 py-0.5 rounded border ${
                   isDark ? 'bg-zinc-800/60 border-zinc-700 text-zinc-300' : 'bg-zinc-100 border-zinc-200 text-zinc-700'
                 }`}>
-                  {student?.section || 'BSIT 4-B'}
+                  {student?.student_profile?.section || student?.section || 'BSIT 4-B'}
                 </span>
                 <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-0.5 rounded-full border ${
                   isDark
@@ -298,7 +298,7 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
           </div>
           <div className="space-y-0.5">
             <span className="text-[11px] font-mono text-zinc-500">Student ID Number</span>
-            <p className="font-mono">{student?.studentId || '0000001'}</p>
+            <p className="font-mono">{student?.student_profile?.id || student?.studentId || '0000001'}</p>
           </div>
           <div className="space-y-0.5">
             <span className="text-[11px] font-mono text-zinc-500">Institution & Campus</span>
@@ -310,7 +310,7 @@ export default function Account({ theme, student, setStudent, completed = [] }) 
           </div>
           <div className="space-y-0.5">
             <span className="text-[11px] font-mono text-zinc-500">Birthdate on Record</span>
-            <p className="font-mono">{student?.birthdate || '2000-01-01'}</p>
+            <p className="font-mono">{student?.student_profile?.birthdate || student?.birthdate || '2000-01-01'}</p>
           </div>
         </div>
       </div>

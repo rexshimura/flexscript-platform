@@ -14,7 +14,7 @@ export default function Overview({ theme, completed, student }) {
   const total = SYLLABUS_OBJECTIVES.length;
   const percent = Math.round((completed.length / total) * 100);
   const completedDuration = getCompletedCourseDuration(completed);
-  const username = student?.username || student?.name || 'Student';
+  const username = student?.student_profile?.username || student?.username || student?.name || 'Yi Zaha';
 
   // 10 personalized welcome messages: first is always "Welcome, {username}!", rest are shuffled randomly
   const welcomeMessages = useMemo(() => {

@@ -41,7 +41,7 @@ export default function Layout({ theme, setTheme, completedCount, student, setSt
         : 'text-zinc-600 hover:text-zinc-900'
     }`;
 
-  const displayName = student?.username || student?.name || 'Student';
+  const displayName = student?.student_profile?.username || student?.username || student?.name || 'Yi Zaha';
 
   return (
     <div className={`min-h-screen transition-colors duration-150 ${isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'}`}>

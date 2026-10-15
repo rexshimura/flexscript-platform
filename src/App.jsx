@@ -63,12 +63,65 @@ function NotFoundRedirect() {
   return <Navigate to="/not-found" state={{ attemptedPath: location.pathname }} replace />;
 }
 
+// Normalizes student data so root-level aliases (username, name, realName, studentId) 
+// match nested student_profile seamlessly across all views
+function normalizeStudentData(data) {
+  if (!data) return null;
+  const p = data.student_profile || {};
+  const id = p.id || data.studentId || data.id || '0000001';
+  const username = p.username || data.username || data.name || 'Yi Zaha';
+  const realname = p.realname || data.realname || data.realName || 'Alexander Vance';
+  const email = p.email || data.email || `${realname.toLowerCase().replace(/[^a-z0-9]/g, '.')}@ctu.edu.ph`;
+  const section = p.section || data.section || 'BSIT 4-B';
+  const school = p.school || data.school || 'Cebu Technological University • Main Campus';
+  const program = p.program || data.program || 'Bachelor of Science in Information Technology';
+  const birthdate = p.birthdate || data.birthdate || '2000-01-01';
+
+  return {
+    ...data,
+    id,
+    studentId: id,
+    username,
+    name: username,
+    realname,
+    realName: realname,
+    email,
+    section,
+    school,
+    program,
+    birthdate,
+    student_profile: {
+      id,
+      realname,
+      username,
+      email,
+      section,
+      school,
+      program,
+      birthdate,
+      ...p
+    }
+  };
+}
+
 function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('js_theme') || 'dark');
   const [student, setStudent] = useState(() => {
     const saved = localStorage.getItem('js_student_user');
-    return saved ? JSON.parse(saved) : null;
+    return saved ? normalizeStudentData(JSON.parse(saved)) : null;
   });
+
+  const updateStudent = (newStudent) => {
+    if (typeof newStudent === 'function') {
+      setStudent((prev) => {
+        const res = newStudent(prev);
+        return res ? normalizeStudentData(res) : null;
+      });
+    } else {
+      setStudent(newStudent ? normalizeStudentData(newStudent) : null);
+    }
+  };
+
   const [completed, setCompleted] = useState(() => {
     const saved = localStorage.getItem('js_completed');
     return saved ? JSON.parse(saved) : [];
@@ -117,9 +170,10 @@ function App() {
       .then((cloudData) => {
         if (!isMounted) return;
         if (cloudData) {
-          // Keep student profile and cloud objectives fresh in state & localStorage
-          setStudent(cloudData);
-          localStorage.setItem('js_student_user', JSON.stringify(cloudData));
+          // Normalize student profile so root username and nested student_profile.username are preserved
+          const normalized = normalizeStudentData(cloudData);
+          setStudent(normalized);
+          localStorage.setItem('js_student_user', JSON.stringify(normalized));
 
           const cloudCompleted = cloudData.student_progress?.completed_chapters ?? cloudData.completedObjectives;
           if (Array.isArray(cloudCompleted)) {
@@ -175,7 +229,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing theme={theme} setTheme={setTheme} student={student} />} />
-        <Route path="/login" element={<Login theme={theme} setStudent={setStudent} />} />
+        <Route path="/login" element={<Login theme={theme} setStudent={updateStudent} />} />
         <Route path="/verify/certificate" element={<VerifyCertificate theme={theme} setTheme={setTheme} student={student} />} />
         <Route path="/verify" element={<Navigate to="/verify/certificate" replace />} />
         <Route path="/not-found" element={<NotFound theme={theme} setTheme={setTheme} student={student} />} />
@@ -198,7 +252,7 @@ function App() {
                 setTheme={setTheme}
                 completedCount={completed.length}
                 student={student}
-                setStudent={setStudent}
+                setStudent={updateStudent}
               />
             }
           >
@@ -226,7 +280,7 @@ function App() {
                 <Account
                   theme={theme}
                   student={student}
-                  setStudent={setStudent}
+                  setStudent={updateStudent}
                   completed={completed}
                 />
               }
