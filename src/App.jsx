@@ -95,31 +95,62 @@ function App() {
     seedInitialFirestoreData();
   }, []);
 
+  // Guard to ensure we NEVER push stale local cache to Firestore before reading cloud data
+  const isInitialSyncDone = useRef(false);
+  const lastStudentIdRef = useRef(null);
+  const currentStudentId = student?.student_profile?.id || student?.studentId;
+
+  if (currentStudentId !== lastStudentIdRef.current) {
+    lastStudentIdRef.current = currentStudentId;
+    isInitialSyncDone.current = false;
+  }
+
   // Sync cloud progress when student logs in or on load
   useEffect(() => {
-    const studentId = student?.student_profile?.id || student?.studentId;
-    if (!studentId) return;
-    fetchStudentFromFirestore(studentId).then((cloudData) => {
-      if (cloudData) {
-        const cloudCompleted = cloudData.student_progress?.completed_chapters || cloudData.completedObjectives;
-        if (Array.isArray(cloudCompleted) && cloudCompleted.length > 0) {
-          setCompleted((prev) => {
-            const merged = Array.from(new Set([...prev, ...cloudCompleted]));
-            return merged;
-          });
+    if (!currentStudentId) {
+      isInitialSyncDone.current = true;
+      return;
+    }
+
+    let isMounted = true;
+    fetchStudentFromFirestore(currentStudentId)
+      .then((cloudData) => {
+        if (!isMounted) return;
+        if (cloudData) {
+          // Keep student profile and cloud objectives fresh in state & localStorage
+          setStudent(cloudData);
+          localStorage.setItem('js_student_user', JSON.stringify(cloudData));
+
+          const cloudCompleted = cloudData.student_progress?.completed_chapters ?? cloudData.completedObjectives;
+          if (Array.isArray(cloudCompleted)) {
+            // Cloud Firestore is the authoritative source of truth (even if reset to empty [])
+            setCompleted(cloudCompleted);
+            localStorage.setItem('js_completed', JSON.stringify(cloudCompleted));
+          }
         }
-      }
-    });
-  }, [student?.studentId, student?.student_profile?.id]);
+        isInitialSyncDone.current = true;
+      })
+      .catch((err) => {
+        console.warn('Firestore initial fetch notice:', err.message);
+        isInitialSyncDone.current = true;
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentStudentId]);
 
   // Synchronize completed objectives locally and with Cloud Firestore
   useEffect(() => {
+    // CRITICAL: Do NOT push local state to Firestore until initial sync from cloud completes!
+    // This prevents stale local cache on browser refresh from overwriting an admin reset.
+    if (!isInitialSyncDone.current) return;
+
     localStorage.setItem('js_completed', JSON.stringify(completed));
-    const studentId = student?.student_profile?.id || student?.studentId;
-    if (studentId) {
-      syncCompletedToFirestore(studentId, completed);
+    if (currentStudentId) {
+      syncCompletedToFirestore(currentStudentId, completed);
     }
-  }, [completed, student?.studentId, student?.student_profile?.id]);
+  }, [completed, currentStudentId]);
 
   const toggleComplete = (id) => {
     setCompleted((prev) =>

@@ -13,6 +13,7 @@ export default function Layout({ theme, setTheme, completedCount, student, setSt
 
   const confirmLogout = () => {
     localStorage.removeItem('js_student_user');
+    localStorage.removeItem('js_completed');
     setStudent(null);
     setShowLogoutModal(false);
     navigate('/');

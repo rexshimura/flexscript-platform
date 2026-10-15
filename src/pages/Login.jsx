@@ -107,7 +107,8 @@ export default function Login({ theme, setStudent }) {
               birthdate: p.birthdate,
               student_profile: p,
               student_progress: cloudDoc.student_progress,
-              student_certificate: cloudDoc.student_certificate
+              student_certificate: cloudDoc.student_certificate,
+              student_objectives: cloudDoc.student_objectives
             };
           }
         }
@@ -154,6 +155,12 @@ export default function Login({ theme, setStudent }) {
       };
 
       localStorage.setItem('js_student_user', JSON.stringify(sessionData));
+      const cloudCompleted = sessionData.student_progress?.completed_chapters ?? sessionData.completedObjectives;
+      if (Array.isArray(cloudCompleted)) {
+        localStorage.setItem('js_completed', JSON.stringify(cloudCompleted));
+      } else {
+        localStorage.removeItem('js_completed');
+      }
       setStudent(sessionData);
       syncStudentToFirestore(sessionData);
       setIsLoading(false);

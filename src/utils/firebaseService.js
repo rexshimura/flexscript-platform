@@ -569,6 +569,21 @@ export async function resetStudentProgressInFirestore(studentId) {
   if (!studentId) return;
   const rawId = String(studentId).trim();
   const studentRef = doc(db, 'students', rawId);
+
+  // Clean up standalone certificate in certificates collection if previously issued
+  try {
+    const snap = await getDoc(studentRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      const existingSha = data.student_certificate?.sha256;
+      if (existingSha) {
+        await deleteDoc(doc(db, 'certificates', existingSha)).catch(() => {});
+      }
+    }
+  } catch (e) {
+    console.warn('Certificate cleanup warning on reset:', e);
+  }
+
   await updateDoc(studentRef, {
     student_progress: {
       completed_count: 0,

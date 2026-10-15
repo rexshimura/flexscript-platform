@@ -160,6 +160,35 @@ export default function AdminManage({ theme }) {
     setActionLoading(true);
     try {
       await resetStudentProgressInFirestore(confirmReset.id);
+
+      // If the admin is testing in the same browser and currently logged in as this student:
+      const activeStudent = localStorage.getItem('js_student_user');
+      if (activeStudent) {
+        try {
+          const parsed = JSON.parse(activeStudent);
+          const activeId = parsed.student_profile?.id || parsed.studentId || parsed.id;
+          if (String(activeId) === String(confirmReset.id)) {
+            localStorage.setItem('js_completed', JSON.stringify([]));
+            parsed.student_progress = {
+              completed_count: 0,
+              total_chapters: 26,
+              percentage: 0,
+              is_certified: false,
+              completed_chapters: []
+            };
+            if (parsed.student_certificate) {
+              parsed.student_certificate.sha256 = '';
+              parsed.student_certificate.status = 'IN_PROGRESS';
+              parsed.student_certificate.date_issued = 'Pending Completion';
+            }
+            parsed.student_objectives = {};
+            localStorage.setItem('js_student_user', JSON.stringify(parsed));
+          }
+        } catch (e) {
+          console.warn('LocalStorage cleanup warning:', e);
+        }
+      }
+
       await loadStudents();
       setConfirmReset(null);
     } catch (err) {

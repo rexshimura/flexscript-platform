@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -24,7 +24,7 @@ import { SYLLABUS_OBJECTIVES, OLD_TECH_OBJECTIVES, ALL_OBJECTIVES, isObjectiveUn
 import CodeHighlight from '../components/ui/CodeHighlight';
 import FlipCard from '../components/ui/FlipCard';
 import FormattedCardDescription from '../components/ui/FormattedCardDescription';
-import { syncChapterTelemetryToFirestore } from '../utils/firebaseService';
+import { syncChapterTelemetryToFirestore, getChapterKey } from '../utils/firebaseService';
 
 export default function ObjectiveDetail({ theme, completed, toggleComplete, student }) {
   const { id } = useParams();
@@ -92,7 +92,6 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete, stud
     setFlashcardIndex(0);
     setIsFlipped(false);
     setShowHint(false);
-    setMasteredCards([]);
   }, [id]);
 
   // Chapter exercise quiz state
@@ -140,19 +139,70 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete, stud
       }));
 
   const cardsCount = studyCards.length;
+
+  const chapterKey = currentObj?.id ? getChapterKey(currentObj.id) : null;
+  const cloudChapterData = chapterKey ? student?.student_objectives?.[chapterKey] : null;
+
   const [acknowledged, setAcknowledged] = useState(() => {
     if (isDone) {
       return Array.from({ length: cardsCount }, (_, i) => i);
     }
+    if (cloudChapterData?.definitions) {
+      const ack = [];
+      studyCards.forEach((_, i) => {
+        if (cloudChapterData.definitions[`card_${i + 1}`] === true) {
+          ack.push(i);
+        }
+      });
+      return ack;
+    }
     return [];
   });
 
-  // Keep acknowledged in sync if completion status changes
+  // Track if telemetry has been initialized for this objective to prevent premature overwrites
+  const isTelemetryInitializedRef = useRef(false);
+
+  // Keep acknowledged & flashcards in sync when chapter, completion, or cloud telemetry changes
   useEffect(() => {
+    isTelemetryInitializedRef.current = false;
+
     if (isDone) {
       setAcknowledged(Array.from({ length: cardsCount }, (_, i) => i));
+      setMasteredCards(Array.from({ length: totalFlashcards }, (_, i) => i));
+    } else {
+      // Re-hydrate definitions from cloud telemetry or clear when reset
+      if (cloudChapterData?.definitions) {
+        const cloudAck = [];
+        studyCards.forEach((_, i) => {
+          if (cloudChapterData.definitions[`card_${i + 1}`] === true) {
+            cloudAck.push(i);
+          }
+        });
+        setAcknowledged(cloudAck);
+      } else {
+        setAcknowledged([]);
+      }
+
+      // Re-hydrate flashcards from cloud telemetry or clear when reset
+      if (cloudChapterData?.flashcards) {
+        const cloudMast = [];
+        flashcards.forEach((_, i) => {
+          if (cloudChapterData.flashcards[`card_${i + 1}`] === true) {
+            cloudMast.push(i);
+          }
+        });
+        setMasteredCards(cloudMast);
+      } else {
+        setMasteredCards([]);
+      }
     }
-  }, [isDone, cardsCount]);
+
+    const timer = setTimeout(() => {
+      isTelemetryInitializedRef.current = true;
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [id, isDone, cardsCount, totalFlashcards, student?.student_objectives]);
 
   const toggleAcknowledge = (index) => {
     setAcknowledged((prev) =>
@@ -175,19 +225,22 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete, stud
 
   // Chapter Step Milestones:
   // 1. Definitions: checked all cards (+1)
-  const isStep1Done = cardsCount > 0 && acknowledged.length >= cardsCount;
+  const isStep1Done = isDone || (cardsCount > 0 && acknowledged.length >= cardsCount);
   // 2. Flashcards: mastered all flashcards (+1)
-  const isStep2Done = totalFlashcards > 0 && masteredCards.length >= totalFlashcards;
+  const isStep2Done = isDone || (totalFlashcards > 0 && masteredCards.length >= totalFlashcards);
   // 3. Exercise: perfect score on all questions (+1)
-  const isStep3Done = chapterExercises.length > 0 && correctCount === chapterExercises.length;
+  const isStep3Done = isDone || (chapterExercises.length > 0 && correctCount === chapterExercises.length);
 
   const completedStepsCount = (isStep1Done ? 1 : 0) + (isStep2Done ? 1 : 0) + (isStep3Done ? 1 : 0);
   const stepsProgressPercent = Math.round((completedStepsCount / 3) * 100);
 
   // Synchronize chapter learning telemetry (definitions, flashcards, exercise) to Cloud Firestore
   useEffect(() => {
-    const studentId = student?.studentId || student?.id || student?.student_profile?.id;
+    const studentId = student?.student_profile?.id || student?.studentId || student?.id;
     if (!studentId || !currentObj?.id || isOldTech) return;
+
+    // Guard: Only sync to Firestore AFTER chapter telemetry has been initialized from cloud
+    if (!isTelemetryInitializedRef.current) return;
 
     const defMap = {};
     studyCards.forEach((_, i) => {
@@ -215,7 +268,7 @@ export default function ObjectiveDetail({ theme, completed, toggleComplete, stud
     }, 600);
 
     return () => clearTimeout(timer);
-  }, [student, currentObj?.id, acknowledged, masteredCards, exerciseAnswers, isDone, correctCount, exercisePassed, isOldTech]);
+  }, [student?.student_profile?.id, student?.studentId, currentObj?.id, acknowledged, masteredCards, exerciseAnswers, isDone, correctCount, exercisePassed, isOldTech]);
 
   // Navigation helpers
   const currentIndex = SYLLABUS_OBJECTIVES.findIndex((o) => o.id === currentObj.id);
